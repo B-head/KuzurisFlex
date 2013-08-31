@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+         xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/halo"
+		 xmlns:v="view.*"
+		 initialize="initalize()">
+		 
+	<fx:Script>
+		<![CDATA[
+			import model.*;
+			import flash.events.*;
+			
+			public var mode:String;
+			private var manager:GameManager;
+			private var input:UserInput;
+			private var execution:Boolean;
+			
+			private function initalize():void
+			{
+				manager = new GameManager(1, false);
+				input = new UserInput();
+				manager.setPlayer(0, input);
+				main.reverse = false;
+				main.blockGraphics = new BlockGraphics();
+			}
+			
+			private function start():void
+			{
+				var setting:GameSetting = new GameSetting();
+				setting.gameMode = mode;
+				setting.startLevel = level.value;
+				setting.endless = endless.selected;
+				manager.initializeGame(setting);
+				main.gameModel = manager.getGameModel(0);
+				addEventListener(Event.ENTER_FRAME, onEnterFrame);
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
+				startMenu.visible = false;
+				execution = true;
+			}
+			
+			private function pause():void
+			{
+				execution = false;
+			}
+			
+			private function resume():void
+			{
+				execution = true;
+			}
+			
+			private function end():void
+			{
+				removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+				stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+				stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUp);
+				startMenu.visible = true;
+				execution = false;
+			}
+			
+			private function onEnterFrame(e:Event):void
+			{
+				if (!execution) return;
+				manager.forwardStep();
+				main.update();
+			}
+			
+			private function onKeyDown(e:KeyboardEvent):void
+			{
+				if (!execution) return;
+				input.keyDown(e.keyCode);
+			}
+			
+			private function onKeyUp(e:KeyboardEvent):void
+			{
+				if (!execution) return;
+				input.keyUp(e.keyCode);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+
+	<v:GameView id="main" x="227" y="0" />
+	<s:VGroup id="startMenu" x="352" y="150" width="150" horizontalAlign="center">
+		<s:Button width="150" label="スタート" buttonDown="start()" />
+		<s:Label text="開始レベル{level.value}" />
+		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
+		<s:CheckBox id="endless" label="エンドレス" />
+		<s:Button width="150" label="ランキング" />
+		<s:Button width="150" label="キーコンフィグ" />
+		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
+	</s:VGroup>
+</s:Group>

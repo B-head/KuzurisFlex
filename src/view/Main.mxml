@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:v="view.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.IVisualElement;
+			import model.GameSetting;
+
+			private function decideTlial(mode:String):void
+			{
+				titleMenu.visible = false;
+				var trial:Trial = new Trial();
+				trial.mode = mode;
+				trial.addEventListener("back", function():void { backTitle(trial); } );
+				addElement(trial);
+			}
+			
+			private function backTitle(ve:IVisualElement):void
+			{
+				removeElement(ve);
+				titleMenu.visible = true;
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Group id="titleMenu">
+		<s:Label width="300" x="100" y="50" text="壊リスの偽物" />
+		<s:Label width="300" x="100" y="100" text="崩リス" />
+
+		<s:BorderContainer x="100" y="200">
+			<s:RichText width="300" height="230">
+			崩れて壊れない「壊リス」の偽物。
+			転じて「崩リス」。
+			</s:RichText>
+		</s:BorderContainer>
+
+		<mx:ViewStack id="mode" x="454" y="50">
+			<s:NavigatorContent>
+				<s:VGroup horizontalAlign="center">
+					<s:Button width="300" label="トライアルモード" buttonDown="mode.selectedIndex = 1" />
+					<s:Button width="300" label="対戦モード" buttonDown="mode.selectedIndex = 2" />
+					<s:Button width="300" label="インターネット対戦モード" />
+					<s:Button width="300" label="あそびかた" />
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent>
+				<s:VGroup horizontalAlign="center">
+					<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)" />
+					<s:Button width="300" label="おじゃまアタック" buttonDown="decideTlial(GameSetting.obstacleAttack)" />
+					<s:Button width="300" label="ポリオミノ" buttonDown="decideTlial(GameSetting.polyOmino)" />
+					<s:Button width="300" label="オーバースピード" buttonDown="decideTlial(GameSetting.overSpeed)" />
+					<s:Button width="300" label="おじゃまファイト" buttonDown="decideTlial(GameSetting.obstacleFight)" />
+					<s:Button width="300" label="ビッグミノ" buttonDown="decideTlial(GameSetting.bigOmino)" />
+					<s:Button width="300" label="レベルフリー" buttonDown="decideTlial(GameSetting.free)" />
+					<s:Button width="100" label="もどる" buttonDown="mode.selectedIndex = 0" />
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent>
+				<s:VGroup horizontalAlign="center">
+					<s:Button width="300" label="VSコンピューター" />
+					<s:Button width="300" label="VSプレイヤー" />
+					<s:Button width="300" label="とことん対戦" />
+					<s:Button width="100" label="もどる" buttonDown="mode.selectedIndex = 0" />
+				</s:VGroup>
+			</s:NavigatorContent>
+		</mx:ViewStack>
+	</s:Group>
+</s:Application>

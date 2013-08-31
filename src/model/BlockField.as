@@ -1,0 +1,203 @@
+package model 
+{
+	/**
+	 * ...
+	 * @author B_head
+	 */
+	public class BlockField 
+	{
+		protected var value:Vector.<Vector.<BlockState>>;
+		protected var _width:int;
+		protected var _height:int;
+		
+		public function BlockField(w:int, h:int)
+		{
+			value = generateValue(w, h);
+			_width = w;
+			_height = h;
+		}
+		
+		private function generateValue(w:int, h:int):Vector.<Vector.<BlockState>>
+		{
+			var result:Vector.<Vector.<BlockState>> = new Vector.<Vector.<BlockState>>(w, true);
+			for (var x:int = 0; x < w; x++)
+			{
+				result[x] = new Vector.<BlockState>(h, true);
+			}
+			return result;
+		}
+		
+		public function get width():int
+		{
+			return _width;
+		}
+		
+		public function get height():int
+		{
+			return _height;
+		}
+		
+		public function getHitPoint(x:int, y:int):Number
+		{
+			return value[x][y].hitPoint;
+		}
+		
+		public function getColor(x:int, y:int):uint
+		{
+			return value[x][y].color;
+		}
+		
+		public function getSpecialUnion(x:int, y:int):Boolean
+		{
+			return value[x][y].specialUnion;
+		}
+		
+		public function isExistBlock(x:int, y:int):Boolean
+		{
+			return value[x][y] != null;
+		}
+		
+		public function copyTo(to:BlockField):void
+		{
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					to.value[x][y] = value[x][y];
+				}
+			}
+		}
+		
+		public function fix(from:BlockField, rx:int, ry:int):void
+		{
+			var w:int = from._width;
+			var h:int = from._height;
+			for (var x:int = 0; x < w; x++)
+			{
+				for (var y:int = 0; y < h; y++)
+				{
+					var v:BlockState = from.value[x][y];
+					if (v == null)
+					{
+						continue;
+					}
+					value[rx + x][ry + y] = v;
+					from.value[x][y] = null;
+				}
+			}
+		}
+		
+		public function blocksHitChack(field:BlockField, rx:int, ry:int, wallChack:Boolean):int
+		{
+			var count:int = 0;
+			var w:int = field._width;
+			var h:int = field._height;
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					if (value[x][y] == null)
+					{
+						continue;
+					}
+					var tx:int = x + rx;
+					var ty:int = y + ry;
+					if (tx < 0 || tx >= w || ty < 0 || ty >= h)
+					{ 
+						if (wallChack == true)
+						{
+							count++;
+						}
+						continue; 
+					}
+					if (field.value[tx][ty] == null)
+					{
+						continue;
+					}
+					count++;
+				}
+			}
+			return count;
+		}
+		
+		public function verticalShock(x:int, y:int, shockDamage:Number, indirectShockDamage:Number, onBlockDamageDelegate:Function, up:Boolean):Number
+		{
+			var totalDamage:Number = 0;
+			var damage:Number = 0;
+			for (var i:int = y; i >= 0 && i < _height; up ? i-- : i++)
+			{
+				if (value[x][i] == null)
+				{
+					break;
+				}
+				if (i == y)
+				{
+					damage = blockShock(x, i, shockDamage);
+				}
+				else
+				{
+					damage += blockShock(x, i, indirectShockDamage);
+				}
+				onBlockDamageDelegate(x, y, damage);
+				totalDamage += damage;
+			}
+			return totalDamage;
+		}
+		
+		private function blockShock(x:int, y:int, damage:Number):Number
+		{
+			var result:Number = 0;
+			var hitPoint:Number = value[x][y].hitPoint;
+			var v:BlockState = value[x][y];
+			if (hitPoint <= damage) 
+			{ 
+				result = hitPoint; 
+				hitPoint = 0;
+			}
+			else
+			{
+				result = damage;
+				hitPoint -= damage;
+			}
+			value[x][y] = new BlockState(hitPoint, v.color, v.specialUnion);
+			return result;
+		}
+		
+		public function countBlock():int
+		{
+			var count:int = 0;
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					if (value[x][y] != null)
+					{
+						count++;
+					}
+				}
+			}
+			return count;
+		}
+		
+		public function getRect():Rect
+		{
+			var rect:Rect = new Rect();
+			with (rect) { left = _width - 1; top = _height - 1; right = 0; bottom = 0; }
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					if (value[x][y] == null)
+					{
+						continue;
+					}
+					rect.left = Math.min(rect.left, x);
+					rect.top = Math.min(rect.top, y);
+					rect.right = Math.max(rect.right, x);
+					rect.bottom = Math.max(rect.bottom, y);
+				}
+			}
+			return rect;
+		}
+	}
+}
