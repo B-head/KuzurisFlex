@@ -29,6 +29,11 @@ package model
 		public var playTime:int = 60;
 		public var playFastTime:int = 15;
 		public var quantityOddsBasis:Vector.<int> = new <int>[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];
+		
+		public function isLevelUp(level:int, breakLine:int):Boolean
+		{
+			
+		}
 	}
 
 }

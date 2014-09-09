@@ -114,15 +114,15 @@ package model
 				_ffy = 0;
 				fallSpeed = 0;
 				if (_fallField.countBlock() > 0) return;
+				var totalLineScore:int = comboCount * comboCount * lineScore;
+				dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
+				dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, record.gameTime, totalDamage, totalDamage, int.MIN_VALUE, int.MIN_VALUE));
 				_mainField.clearSpecialUnion();
 				setNextOmino();
 				var rect:Rect = _controlOmino.getRect();
 				_cox = fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2);
 				_coy = fieldHeight / 2 - 1 - rect.bottom;
 				dispatchEvent(new GameEvent(GameEvent.setOmino, record.gameTime, 0));
-				var totalLineScore:int = comboCount * comboCount * lineScore;
-				dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
-				dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, record.gameTime, totalDamage, totalDamage, int.MIN_VALUE, int.MIN_VALUE));
 				if (_controlOmino.blocksHitChack(_mainField, _cox, _coy, true) > 0)
 				{
 					gameOverFlag = true;

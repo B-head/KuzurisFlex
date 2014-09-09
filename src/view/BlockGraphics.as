@@ -36,7 +36,9 @@ package view
 		private var Block10:Class;
 		
 		public const blockLength:int = 11;
+		[Bindable] 
 		public var blockWidth:int;
+		[Bindable] 
 		public var blockHeight:int;
 		
 		public function BlockGraphics(blockWidth:int = 16, blockHeight:int = 16)

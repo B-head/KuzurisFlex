@@ -1,11 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/halo">
+               xmlns:mx="library://ns.adobe.com/flex/halo"
+			   xmlns:v="view.*">
+	<fx:Library>
+		<fx:Definition name="NextCircle">
+			<s:Group>
+				<s:Ellipse width="96" height="48">
+					<s:fill>
+						<s:RadialGradient id="ncFill">
+							<s:GradientEntry color="#35a16b" ratio="0" alpha="0" />
+							<s:GradientEntry color="#35a16b" ratio="1" alpha="0.5" />
+						</s:RadialGradient>
+					</s:fill>
+					<s:stroke>
+						<s:SolidColorStroke id="ncStroke" color="#35a16b" weight="1" alpha="0.5" />
+					</s:stroke>
+				</s:Ellipse>
+			</s:Group>
+		</fx:Definition>
+	</fx:Library>
+	
+	<fx:Script>
+		<![CDATA[
+		import model.*;
+		
+		[Bindable] 
+		public var blockGraphics:BlockGraphics;
+		[Bindable] 
+		public var reverse:Boolean
+		
+		public function update(nextOmino:Vector.<OminoField>, shockSave:Boolean):void
+		{
+			next0.update(nextOmino[0], shockSave);
+			adjust(next0, nextOmino[0], 0, 20, 96, 48, 1);
+			next1.update(nextOmino[1], shockSave);
+			adjust(next1, nextOmino[1], 0, 72, 96, 48, 1);
+			next2.update(nextOmino[2], shockSave);
+			adjust(next2, nextOmino[2], 0, 124, 96, 48, 1);
+			next3.update(nextOmino[3], shockSave);
+			adjust(next3, nextOmino[3], 0, 176, 96, 48, 1);
+			next4.update(nextOmino[4], shockSave);
+			adjust(next4, nextOmino[4], 0, 228, 96, 48, 1);
+			next5.update(nextOmino[5], shockSave);
+			adjust(next5, nextOmino[5], 0, 280, 96, 48, 1);
+		}
+		
+		public function adjust(fieldView:BlockFieldView, omino:OminoField, x:int, y:int, width:int, height:int, scale:Number):void
+		{
+			var rect:Rect = omino.getRect();
+			var w:Number = rect.width * blockGraphics.blockWidth;
+			var h:Number = rect.height * blockGraphics.blockHeight;
+			var sx:Number = Math.min(1, width / w);
+			var sy:Number = Math.min(1, height / h);
+			var s:Number = Math.min(scale, sx, sy);
+			fieldView.scaleX = s;
+			fieldView.scaleY = s;
+			fieldView.x = x + (width - w * s) / 2;
+			fieldView.y = y + (height - h * s) / 2;
+		}
+		]]>
+	</fx:Script>
 	
 	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
 	</fx:Declarations>
 	
-	
-</s:Application>
+	<s:Label x="0" y="0" width="96" textAlign="center" text="ネクスト"/>
+	<fx:NextCircle x="0" y="20"/>
+	<fx:NextCircle x="0" y="72"/>
+	<fx:NextCircle x="0" y="124"/>
+	<fx:NextCircle x="0" y="176"/>
+	<fx:NextCircle x="0" y="228"/>
+	<fx:NextCircle x="0" y="280"/>
+	<v:BlockFieldView id="next0" spritesLength="100" blockGraphics="{blockGraphics}"/>
+	<v:BlockFieldView id="next1" spritesLength="100" blockGraphics="{blockGraphics}"/>
+	<v:BlockFieldView id="next2" spritesLength="100" blockGraphics="{blockGraphics}"/>
+	<v:BlockFieldView id="next3" spritesLength="100" blockGraphics="{blockGraphics}"/>
+	<v:BlockFieldView id="next4" spritesLength="100" blockGraphics="{blockGraphics}"/>
+	<v:BlockFieldView id="next5" spritesLength="100" blockGraphics="{blockGraphics}"/>
+</s:Group>

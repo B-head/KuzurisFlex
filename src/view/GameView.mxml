@@ -6,70 +6,32 @@
 		 
 	<fx:Script>
 		<![CDATA[
-			import model.*;
-			
-			private var _gameModel:GameModel;
-			private var blockWidth:int;
-			private var blockHeight:int;
+		import model.*;
 		
-			public function set reverse(value:Boolean):void
-			{
-				if (value)
-				{
-					info.x = 304;
-					nextGroup.x = 0;
-				}
-				else
-				{
-					info.x = 0;
-					nextGroup.x = 304;
-				}
-			}
-			
-			public function set gameModel(value:GameModel):void
-			{
-				_gameModel = value;
-			}
-			
-			public function set blockGraphics(value:BlockGraphics):void
-			{
-				blockWidth = value.blockWidth;
-				blockHeight = value.blockHeight;
-				main.blockGraphics = value;
-				fall.blockGraphics = value;
-				ghost.blockGraphics = value;
-				control.blockGraphics = value;
-				next0.blockGraphics = value;
-				next1.blockGraphics = value;
-				next2.blockGraphics = value;
-				next3.blockGraphics = value;
-				next4.blockGraphics = value;
-				next5.blockGraphics = value;
-				next6.blockGraphics = value;
-			}
-			
-			public function update():void
-			{
-				fall.y = _gameModel.ffy * blockHeight - 224;
-				ghost.x = _gameModel.cox * blockWidth + 120;
-				ghost.y = _gameModel.goy * blockHeight - 224;
-				control.x = _gameModel.cox * blockWidth + 120;
-				control.y = _gameModel.coy * blockHeight - 224;
-				var light:GameLightModel = _gameModel.getLightModel();
-				var shockSave:Boolean = _gameModel.shockSave;
-				main.update(light.mainField, shockSave);
-				fall.update(light.fallField, shockSave);
-				ghost.update(light.controlOmino, shockSave);
-				control.update(light.controlOmino, shockSave);
-				var nextOmino:Vector.<OminoField> = light.nextOmino;
-				next0.update(nextOmino[0], shockSave);
-				next1.update(nextOmino[1], shockSave);
-				next2.update(nextOmino[2], shockSave);
-				next3.update(nextOmino[3], shockSave);
-				next4.update(nextOmino[4], shockSave);
-				next5.update(nextOmino[5], shockSave);
-				next6.update(nextOmino[6], shockSave);
-			}
+		[Bindable] 
+		public var gameModel:GameModel;
+		[Bindable] 
+		public var blockGraphics:BlockGraphics;
+		[Bindable] 
+		public var reverse:Boolean
+		
+		public function update():void
+		{
+			var blockWidth:int = blockGraphics.blockWidth;
+			var blockHeight:int = blockGraphics.blockHeight;
+			fall.y = gameModel.ffy * blockHeight - 224;
+			ghost.x = gameModel.cox * blockWidth + 120;
+			ghost.y = gameModel.goy * blockHeight - 224;
+			control.x = gameModel.cox * blockWidth + 120;
+			control.y = gameModel.coy * blockHeight - 224;
+			var light:GameLightModel = gameModel.getLightModel();
+			var shockSave:Boolean = gameModel.shockSave;
+			main.update(light.mainField, shockSave);
+			fall.update(light.fallField, shockSave);
+			ghost.update(light.controlOmino, shockSave);
+			control.update(light.controlOmino, shockSave);
+			next.update(light.nextOmino, shockSave);
+		}
 		]]>
 	</fx:Script>
 	
@@ -77,26 +39,17 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<s:Group id="info" x="0" y="96">
+	<s:Group x="{reverse ? 304 : 0}" y="96">
 		<s:Label y="0" text="レベル"/>
 		<s:Label y="32" text="ライン"/>
 		<s:Label y="64" text="タイム"/>
 		<s:Label y="96" text="スコア"/>
 		<s:Label y="128" text="次のおじゃま"/>
 	</s:Group>
-	<s:Group id="nextGroup" x="304" y="96">
-		<s:Label x="0" y="0" text="ネクスト"/>
-		<v:BlockFieldView id="next0" x="0" y="16" spritesLength="100" />
-		<v:BlockFieldView id="next1" x="0" y="112" spritesLength="100" />
-		<v:BlockFieldView id="next2" x="48" y="140" spritesLength="100" />
-		<v:BlockFieldView id="next3" x="0" y="168" spritesLength="100" />
-		<v:BlockFieldView id="next4" x="48" y="196" spritesLength="100" />
-		<v:BlockFieldView id="next5" x="0" y="224" spritesLength="100" />
-		<v:BlockFieldView id="next6" x="48" y="252" spritesLength="100" />
-	</s:Group>
-	<s:Image  x="104" y="96" source="@Embed('../graphic/frame.png')" />
-	<v:BlockFieldView id="main" x="120" y="-224" spritesLength="400" showSpecial="true" />
-	<v:BlockFieldView id="fall" x="120" y="-224" spritesLength="400" showSpecial="true" />
-	<v:BlockFieldView id="ghost" x="120" y="-224" spritesLength="100" showSpecial="true" alpha="0.5" />
-	<v:BlockFieldView id="control" x="120" y="-224" spritesLength="100" showSpecial="true" />
+	<v:NextOminoView x="{reverse ? 0 : 304}" y="96" id="next" blockGraphics="{blockGraphics}" reverse="{reverse}"/>
+	<s:Image  x="104" y="96" source="@Embed('../graphic/frame.png')"/>
+	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" x="120" y="-224" showSpecial="true"/>
+	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}"  x="120" showSpecial="true"/>
+	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" showSpecial="true" alpha="0.5"/>
+	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" showSpecial="true"/>
 </s:Group>

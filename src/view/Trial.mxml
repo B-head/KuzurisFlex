@@ -1,89 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
-         xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/halo"
-		 xmlns:v="view.*"
-		 initialize="initalize()">
-		 
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:v="view.*"
+		 creationComplete="onCreationComplete()">
+
 	<fx:Script>
 		<![CDATA[
-			import model.*;
-			import flash.events.*;
-			
-			public var mode:String;
-			private var manager:GameManager;
-			private var input:UserInput;
-			private var execution:Boolean;
-			
-			private function initalize():void
+		import model.*;
+		import flash.events.*;
+		
+		public var mode:String;
+		private var manager:GameManager;
+		private var execution:Boolean;
+		
+		private function onCreationComplete():void
+		{
+			manager = new GameManager(1, false);
+			manager.setPlayer(0, parentApplication.input1);
+			main.blockGraphics = new BlockGraphics();
+		}
+		
+		private function onEnterFrame():void
+		{
+			if (!execution)
 			{
-				manager = new GameManager(1, false);
-				input = new UserInput();
-				manager.setPlayer(0, input);
-				main.reverse = false;
-				main.blockGraphics = new BlockGraphics();
+				return;
 			}
-			
-			private function start():void
-			{
-				var setting:GameSetting = new GameSetting();
-				setting.gameMode = mode;
-				setting.startLevel = level.value;
-				setting.endless = endless.selected;
-				manager.initializeGame(setting);
-				main.gameModel = manager.getGameModel(0);
-				addEventListener(Event.ENTER_FRAME, onEnterFrame);
-				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-				startMenu.visible = false;
-				execution = true;
-			}
-			
-			private function pause():void
-			{
-				execution = false;
-			}
-			
-			private function resume():void
-			{
-				execution = true;
-			}
-			
-			private function end():void
-			{
-				removeEventListener(Event.ENTER_FRAME, onEnterFrame);
-				stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-				stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-				startMenu.visible = true;
-				execution = false;
-			}
-			
-			private function onEnterFrame(e:Event):void
-			{
-				if (!execution) return;
-				manager.forwardStep();
-				main.update();
-			}
-			
-			private function onKeyDown(e:KeyboardEvent):void
-			{
-				if (!execution) return;
-				input.keyDown(e.keyCode);
-			}
-			
-			private function onKeyUp(e:KeyboardEvent):void
-			{
-				if (!execution) return;
-				input.keyUp(e.keyCode);
-			}
+			manager.forwardStep();
+			main.update();
+		}
+		
+		private function start():void
+		{
+			var setting:GameSetting = new GameSetting();
+			setting.gameMode = mode;
+			setting.startLevel = level.value;
+			setting.endless = endless.selected;
+			manager.initializeGame(setting);
+			main.gameModel = manager.getGameModel(0);
+			startMenu.visible = false;
+			execution = true;
+		}
+		
+		private function pause():void
+		{
+			execution = false;
+		}
+		
+		private function resume():void
+		{
+			execution = true;
+		}
+		
+		private function end():void
+		{
+			startMenu.visible = true;
+			execution = false;
+		}
 		]]>
 	</fx:Script>
-	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
 
-	<v:GameView id="main" x="227" y="0" />
+	<fx:Metadata>
+		[Event(name="back", type="flash.events.Event")]
+	</fx:Metadata>
+
+	<v:GameView id="main" x="227" y="0" enterFrame="onEnterFrame()" />
 	<s:VGroup id="startMenu" x="352" y="150" width="150" horizontalAlign="center">
 		<s:Button width="150" label="スタート" buttonDown="start()" />
 		<s:Label text="開始レベル{level.value}" />
@@ -93,4 +73,5 @@
 		<s:Button width="150" label="キーコンフィグ" />
 		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
 	</s:VGroup>
+	<v:KeyConfig id="keyConfig" visible="false" />
 </s:Group>

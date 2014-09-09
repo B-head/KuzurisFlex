@@ -1,32 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:v="view.*">
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:v="view.*" addedToStage="onAddedToStage()">
 	<fx:Script>
 		<![CDATA[
-			import mx.core.IVisualElement;
-			import model.GameSetting;
-
-			private function decideTlial(mode:String):void
+		import flash.net.*;
+		import model.*;
+		
+		public var shared:SharedObject;
+		public var input1:UserInput;
+		public var input2:UserInput;
+		
+		private function onAddedToStage():void
+		{
+			registerClassAlias("UserInput", UserInput);
+			shared = SharedObject.getLocal("main");
+			if (!(shared.data.input1 as UserInput))
 			{
-				titleMenu.visible = false;
-				var trial:Trial = new Trial();
-				trial.mode = mode;
-				trial.addEventListener("back", function():void { backTitle(trial); } );
-				addElement(trial);
+				shared.data.input1 = new UserInput();
 			}
-			
-			private function backTitle(ve:IVisualElement):void
+			if (!(shared.data.input2 as UserInput))
 			{
-				removeElement(ve);
-				titleMenu.visible = true;
+				shared.data.input2 = new UserInput();
 			}
+			input1 = shared.data.input1;
+			input2 = shared.data.input2;
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
+		}
+		
+		private function onKeyDown(e:KeyboardEvent):void
+		{
+			input1.keyDown(e.keyCode);
+			input2.keyDown(e.keyCode);
+		}
+		
+		private function onKeyUp(e:KeyboardEvent):void
+		{
+			input1.keyUp(e.keyCode);
+			input2.keyUp(e.keyCode);
+		}
+		
+		private function decideTlial(mode:String):void
+		{
+			currentState = "trial";
+			trial.mode = mode;
+		}
 		]]>
 	</fx:Script>
-	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
-	
-	<s:Group id="titleMenu">
+
+	<s:states>
+		<s:State name="top" stateGroups="title" />
+		<s:State name="preTrial" stateGroups="title" />
+		<s:State name="preVersus" stateGroups="title" />
+		<s:State name="trial" />
+		<s:State name="versus" />
+		<s:State name="network" />
+	</s:states>
+
+	<s:Group includeIn="title">
 		<s:Label width="300" x="100" y="50" text="壊リスの偽物" />
 		<s:Label width="300" x="100" y="100" text="崩リス" />
 
@@ -37,35 +67,28 @@
 			</s:RichText>
 		</s:BorderContainer>
 
-		<mx:ViewStack id="mode" x="454" y="50">
-			<s:NavigatorContent>
-				<s:VGroup horizontalAlign="center">
-					<s:Button width="300" label="トライアルモード" buttonDown="mode.selectedIndex = 1" />
-					<s:Button width="300" label="対戦モード" buttonDown="mode.selectedIndex = 2" />
-					<s:Button width="300" label="インターネット対戦モード" />
-					<s:Button width="300" label="あそびかた" />
-				</s:VGroup>
-			</s:NavigatorContent>
-			<s:NavigatorContent>
-				<s:VGroup horizontalAlign="center">
-					<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)" />
-					<s:Button width="300" label="おじゃまアタック" buttonDown="decideTlial(GameSetting.obstacleAttack)" />
-					<s:Button width="300" label="ポリオミノ" buttonDown="decideTlial(GameSetting.polyOmino)" />
-					<s:Button width="300" label="オーバースピード" buttonDown="decideTlial(GameSetting.overSpeed)" />
-					<s:Button width="300" label="おじゃまファイト" buttonDown="decideTlial(GameSetting.obstacleFight)" />
-					<s:Button width="300" label="ビッグミノ" buttonDown="decideTlial(GameSetting.bigOmino)" />
-					<s:Button width="300" label="レベルフリー" buttonDown="decideTlial(GameSetting.free)" />
-					<s:Button width="100" label="もどる" buttonDown="mode.selectedIndex = 0" />
-				</s:VGroup>
-			</s:NavigatorContent>
-			<s:NavigatorContent>
-				<s:VGroup horizontalAlign="center">
-					<s:Button width="300" label="VSコンピューター" />
-					<s:Button width="300" label="VSプレイヤー" />
-					<s:Button width="300" label="とことん対戦" />
-					<s:Button width="100" label="もどる" buttonDown="mode.selectedIndex = 0" />
-				</s:VGroup>
-			</s:NavigatorContent>
-		</mx:ViewStack>
+		<s:VGroup includeIn="top" x="454" y="50" horizontalAlign="center">
+			<s:Button width="300" label="トライアルモード" buttonDown="currentState = 'preTrial'" />
+			<s:Button width="300" label="対戦モード" buttonDown="currentState = 'preVersus'" />
+			<s:Button width="300" label="インターネット対戦モード" />
+			<s:Button width="300" label="あそびかた" />
+		</s:VGroup>
+		<s:VGroup includeIn="preTrial" x="454" y="50" horizontalAlign="center">
+			<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)" />
+			<s:Button width="300" label="おじゃまアタック" buttonDown="decideTlial(GameSetting.obstacleAttack)" />
+			<s:Button width="300" label="ポリオミノ" buttonDown="decideTlial(GameSetting.polyOmino)" />
+			<s:Button width="300" label="オーバースピード" buttonDown="decideTlial(GameSetting.overSpeed)" />
+			<s:Button width="300" label="おじゃまファイト" buttonDown="decideTlial(GameSetting.obstacleFight)" />
+			<s:Button width="300" label="ビッグミノ" buttonDown="decideTlial(GameSetting.bigOmino)" />
+			<s:Button width="300" label="レベルフリー" buttonDown="decideTlial(GameSetting.free)" />
+			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'" />
+		</s:VGroup>
+		<s:VGroup includeIn="preVersus" x="454" y="50" horizontalAlign="center">
+			<s:Button width="300" label="VSコンピューター" />
+			<s:Button width="300" label="VSプレイヤー" />
+			<s:Button width="300" label="とことん対戦" />
+			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'" />
+		</s:VGroup>
 	</s:Group>
+	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto" back="currentState = 'preTrial'" />
 </s:Application>

@@ -12,10 +12,6 @@ package model
 		public var gameScore:int;
 		public var gameTime:int;
 		
-		public function GameRecord() 
-		{
-			
-		}
 		
 	}
 
