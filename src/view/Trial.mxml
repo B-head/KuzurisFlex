@@ -63,7 +63,7 @@
 		[Event(name="back", type="flash.events.Event")]
 	</fx:Metadata>
 
-	<v:GameView id="main" x="227" y="0" enterFrame="onEnterFrame()" />
+	<v:GameView id="main" x="227" y="24" enterFrame="onEnterFrame()" />
 	<s:VGroup id="startMenu" x="352" y="150" width="150" horizontalAlign="center">
 		<s:Button width="150" label="スタート" buttonDown="start()" />
 		<s:Label text="開始レベル{level.value}" />

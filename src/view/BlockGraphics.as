@@ -34,6 +34,15 @@ package view
 		private var Block9:Class;
 		[Embed(source='../graphic/block/10.png')]
 		private var Block10:Class;
+		[Embed(source='../graphic/block/100.png')]
+		private var Block100:Class;
+		[Embed(source='../graphic/block/1000.png')]
+		private var Block1000:Class;
+		
+		public var obstacleOne:BitmapData;
+		public var obstacleTen:BitmapData;
+		public var obstacleHundred:BitmapData;
+		public var obstacleThousand:BitmapData;
 		
 		public const blockLength:int = 11;
 		[Bindable] 
@@ -52,11 +61,20 @@ package view
 				for (var j:int = 0; j < blockLength; j++)
 				{
 					var bitmap:Bitmap = indexToBlock(j);
-					var data:BitmapData = new BitmapData(blockWidth, blockHeight, false, blockColorSet);
-					data.draw(bitmap, null, null, BlendMode.HARDLIGHT);
-					this[blockColorSet][j] = data;
+					this[blockColorSet][j] = coloring(bitmap, blockColorSet);
 				}
 			}
+			obstacleOne = coloring(new Block1(), Color.brown);
+			obstacleTen = coloring(new Block10(), Color.lightgray);
+			obstacleHundred = coloring(new Block100(), Color.yellow);
+			obstacleThousand = coloring(new Block1000(), Color.purple);
+		}
+		
+		private function coloring(bitmap:Bitmap, color:uint):BitmapData
+		{
+			var data:BitmapData = new BitmapData(blockWidth, blockHeight, false, color);
+			data.draw(bitmap, null, null, BlendMode.HARDLIGHT);
+			return data;
 		}
 		
 		private function indexToColor(index:int):uint

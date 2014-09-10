@@ -19,11 +19,11 @@
 		{
 			var blockWidth:int = blockGraphics.blockWidth;
 			var blockHeight:int = blockGraphics.blockHeight;
-			fall.y = gameModel.ffy * blockHeight - 224;
+			fall.y = gameModel.ffy * blockHeight - 256;
 			ghost.x = gameModel.cox * blockWidth + 120;
-			ghost.y = gameModel.goy * blockHeight - 224;
+			ghost.y = gameModel.goy * blockHeight - 256;
 			control.x = gameModel.cox * blockWidth + 120;
-			control.y = gameModel.coy * blockHeight - 224;
+			control.y = gameModel.coy * blockHeight - 256;
 			var light:GameLightModel = gameModel.getLightModel();
 			var shockSave:Boolean = gameModel.shockSave;
 			main.update(light.mainField, shockSave);
@@ -31,6 +31,7 @@
 			ghost.update(light.controlOmino, shockSave);
 			control.update(light.controlOmino, shockSave);
 			next.update(light.nextOmino, shockSave);
+			obstacle.update(gameModel.getObstacleNotice(), gameModel.getObstacleNoticeSave());
 		}
 		]]>
 	</fx:Script>
@@ -39,18 +40,19 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	
-	<s:Group x="{reverse ? 304 : 0}" y="96">
+	<s:Group x="{reverse ? 304 : 0}" y="64">
 		<s:Label y="0" text="レベル　{gameModel.getRecord().level}"/>
 		<s:Label y="20" text="ライン　{gameModel.getRecord().breakLine}"/>
 		<s:Label y="40" text="ミノ　{gameModel.getRecord().fixOmino}"/>
 		<s:Label y="80" text="スコア　{gameModel.getRecord().gameScore}"/>
 		<s:Label y="60" text="タイム　{gameModel.getRecord().gameTime}"/>
-		<s:Label y="100" text="次のおじゃま" visible="{gameModel.isObstacleAddition()}" />
+		<s:Label y="100" text="次のおじゃま　{gameModel.getNextObstacleTime()}" visible="{gameModel.isObstacleAddition()}" />
 	</s:Group>
-	<v:NextOminoView x="{reverse ? 0 : 304}" y="96" id="next" blockGraphics="{blockGraphics}" reverse="{reverse}"/>
-	<s:Image x="104" y="96" source="@Embed('../graphic/frame.png')"/>
+	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" blockGraphics="{blockGraphics}" reverse="{reverse}"/>
+	<v:ObstacleView id="obstacle" x="120" y="0" width="160" height="32" visible="false" blockGraphics="{blockGraphics}"/>
+	<s:Image x="104" y="64" source="@Embed('../graphic/frame.png')"/>
 	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" showSpecial="true" alpha="0.5"/>
 	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" showSpecial="true"/>
-	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" x="120" y="-224" showSpecial="true"/>
+	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" x="120" y="-256" showSpecial="true"/>
 	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}"  x="120" showSpecial="true"/>
 </s:Group>

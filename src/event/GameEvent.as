@@ -11,6 +11,7 @@ package event
 		public var gameTime:int;
 		public var plusScore:int;
 		
+		public static const forwardStep:String = "forwardStep";
 		public static const gameOver:String = "gameOver";
 		public static const gameClear:String = "gameClear";
 		public static const fixOmino:String = "fixOmino"; 

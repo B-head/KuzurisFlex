@@ -110,6 +110,22 @@ package model
 			return record;
 		}
 		
+		public function getObstacleNotice():int
+		{
+			return obstacleManager.notice;
+		}
+		
+		public function getObstacleNoticeSave():int
+		{
+			return obstacleManager.getNoticeSaveCount();
+		}
+		
+		[Bindable(event="forwardStep")]
+		public function getNextObstacleTime():int
+		{
+			return obstacleManager.getNextObstacleTime(record.gameTime, setting);
+		}
+		
 		public function getLightModel():GameLightModel
 		{
 			var result:GameLightModel = new GameLightModel();
@@ -129,6 +145,7 @@ package model
 			if (gameOverFlag) return;
 			record.gameTime++;
 			obstacleManager.trialAddition(record.gameTime, setting);
+			dispatchEvent(new GameEvent(GameEvent.forwardStep, record.gameTime, 0));
 			if (!controlPhase)
 			{
 				fallingField();

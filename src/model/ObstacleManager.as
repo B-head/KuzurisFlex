@@ -29,6 +29,11 @@ package model
 			return ret;
 		}
 		
+		public function getNextObstacleTime(gameTime:int, setting:GameSetting):int
+		{
+			return (lastAddition + setting.obstacleInterval) - gameTime;
+		}
+		
 		public function trialAddition(gameTime:int, setting:GameSetting):void
 		{
 			if (lastAddition == 0)
