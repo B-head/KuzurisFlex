@@ -91,6 +91,34 @@ package model
 				}
 			}
 		}
+		
+		public function setObstacleLine(line:int, blockCount:int, hitPointMax:Number, blockColor:uint, prng:XorShift128):void
+		{
+			var sb:Vector.<BlockState> = new Vector.<BlockState>(width);
+			for (var i:int = 0; i < blockCount; i++)
+			{
+				var block:BlockState = new BlockState();
+				with (block)
+				{
+					kind = BlockState.normal;
+					hitPoint = hitPointMax;
+					color = blockColor;
+					specialUnion = false;
+				}
+				sb[i] = block;
+			}
+			for (i = 0; i < width; i++)
+			{
+				var r:int = prng.genUint() % (width - i) + i;
+				var t:BlockState = sb[i];
+				sb[i] = sb[r];
+				sb[r] = t;
+			}
+			for (i = 0; i < width; i++)
+			{
+				value[i][line] = sb[i];
+			}
+		}
 	}
 
 }

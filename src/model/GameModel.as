@@ -9,7 +9,9 @@ package model
 	{
 		private var setting:GameSetting;
 		private var record:GameRecord;
+		private var obstacleManager:ObstacleManager;
 		private var nextPRNG:XorShift128;
+		private var bigNextPRNG:XorShift128;
 		private var obstaclePRNG:XorShift128;
 		
 		private var controlPhase:Boolean;
@@ -25,23 +27,33 @@ package model
 		
 		private var comboCount:int;
 		private var totalDamage:Number = 0;
+		private var levelStartTime:int;
 		
 		private var quantityOdds:Vector.<int>;
 		private var ominoOdds:Vector.<Vector.<int>>;
+		private var bigOminoCount:Number = 0;
 		
 		private var _cox:Number = 0;
 		private var _coy:Number = 0;
 		private var _ffy:Number = 0;
 		
 		private const lineScore:int = 100;
+		private const obstacleLineMax:int = 5;
+		private const obstacleColor1:uint = Color.lightgray;
+		private const obstacleColor2:uint = Color.gray;
 		
 		public function GameModel(setting:GameSetting) 
 		{
 			super(true);
 			this.setting = setting;
 			record = new GameRecord();
+			record.level = setting.startLevel;
+			setting.setLevelParameter(record.level);
+			obstacleManager = new ObstacleManager();
 			nextPRNG = new XorShift128();
 			nextPRNG.RandomSeed();
+			bigNextPRNG = new XorShift128();
+			bigNextPRNG.RandomSeed();
 			obstaclePRNG = new XorShift128();
 			obstaclePRNG.RandomSeed();
 			quantityOdds = new <int>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
@@ -54,6 +66,8 @@ package model
 					ominoOdds[x][y] = 1;
 				}
 			}
+			setNextOmino(true);
+			_controlOmino = new OminoField(ominoSize);
 		}
 		
 		public function get goy():Number
@@ -86,6 +100,16 @@ package model
 			return _shockSave;
 		}
 		
+		public function isObstacleAddition():Boolean
+		{
+			return setting.isObstacleAddition();
+		}
+		
+		public function getRecord():GameRecord
+		{
+			return record;
+		}
+		
 		public function getLightModel():GameLightModel
 		{
 			var result:GameLightModel = new GameLightModel();
@@ -104,21 +128,44 @@ package model
 		{
 			if (gameOverFlag) return;
 			record.gameTime++;
+			obstacleManager.trialAddition(record.gameTime, setting);
 			if (!controlPhase)
 			{
 				fallingField();
 				if (_fallField.countBlock() > 0) return;
-				var line:int = breakLines();
-				extractFallBlocks();
-				dispatchEvent(new GameEvent(GameEvent.extractFall, record.gameTime, 0));
 				_ffy = 0;
 				fallSpeed = 0;
+				breakLines();
+				if (setting.isLevelUp(record.level, record.breakLine))
+				{
+					var upLevel:int = setting.levelUpCount(record.level, record.breakLine);
+					var clearTime:int = record.gameTime - levelStartTime;
+					var timeBonus:int = setting.timeBonus(clearTime, upLevel);
+					record.level += upLevel;
+					record.gameScore += timeBonus;
+					setting.setLevelParameter(record.level);
+					dispatchEvent(new LevelClearEvent(LevelClearEvent.levelClear, record.gameTime, timeBonus, clearTime, upLevel));
+				}
+				extractFallBlocks();
+				dispatchEvent(new GameEvent(GameEvent.extractFall, record.gameTime, 0));
 				if (_fallField.countBlock() > 0) return;
+				_mainField.clearSpecialUnion();
 				var totalLineScore:int = comboCount * comboCount * lineScore;
 				dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
 				dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, record.gameTime, totalDamage, totalDamage, int.MIN_VALUE, int.MIN_VALUE));
-				_mainField.clearSpecialUnion();
-				setNextOmino();
+				if (!obstacleSettled && obstacleManager.notice > 0)
+				{
+					setObstacleBlocks();
+					obstacleSettled = true;
+					return;
+				}
+				if (setting.isGameClear(record.level))
+				{
+					gameOverFlag = true;
+					dispatchEvent(new GameEvent(GameEvent.gameClear, record.gameTime, 0));
+					return;
+				}
+				setNextOmino(false);
 				var rect:Rect = _controlOmino.getRect();
 				_cox = fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2);
 				_coy = fieldHeight / 2 - 1 - rect.bottom;
@@ -129,6 +176,7 @@ package model
 					dispatchEvent(new GameEvent(GameEvent.gameOver, record.gameTime, 0));
 					return;
 				}
+				obstacleSettled = false;
 				comboCount = 0;
 				totalDamage = 0;
 				startFall = _coy;
@@ -169,6 +217,7 @@ package model
 		private function onSectionDamage(damage:Number):void
 		{
 			var plus:int = totalDamage % 1 + damage;
+			record.gameScore += plus;
 			totalDamage += damage;
 			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.sectionDamage, record.gameTime, plus, damage, int.MIN_VALUE, int.MIN_VALUE));
 		}
@@ -396,9 +445,19 @@ package model
 			_ffy += fallSpeed;
 		}
 		
-		private function setNextOmino():void
+		private function setNextOmino(init:Boolean):void
 		{
-			var omino:OminoField = randomReadOmino(nextPRNG.genUint(), nextPRNG.genUint());
+			bigOminoCount += setting.bigOminoCountAddition;
+			var omino:OminoField;
+			if (int(bigOminoCount) > setting.bigOminoCountMax * bigNextPRNG.genNumber())
+			{
+				omino = OminoField.createBigOmino(bigOminoCount + 10, ominoSize, bigNextPRNG);
+				bigOminoCount = 0;
+			}
+			else
+			{
+				omino = randomReadOmino(nextPRNG.genUint(), nextPRNG.genUint());
+			}
 			var color:uint = omino.coloringOmino();
 			omino.allSetState(setting.hitPointMax, color, true);
 			
@@ -409,9 +468,9 @@ package model
 			}
 			_nextOmino[nextLength - 1] = omino;
 			
-			if (_controlOmino == null)
+			if (init ? _nextOmino[0] == null : _controlOmino == null)
 			{
-				setNextOmino();
+				setNextOmino(init);
 			}
 		}
 		
@@ -461,6 +520,25 @@ package model
 			op[o] >>= 1;
 			
 			return OminoField.readOmino(q, o, ominoSize);
+		}
+		
+		private function setObstacleBlocks():void
+		{
+			var rest:int = Math.min(100, obstacleManager.notice);
+			obstacleManager.notice -= rest;
+			for (var y:int = fieldHeight / 2 - 1; y >= 0 && rest > 0; y--)
+			{
+				if (rest < obstacleLineMax)
+				{
+					_mainField.setObstacleLine(y, rest, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+					rest = 0;
+				}
+				else
+				{
+					_mainField.setObstacleLine(y, obstacleLineMax, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+					rest -= obstacleLineMax;
+				}
+			}
 		}
 	}
 

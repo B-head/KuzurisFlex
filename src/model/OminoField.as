@@ -18,16 +18,16 @@ package model
 			super(s, s);
 		}
 		
-		public static function readOmino(quantity:int, num:int, ominoSise:int):OminoField
+		public static function readOmino(quantity:int, num:int, ominoSize:int):OminoField
 		{
-			var omino:OminoField = new OminoField(ominoSise);
+			var omino:OminoField = new OminoField(ominoSize);
 			for (var i:int = 0; i < quantity; i++)
 			{
 				num += ominoQuantity[i];
 			}
-			for (var x:int = 0; x < ominoSise; x++)
+			for (var x:int = 0; x < ominoSize; x++)
 			{
-				for (var y:int = 0; y < ominoSise; y++)
+				for (var y:int = 0; y < ominoSize; y++)
 				{
 					if (blockSet[num * 100 + x + y * 10])
 					{
@@ -36,6 +36,75 @@ package model
 				}
 			}
 			return omino;
+		}
+		
+		public static function createBigOmino(blockCount:int, ominoSize:int, prng:XorShift128):OminoField
+		{
+			var omino:OminoField = new OminoField(ominoSize * 2);
+			var blocks:Vector.<Vector.<BlockState>> = omino.value;
+			var nextList:Vector.<Object> = new Vector.<Object>();
+			
+			var rx:int = ominoSize;
+			var ry:int = ominoSize;
+			blocks[rx][ry] = new BlockState();
+			inList(rx - 1, ry, 0);
+			inList(rx, ry - 1, 0);
+			inList(rx + 1, ry, 0);
+			inList(rx, ry + 1, 0);
+			
+			var j:int = 0;
+			for (var i:int = 1; i < blockCount; i++)
+			{
+				while (true)
+				{
+					j++;
+					if (j >= nextList.length) 
+					{
+						j = 0;
+					}
+					var a:int = int(prng.genUint() % 2);
+					if (a == 0) continue;
+					var n:Object = nextList[j];
+					if (blocks[n.x][n.y] != null) throw Error("assert");
+					blocks[n.x][n.y] = new BlockState();
+					outList(j);
+					inList(n.x - 1, n.y, j);
+					inList(n.x, n.y - 1, j);
+					inList(n.x + 1, n.y, j);
+					inList(n.x, n.y + 1, j);
+					break;
+				}
+			}
+			var rect:Rect = omino.getRect();
+			var ret:OminoField = new OminoField(ominoSize);
+			for (var x:int = 0; x < rect.width; x++)
+			{
+				for (var y:int = 0; y < rect.height; y++)
+				{
+					ret.value[x][y] = blocks[x + rect.left][y + rect.top];
+				}
+			}
+			return ret;
+			
+			function inList(x:int, y:int, value:int):void
+			{
+				var rect:Rect = omino.getRect();
+				if (rect.right - rect.left >= ominoSize - 1 && (x < rect.right || x > rect.left)) return;
+				if (rect.bottom - rect.top >= ominoSize - 1 && (y < rect.top || y > rect.bottom)) return;
+				if (blocks[x][y] != null) return;
+				if (nextList.some(tester) == true) return;
+				nextList.splice(value, 0, { x:x, y:y } );
+				
+				function tester(item:Object, index:int, vector:Vector.<Object>):Boolean
+				{
+					if (item.x == x && item.y == y) return true; else return false;
+				}
+			}
+			
+			function outList(value:int):void
+			{
+				nextList.splice(value, 1);
+			}
 		}
 		
 		public function clone():OminoField

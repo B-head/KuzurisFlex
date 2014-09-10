@@ -40,16 +40,17 @@
 	</fx:Declarations>
 	
 	<s:Group x="{reverse ? 304 : 0}" y="96">
-		<s:Label y="0" text="レベル"/>
-		<s:Label y="32" text="ライン"/>
-		<s:Label y="64" text="タイム"/>
-		<s:Label y="96" text="スコア"/>
-		<s:Label y="128" text="次のおじゃま"/>
+		<s:Label y="0" text="レベル　{gameModel.getRecord().level}"/>
+		<s:Label y="20" text="ライン　{gameModel.getRecord().breakLine}"/>
+		<s:Label y="40" text="ミノ　{gameModel.getRecord().fixOmino}"/>
+		<s:Label y="80" text="スコア　{gameModel.getRecord().gameScore}"/>
+		<s:Label y="60" text="タイム　{gameModel.getRecord().gameTime}"/>
+		<s:Label y="100" text="次のおじゃま" visible="{gameModel.isObstacleAddition()}" />
 	</s:Group>
 	<v:NextOminoView x="{reverse ? 0 : 304}" y="96" id="next" blockGraphics="{blockGraphics}" reverse="{reverse}"/>
-	<s:Image  x="104" y="96" source="@Embed('../graphic/frame.png')"/>
-	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" x="120" y="-224" showSpecial="true"/>
-	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}"  x="120" showSpecial="true"/>
+	<s:Image x="104" y="96" source="@Embed('../graphic/frame.png')"/>
 	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" showSpecial="true" alpha="0.5"/>
 	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" showSpecial="true"/>
+	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" x="120" y="-224" showSpecial="true"/>
+	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}"  x="120" showSpecial="true"/>
 </s:Group>

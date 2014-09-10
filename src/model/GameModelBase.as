@@ -88,7 +88,7 @@ package model
 			var indirectShockDamage:Number = indirectShockDamageCoefficient * damageCoefficient * blockCount / area;
 			var w:int = field.width;
 			var h:int = field.height;
-			var result:Number
+			var result:Number = 0;
 			for (var x:int = 0; x < w; x++)
 			{
 				for (var y:int = 0; y < h; y++)
