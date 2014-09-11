@@ -6,43 +6,57 @@
 		import model.*;
 		
 		public var shared:SharedObject;
-		public var input1:UserInput;
-		public var input2:UserInput;
+		public var input:UserInput;
+		public var inputVersus1:UserInput;
+		public var inputVersus2:UserInput;
 		
 		private function onAddedToStage():void
 		{
 			registerClassAlias("UserInput", UserInput);
 			shared = SharedObject.getLocal("main");
-			if (!(shared.data.input1 as UserInput))
+			if (!(shared.data.input as UserInput))
 			{
-				shared.data.input1 = new UserInput();
+				shared.data.input = new UserInput();
 			}
-			if (!(shared.data.input2 as UserInput))
+			if (!(shared.data.inputVersus1 as UserInput))
 			{
-				shared.data.input2 = new UserInput();
+				shared.data.inputVersus1 = new UserInput();
 			}
-			input1 = shared.data.input1;
-			input2 = shared.data.input2;
+			if (!(shared.data.inputVersus2 as UserInput))
+			{
+				shared.data.inputVersus2 = new UserInput();
+			}
+			input = shared.data.input;
+			inputVersus1 = shared.data.inputVersus1;
+			inputVersus2 = shared.data.inputVersus2;
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 		}
 		
 		private function onKeyDown(e:KeyboardEvent):void
 		{
-			input1.keyDown(e.keyCode);
-			input2.keyDown(e.keyCode);
+			input.keyDown(e.keyCode);
+			inputVersus1.keyDown(e.keyCode);
+			inputVersus2.keyDown(e.keyCode);
 		}
 		
 		private function onKeyUp(e:KeyboardEvent):void
 		{
-			input1.keyUp(e.keyCode);
-			input2.keyUp(e.keyCode);
+			input.keyUp(e.keyCode);
+			inputVersus1.keyUp(e.keyCode);
+			inputVersus2.keyUp(e.keyCode);
 		}
 		
 		private function decideTlial(mode:String):void
 		{
 			currentState = "trial";
-			trial.mode = mode;
+			trial.init(mode);
+		}
+		
+		private function decideBattle(mode:String):void
+		{
+			currentState = "battle";
+			battle.init(mode);
 		}
 		]]>
 	</fx:Script>
@@ -50,10 +64,11 @@
 	<s:states>
 		<s:State name="top" stateGroups="title" />
 		<s:State name="preTrial" stateGroups="title" />
-		<s:State name="preVersus" stateGroups="title" />
+		<s:State name="preBattle" stateGroups="title" />
 		<s:State name="trial" />
-		<s:State name="versus" />
+		<s:State name="battle" />
 		<s:State name="network" />
+		<s:State name="howToPlay" />
 	</s:states>
 
 	<s:Group includeIn="title">
@@ -68,27 +83,28 @@
 		</s:BorderContainer>
 
 		<s:VGroup includeIn="top" x="454" y="50" horizontalAlign="center">
-			<s:Button width="300" label="トライアルモード" buttonDown="currentState = 'preTrial'" />
-			<s:Button width="300" label="対戦モード" buttonDown="currentState = 'preVersus'" />
-			<s:Button width="300" label="インターネット対戦モード" />
-			<s:Button width="300" label="あそびかた" />
+			<s:Button width="300" label="トライアルモード" buttonDown="currentState = 'preTrial'"/>
+			<s:Button width="300" label="対戦モード" buttonDown="currentState = 'preBattle'"/>
+			<s:Button width="300" label="インターネット対戦モード" buttonDown="currentState = 'network'"/>
+			<s:Button width="300" label="あそびかた" buttonDown="currentState = 'howToPlay'"/>
 		</s:VGroup>
 		<s:VGroup includeIn="preTrial" x="454" y="50" horizontalAlign="center">
-			<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)" />
-			<s:Button width="300" label="おじゃまアタック" buttonDown="decideTlial(GameSetting.obstacleAttack)" />
-			<s:Button width="300" label="ポリオミノ" buttonDown="decideTlial(GameSetting.polyOmino)" />
-			<s:Button width="300" label="オーバースピード" buttonDown="decideTlial(GameSetting.overSpeed)" />
-			<s:Button width="300" label="おじゃまファイト" buttonDown="decideTlial(GameSetting.obstacleFight)" />
-			<s:Button width="300" label="ビッグミノ" buttonDown="decideTlial(GameSetting.bigOmino)" />
-			<s:Button width="300" label="レベルフリー" buttonDown="decideTlial(GameSetting.free)" />
-			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'" />
+			<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)"/>
+			<s:Button width="300" label="おじゃまアタック" buttonDown="decideTlial(GameSetting.obstacleAttack)"/>
+			<s:Button width="300" label="ポリオミノ" buttonDown="decideTlial(GameSetting.polyOmino)"/>
+			<s:Button width="300" label="オーバースピード" buttonDown="decideTlial(GameSetting.overSpeed)"/>
+			<s:Button width="300" label="おじゃまファイト" buttonDown="decideTlial(GameSetting.obstacleFight)"/>
+			<s:Button width="300" label="ビッグミノ" buttonDown="decideTlial(GameSetting.bigOmino)"/>
+			<s:Button width="300" label="レベルフリー" buttonDown="decideTlial(GameSetting.free)"/>
+			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'"/>
 		</s:VGroup>
-		<s:VGroup includeIn="preVersus" x="454" y="50" horizontalAlign="center">
-			<s:Button width="300" label="VSコンピューター" />
-			<s:Button width="300" label="VSプレイヤー" />
-			<s:Button width="300" label="とことん対戦" />
-			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'" />
+		<s:VGroup includeIn="preBattle" x="454" y="50" horizontalAlign="center">
+			<s:Button width="300" label="VSコンピューター" buttonDown="decideBattle(Battle.versusComputer)"/>
+			<s:Button width="300" label="VSプレイヤー" buttonDown="decideBattle(Battle.versusPlayer)"/>
+			<s:Button width="300" label="とことん対戦" buttonDown="decideBattle(Battle.thoroughlyBattle)"/>
+			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'"/>
 		</s:VGroup>
 	</s:Group>
-	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto" back="currentState = 'preTrial'" />
+	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto" back="currentState = 'preTrial'"/>
+	<v:Battle id="battle" includeIn="battle" itemDestructionPolicy="auto" back="currentState = 'preBattle'"/>
 </s:Application>

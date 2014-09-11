@@ -24,6 +24,16 @@ package model
 			while ((a + b + c + d) == 0)
 		}
 		
+		public function clone():XorShift128
+		{
+			var ret:XorShift128 = new XorShift128();
+			ret.a = a;
+			ret.b = b;
+			ret.c = c;
+			ret.d = d;
+			return ret;
+		}
+		
 		public function fromByteArray(value:ByteArray):void
 		{
 			value.position = 0;

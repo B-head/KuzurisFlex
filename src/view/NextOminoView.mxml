@@ -28,7 +28,7 @@
 		[Bindable] 
 		public var blockGraphics:BlockGraphics;
 		[Bindable] 
-		public var reverse:Boolean
+		public var pause:Boolean
 		
 		public function update(nextOmino:Vector.<OminoField>, shockSave:Boolean):void
 		{
@@ -73,10 +73,10 @@
 	<fx:NextCircle x="0" y="176"/>
 	<fx:NextCircle x="0" y="228"/>
 	<fx:NextCircle x="0" y="280"/>
-	<v:BlockFieldView id="next0" spritesLength="100" blockGraphics="{blockGraphics}"/>
-	<v:BlockFieldView id="next1" spritesLength="100" blockGraphics="{blockGraphics}"/>
-	<v:BlockFieldView id="next2" spritesLength="100" blockGraphics="{blockGraphics}"/>
-	<v:BlockFieldView id="next3" spritesLength="100" blockGraphics="{blockGraphics}"/>
-	<v:BlockFieldView id="next4" spritesLength="100" blockGraphics="{blockGraphics}"/>
-	<v:BlockFieldView id="next5" spritesLength="100" blockGraphics="{blockGraphics}"/>
+	<v:BlockFieldView id="next0" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next1" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next2" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next3" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next4" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next5" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
 </s:Group>

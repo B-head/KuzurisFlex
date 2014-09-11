@@ -11,7 +11,7 @@ package model
 		public static const fieldWidth:int = 10;
 		public static const fieldHeight:int = 40;
 		public static const ominoSize:int = 10;
-		public static const nextLength:int = 7;
+		public static const nextLength:int = 6;
 		
 		private const shockDamageCoefficient:Number = 2.5;
 		private const indirectShockDamageCoefficient:Number = 1;

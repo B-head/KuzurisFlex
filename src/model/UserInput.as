@@ -1,12 +1,18 @@
 package model 
 {
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.ui.Keyboard;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class UserInput implements GameControl 
+	public class UserInput extends EventDispatcher implements GameControl 
 	{
+		public static const pauseEvent:String = "pause";
+		private const primaryMoveDelay:int = 8;
+		private const secondaryMoveDelay:int = 4;
+		
 		public var rightRotation:Vector.<uint>;
 		public var leftRotation:Vector.<uint>;
 		public var rightMove:Vector.<uint>;
@@ -26,9 +32,6 @@ package model
 		private var remainderEarthFalling:int;
 		private var controlPhase:Boolean;
 		
-		private const primaryMoveDelay:int = 8;
-		private const secondaryMoveDelay:int = 4;
-		
 		public function UserInput() 
 		{
 			rightRotation = new <uint>[Keyboard.X, Keyboard.C, Keyboard.K];
@@ -44,15 +47,16 @@ package model
 			lastControl = new GameCommand();
 		}
 		
-		public function keyDown(keyCode:int):Boolean
+		public function keyDown(keyCode:int):void
 		{
 			for (var i:int; i < downKeyCodes.length; i++)
 			{
 				if (downKeyCodes[i] == keyCode)
 				{
-					return false;
+					return;
 				}
 			}
+			downKeyCodes[downKeyCodes.length] = keyCode;
 			if (rightRotation.indexOf(keyCode) != -1)
 			{
 				remainderRotation++;
@@ -73,8 +77,10 @@ package model
 			{
 				remainderEarthFalling++;
 			}
-			downKeyCodes[downKeyCodes.length] = keyCode;
-			return pause.indexOf(keyCode) != -1;
+			if (pause.indexOf(keyCode) != -1)
+			{
+				dispatchEvent(new Event(pauseEvent));
+			}
 		}
 		
 		public function keyUp(keyCode:int):void
@@ -183,7 +189,5 @@ package model
 			}
 			return value;
 		}
-		
 	}
-
 }

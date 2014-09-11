@@ -14,8 +14,8 @@ package model
 		private var bigNextPRNG:XorShift128;
 		private var obstaclePRNG:XorShift128;
 		
-		private var controlPhase:Boolean;
 		private var gameOverFlag:Boolean;
+		private var controlPhase:Boolean;
 		private var firstShock:Boolean;
 		private var _shockSave:Boolean;
 		private var obstacleSettled:Boolean;
@@ -42,7 +42,7 @@ package model
 		private const obstacleColor1:uint = Color.lightgray;
 		private const obstacleColor2:uint = Color.gray;
 		
-		public function GameModel(setting:GameSetting) 
+		public function GameModel(setting:GameSetting, seed:XorShift128) 
 		{
 			super(true);
 			this.setting = setting;
@@ -50,12 +50,9 @@ package model
 			record.level = setting.startLevel;
 			setting.setLevelParameter(record.level);
 			obstacleManager = new ObstacleManager();
-			nextPRNG = new XorShift128();
-			nextPRNG.RandomSeed();
-			bigNextPRNG = new XorShift128();
-			bigNextPRNG.RandomSeed();
-			obstaclePRNG = new XorShift128();
-			obstaclePRNG.RandomSeed();
+			nextPRNG = seed.clone();
+			bigNextPRNG = seed.clone();
+			obstaclePRNG = seed.clone();
 			quantityOdds = new <int>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 			ominoOdds = new Vector.<Vector.<int>>(11);
 			for (var x:String in ominoOdds)
@@ -100,6 +97,11 @@ package model
 			return _shockSave;
 		}
 		
+		public function isGameOver():Boolean
+		{
+			return gameOverFlag;
+		}
+		
 		public function isObstacleAddition():Boolean
 		{
 			return setting.isObstacleAddition();
@@ -140,81 +142,94 @@ package model
 			return result;
 		}
 		
-		public function forwardStep(command:GameCommand):void
+		public function forwardGame(command:GameCommand):void
 		{
 			if (gameOverFlag) return;
 			record.gameTime++;
 			obstacleManager.trialAddition(record.gameTime, setting);
-			dispatchEvent(new GameEvent(GameEvent.forwardStep, record.gameTime, 0));
+			dispatchEvent(new GameEvent(GameEvent.forwardGame, record.gameTime, 0));
 			if (!controlPhase)
 			{
-				fallingField();
-				if (_fallField.countBlock() > 0) return;
-				_ffy = 0;
-				fallSpeed = 0;
-				breakLines();
-				if (setting.isLevelUp(record.level, record.breakLine))
-				{
-					var upLevel:int = setting.levelUpCount(record.level, record.breakLine);
-					var clearTime:int = record.gameTime - levelStartTime;
-					var timeBonus:int = setting.timeBonus(clearTime, upLevel);
-					record.level += upLevel;
-					record.gameScore += timeBonus;
-					setting.setLevelParameter(record.level);
-					dispatchEvent(new LevelClearEvent(LevelClearEvent.levelClear, record.gameTime, timeBonus, clearTime, upLevel));
-				}
-				extractFallBlocks();
-				dispatchEvent(new GameEvent(GameEvent.extractFall, record.gameTime, 0));
-				if (_fallField.countBlock() > 0) return;
-				_mainField.clearSpecialUnion();
-				var totalLineScore:int = comboCount * comboCount * lineScore;
-				dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
-				dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, record.gameTime, totalDamage, totalDamage, int.MIN_VALUE, int.MIN_VALUE));
-				if (!obstacleSettled && obstacleManager.notice > 0)
-				{
-					setObstacleBlocks();
-					obstacleSettled = true;
-					return;
-				}
-				if (setting.isGameClear(record.level))
-				{
-					gameOverFlag = true;
-					dispatchEvent(new GameEvent(GameEvent.gameClear, record.gameTime, 0));
-					return;
-				}
-				setNextOmino(false);
-				var rect:Rect = _controlOmino.getRect();
-				_cox = fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2);
-				_coy = fieldHeight / 2 - 1 - rect.bottom;
-				dispatchEvent(new GameEvent(GameEvent.setOmino, record.gameTime, 0));
-				if (_controlOmino.blocksHitChack(_mainField, _cox, _coy, true) > 0)
-				{
-					gameOverFlag = true;
-					dispatchEvent(new GameEvent(GameEvent.gameOver, record.gameTime, 0));
-					return;
-				}
-				obstacleSettled = false;
-				comboCount = 0;
-				totalDamage = 0;
-				startFall = _coy;
-				playRest = setting.playTime;
-				playLimit = 0;
-				firstShock = true;
-				controlPhase = true;
+				forwardNonControl();
 			}
 			if (controlPhase)
 			{
-				rotationOmino(command.rotation);
-				moveOmino(command.move);
-				fallingOmino(command.falling, command.fix, command.noDamege);
-				if(playRest <= 0 || playRest <= playLimit)
-				{
-					_mainField.fix(_controlOmino, _cox, _coy);
-					dispatchEvent(new GameEvent(GameEvent.fixOmino, record.gameTime, 0));
-					record.fixOmino++;
-					controlPhase = false;
-				}
+				forwardControl(command);
 			}
+		}
+		
+		private function forwardNonControl():void
+		{
+			fallingField();
+			if (_fallField.countBlock() > 0) return;
+			_ffy = 0;
+			fallSpeed = 0;
+			breakLines();
+			levelUp();
+			extractFallBlocks();
+			if (_fallField.countBlock() > 0)
+			{
+				dispatchEvent(new GameEvent(GameEvent.extractFall, record.gameTime, 0));
+				return;
+			}
+			_mainField.clearSpecialUnion();
+			var totalLineScore:int = comboCount * comboCount * lineScore;
+			dispatchEvent(new GameEvent(GameEvent.breakConbo, record.gameTime, 0));
+			dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
+			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, record.gameTime, totalDamage, totalDamage, int.MIN_VALUE, int.MIN_VALUE));
+			comboCount = 0;
+			totalDamage = 0;
+			if (!obstacleSettled && obstacleManager.notice > 0)
+			{
+				setObstacleBlocks();
+				obstacleSettled = true;
+				dispatchEvent(new GameEvent(GameEvent.obstacleFall, record.gameTime, 0));
+				return;
+			}
+			if (setting.isGameClear(record.level))
+			{
+				gameOverFlag = true;
+				dispatchEvent(new GameEvent(GameEvent.gameClear, record.gameTime, 0));
+				return;
+			}
+			setNextOmino(false);
+			dispatchEvent(new GameEvent(GameEvent.setOmino, record.gameTime, 0));
+			if (_controlOmino.blocksHitChack(_mainField, _cox, _coy, true) > 0)
+			{
+				gameOverFlag = true;
+				dispatchEvent(new GameEvent(GameEvent.gameOver, record.gameTime, 0));
+				return;
+			}
+			startFall = _coy;
+			playRest = setting.playTime;
+			playLimit = 0;
+			firstShock = true;
+			obstacleSettled = false;
+			controlPhase = true;
+		}
+		
+		private function forwardControl(command:GameCommand):void
+		{
+			rotationOmino(command.rotation);
+			moveOmino(command.move);
+			fallingOmino(command.falling, command.fix, command.noDamege);
+			if(playRest <= 0 || playRest <= playLimit)
+			{
+				_mainField.fix(_controlOmino, _cox, _coy);
+				dispatchEvent(new GameEvent(GameEvent.fixOmino, record.gameTime, 0));
+				record.fixOmino++;
+				controlPhase = false;
+			}
+		}
+		
+		public function addObstacle(player:int, count:int):void
+		{
+			obstacleManager.addObstacle(record.gameTime, String(player), count);
+		}
+		
+		public function materializationNotice(player:int):void
+		{
+			obstacleManager.materializationNotice(record.gameTime, String(player));
 		}
 		
 		override protected function onBreakLine(y:int, colors:Vector.<uint>):void 
@@ -224,6 +239,19 @@ package model
 			var plus:int = (2 * comboCount - 1) * lineScore;
 			record.gameScore += plus;
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, record.gameTime, plus, comboCount, y, colors));
+			if (setting.gameMode == GameSetting.battle)
+			{
+				var obs:int = comboCount > 1 ? fieldWidth * 2 : fieldWidth;
+				//var obs:int = fieldWidth * comboCount;
+				var cb:int = Math.min(obs, obstacleManager.notice + obstacleManager.getNoticeSaveCount());
+				if (cb > 0)
+				{
+					obs -= cb;
+					obstacleManager.counterbalance(cb);
+					dispatchEvent(new ObstacleEvent(ObstacleEvent.counterbalanceObstacle, record.gameTime, 0, cb));
+				}
+				if (obs > 0) dispatchEvent(new ObstacleEvent(ObstacleEvent.occurObstacle, record.gameTime, 0, obs));
+			}
 		}
 		
 		override protected function onBlockDamage(x:int, y:int, damage:Number):void 
@@ -462,6 +490,20 @@ package model
 			_ffy += fallSpeed;
 		}
 		
+		private function levelUp():void
+		{
+			if (setting.isLevelUp(record.level, record.breakLine))
+			{
+				var upLevel:int = setting.levelUpCount(record.level, record.breakLine);
+				var clearTime:int = record.gameTime - levelStartTime;
+				var timeBonus:int = setting.timeBonus(clearTime, upLevel);
+				record.level += upLevel;
+				record.gameScore += timeBonus;
+				setting.setLevelParameter(record.level);
+				dispatchEvent(new LevelClearEvent(LevelClearEvent.levelClear, record.gameTime, timeBonus, clearTime, upLevel));
+			}
+		}
+		
 		private function setNextOmino(init:Boolean):void
 		{
 			bigOminoCount += setting.bigOminoCountAddition;
@@ -488,6 +530,12 @@ package model
 			if (init ? _nextOmino[0] == null : _controlOmino == null)
 			{
 				setNextOmino(init);
+			}
+			else if (_controlOmino != null)
+			{
+				var rect:Rect = _controlOmino.getRect();
+				_cox = fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2);
+				_coy = fieldHeight / 2 - 1 - rect.bottom;
 			}
 		}
 		

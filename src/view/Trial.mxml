@@ -1,32 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:v="view.*"
-		 creationComplete="onCreationComplete()">
+		 enterFrame="onEnterFrame()">
 
 	<fx:Script>
 		<![CDATA[
+		import event.GameEvent;
 		import model.*;
 		import flash.events.*;
 		
-		public var mode:String;
+		private var mode:String;
 		private var manager:GameManager;
 		private var execution:Boolean;
+		[Bindable]
+		private var pause:Boolean;
 		
-		private function onCreationComplete():void
+		public function init(mode:String):void
 		{
-			manager = new GameManager(1, false);
-			manager.setPlayer(0, parentApplication.input1);
+			this.mode = mode;
+			manager = new GameManager(1);
+			manager.setPlayer(0, parentApplication.input);
+			manager.addEventListener(GameEvent.gameOver, endListener);
+			manager.addEventListener(GameEvent.gameClear, endListener);
+			parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
 			main.blockGraphics = new BlockGraphics();
+			prepare();
 		}
 		
-		private function onEnterFrame():void
+		private function prepare():void
 		{
-			if (!execution)
-			{
-				return;
-			}
-			manager.forwardStep();
-			main.update();
+			currentState = "prepare";
+			execution = false;
+			pause = false;
 		}
 		
 		private function start():void
@@ -35,26 +40,58 @@
 			setting.gameMode = mode;
 			setting.startLevel = level.value;
 			setting.endless = endless.selected;
+			setting.levelClearLine = 10;
 			manager.initializeGame(setting);
 			main.gameModel = manager.getGameModel(0);
-			startMenu.visible = false;
+			currentState = "hidden";
+			setFocus();
 			execution = true;
+			pause = false;
 		}
 		
-		private function pause():void
+		private function pauseing():void
 		{
+			currentState = "pause";
 			execution = false;
+			pause = true;
 		}
 		
 		private function resume():void
 		{
+			currentState = "hidden";
+			setFocus();
 			execution = true;
+			pause = false;
 		}
 		
-		private function end():void
+		private function onEnterFrame():void
 		{
-			startMenu.visible = true;
+			if (!execution)
+			{
+				return;
+			}
+			manager.forwardGame();
+			main.update();
+		}
+		
+		private function pauseListener(e:Event):void
+		{
+			if (pause)
+			{
+				resume();
+			}
+			else
+			{
+				if (!execution) return;
+				pauseing();
+			}
+		}
+		
+		private function endListener(e:GameEvent):void
+		{
+			currentState = "end";
 			execution = false;
+			pause = false;
 		}
 		]]>
 	</fx:Script>
@@ -62,16 +99,37 @@
 	<fx:Metadata>
 		[Event(name="back", type="flash.events.Event")]
 	</fx:Metadata>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
 
-	<v:GameView id="main" x="227" y="24" enterFrame="onEnterFrame()" />
-	<s:VGroup id="startMenu" x="352" y="150" width="150" horizontalAlign="center">
-		<s:Button width="150" label="スタート" buttonDown="start()" />
+	<s:states>
+		<s:State name="hidden" />
+		<s:State name="prepare" />
+		<s:State name="end" />
+		<s:State name="pause" />
+		<s:State name="ranking" />
+		<s:State name="keyConfig" />
+	</s:states>
+
+	<v:GameView id="main" x="227" y="24" pause="{pause}"/>
+	<s:VGroup includeIn="prepare" x="352" y="224" width="150" horizontalAlign="center">
+		<s:Button width="150" label="スタート" buttonDown="start()"/>
 		<s:Label text="開始レベル{level.value}" />
 		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
 		<s:CheckBox id="endless" label="エンドレス" />
-		<s:Button width="150" label="ランキング" />
-		<s:Button width="150" label="キーコンフィグ" />
+		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'"/>
+		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
 		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
 	</s:VGroup>
-	<v:KeyConfig id="keyConfig" visible="false" />
+	<s:VGroup includeIn="pause" x="352" y="224" width="150" horizontalAlign="center">
+		<s:Button width="100" label="つづける" buttonDown="resume()" />
+		<s:Button width="100" label="やりなおす" buttonDown="start()" />
+		<s:Button width="100" label="おわる" buttonDown="prepare()" />
+	</s:VGroup>
+	<s:VGroup includeIn="end" x="352" y="224" width="150" horizontalAlign="center">
+		<s:Button width="100" label="おわる" buttonDown="prepare()" />
+	</s:VGroup>
+	<v:KeyConfig includeIn="keyConfig"/>
 </s:Group>

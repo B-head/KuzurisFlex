@@ -6,18 +6,19 @@ package model
 	 */
 	public final class GameSetting 
 	{
-		public static const free:String = "free";
 		public static const axelSpeed:String = "axelSpeed";
 		public static const overSpeed:String = "overSpeed";
 		public static const obstacleAttack:String = "obstacleAttack";
 		public static const obstacleFight:String = "obstacleFight";
 		public static const polyOmino:String = "polyOmino";
 		public static const bigOmino:String = "bigOmino";
+		public static const free:String = "free";
+		public static const battle:String = "battle";
 		
-		public var gameMode:String = free;
+		public var gameMode:String = battle;
 		public var startLevel:int = 1;
-		public var endless:Boolean = false;
-		public var levelClearLine:int = 10;
+		public var endless:Boolean = true;
+		public var levelClearLine:int = int.MIN_VALUE;
 		public var gameClearLevel:int = 20;
 		
 		public var naturalFallSpeed:Number;
@@ -51,6 +52,7 @@ package model
 		
 		public function levelUpCount(level:int, breakLine:int):int
 		{
+			if (levelClearLine == int.MIN_VALUE) return 0;
 			var up:int = int(breakLine / levelClearLine) - (level - startLevel);
 			return Math.min(up, (startLevel + gameClearLevel) - level);
 		}

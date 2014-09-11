@@ -19,7 +19,7 @@ package model
 		
 		public function issueGameCommand():GameCommand 
 		{
-			
+			return new GameCommand();
 		}
 		
 	}

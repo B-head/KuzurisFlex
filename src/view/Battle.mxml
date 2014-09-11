@@ -1,11 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/halo">
+               xmlns:mx="library://ns.adobe.com/flex/halo"
+			   xmlns:v="view.*"
+			   enterFrame="onEnterFrame()">
+			   
+	<fx:Script>
+		<![CDATA[
+		import event.GameEvent;
+		import model.*;
+		import flash.events.*;
+		
+		public static const versusComputer:String = "versusComputer";
+		public static const versusPlayer:String = "versusPlayer";
+		public static const thoroughlyBattle:String = "thoroughlyBattle";
+		public static const duelNetworkBattle:String = "duelNetworkBattle";
+		public static const multiNetworkBattle:String = "multiNetworkBattle";
+		
+		private var manager:GameManager;
+		private var execution:Boolean;
+		[Bindable]
+		private var pause:Boolean;
+		
+		public function init(mode:String):void
+		{
+			if (mode == versusComputer)
+			{
+				manager = new GameManager(2);
+				manager.setPlayer(0, parentApplication.input);
+				manager.setPlayer(1, new GameAIManager());
+				manager.addEventListener(GameEvent.gameOver, endListener);
+				manager.addEventListener(GameEvent.gameClear, endListener);
+				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
+			}
+			else if (mode == versusPlayer)
+			{
+				manager = new GameManager(2);
+				manager.setPlayer(0, parentApplication.inputVersus1);
+				manager.setPlayer(1, parentApplication.inputVersus2);
+				manager.addEventListener(GameEvent.gameOver, endListener);
+				manager.addEventListener(GameEvent.gameClear, endListener);
+				parentApplication.inputVersus1.addEventListener(UserInput.pauseEvent, pauseListener);
+				parentApplication.inputVersus2.addEventListener(UserInput.pauseEvent, pauseListener);
+			}
+			else if (mode == thoroughlyBattle)
+			{
+				manager = new GameManager(8);
+				manager.setPlayer(0, parentApplication.input);
+				manager.setPlayer(1, new GameAIManager());
+				manager.setPlayer(2, new GameAIManager());
+				manager.setPlayer(3, new GameAIManager());
+				manager.setPlayer(4, new GameAIManager());
+				manager.setPlayer(5, new GameAIManager());
+				manager.setPlayer(6, new GameAIManager());
+				manager.setPlayer(7, new GameAIManager());
+				manager.addEventListener(GameEvent.gameOver, endListener);
+				manager.addEventListener(GameEvent.gameClear, endListener);
+				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
+			}
+			player1.blockGraphics = new BlockGraphics();
+			player2.blockGraphics = new BlockGraphics();
+			prepare();
+		}
+		
+		private function prepare():void
+		{
+			currentState = "prepare";
+			execution = false;
+			pause = false;
+		}
+		
+		private function start():void
+		{
+			var setting:GameSetting = new GameSetting();
+			manager.initializeGame(setting);
+			player1.gameModel = manager.getGameModel(0);
+			player2.gameModel = manager.getGameModel(1);
+			currentState = "hidden";
+			setFocus();
+			execution = true;
+			pause = false;
+		}
+		
+		private function pauseing():void
+		{
+			currentState = "pause";
+			execution = false;
+			pause = true;
+		}
+		
+		private function resume():void
+		{
+			currentState = "hidden";
+			setFocus();
+			execution = true;
+			pause = false;
+		}
+		
+		private function onEnterFrame():void
+		{
+			if (!execution)
+			{
+				return;
+			}
+			manager.forwardGame();
+			player1.update();
+			player2.update();
+		}
+		
+		private function pauseListener(e:Event):void
+		{
+			if (pause)
+			{
+				resume();
+			}
+			else
+			{
+				if (!execution) return;
+				pauseing();
+			}
+		}
+		
+		private function endListener(e:GameEvent):void
+		{
+			prepare();
+		}
+		]]>
+	</fx:Script>
+
+	<fx:Metadata>
+		[Event(name="back", type="flash.events.Event")]
+	</fx:Metadata>
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
+
+	<s:states>
+		<s:State name="hidden" />
+		<s:State name="prepare" />
+		<s:State name="pause" />
+		<s:State name="keyConfig" />
+	</s:states>
 	
-	
-</s:Application>
+	<v:GameView id="player1" x="18" y="24" reverse="false" pause="{pause}"/>
+	<v:GameView id="player2" x="436" y="24" reverse="true" pause="{pause}"/>
+	<s:VGroup includeIn="prepare" x="143" y="224" width="150" horizontalAlign="center">
+		<s:Button width="150" label="スタート" buttonDown="start()" />
+		<s:Label text="コンピューターレベル{level.value}" />
+		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
+		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
+		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
+	</s:VGroup>
+	<s:VGroup includeIn="pause" x="143" y="224" width="150" horizontalAlign="center">
+		<s:Button width="100" label="つづける" buttonDown="resume()" />
+		<s:Button width="100" label="やりなおす" buttonDown="start()" />
+		<s:Button width="100" label="おわる" buttonDown="prepare()" />
+	</s:VGroup>
+	<v:KeyConfig includeIn="keyConfig"/>
+</s:Group>
