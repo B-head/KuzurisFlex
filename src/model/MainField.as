@@ -58,38 +58,39 @@ package model
 		}
 		
 		public function extractConnection(to:MainField, x:int, y:int, 
-			upperConnect:Boolean, specialUnion:Boolean = false, first:Boolean = true):void
+			upperConnect:Boolean, specialUnion:Boolean = false, first:Boolean = true):int
 		{
-			if (x < 0) return;
-			if (x >= _width) return;
-			if (y < 0) return;
-			if (y >= _height) return;
+			if (x < 0) return 0;
+			if (x >= _width) return 0;
+			if (y < 0) return 0;
+			if (y >= _height) return 0;
 			var v:BlockState = value[x][y];
-			if (v == null) return;
+			if (v == null) return 0;
 			if (first == true)
 			{
 				specialUnion = v.specialUnion;
 			}
-			
+			var count:int = 1;
 			if (v.hitPoint > 0 && specialUnion == v.specialUnion)
 			{
 				to.value[x][y] = v;
 				value[x][y] = null;
-				extractConnection(to, x + 1, y, upperConnect, specialUnion, false);
-				extractConnection(to, x - 1, y, upperConnect, specialUnion, false);
-				extractConnection(to, x, y + 1, upperConnect, specialUnion, false);
-				extractConnection(to, x, y - 1, upperConnect, specialUnion, upperConnect ? true : false);
+				count += extractConnection(to, x + 1, y, upperConnect, specialUnion, false);
+				count += extractConnection(to, x - 1, y, upperConnect, specialUnion, false);
+				count += extractConnection(to, x, y + 1, upperConnect, specialUnion, false);
+				count += extractConnection(to, x, y - 1, upperConnect, specialUnion, upperConnect ? true : false);
 			}
 			else
 			{
-				if (first == false) return;
+				if (first == false) return 0;
 				to.value[x][y] = v;
 				value[x][y] = null;
 				if (upperConnect == true)
 				{
-					extractConnection(to, x, y - 1, upperConnect, specialUnion, true);
+					count += extractConnection(to, x, y - 1, upperConnect, specialUnion, true);
 				}
 			}
+			return count;
 		}
 		
 		public function setObstacleLine(line:int, blockCount:int, hitPointMax:Number, blockColor:uint, prng:XorShift128):void

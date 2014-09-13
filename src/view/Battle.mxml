@@ -28,8 +28,8 @@
 			if (mode == versusComputer)
 			{
 				manager = new GameManager(2);
-				//manager.setPlayer(0, parentApplication.input);
-				manager.setPlayer(0, new GameAIManager(new SimpleAI()));
+				manager.setPlayer(0, parentApplication.input);
+				//manager.setPlayer(0, new GameAIManager(new SimpleAI()));
 				manager.setPlayer(1, new GameAIManager(new SimpleAI()));
 				manager.addEventListener(GameEvent.gameOver, endListener);
 				manager.addEventListener(GameEvent.gameClear, endListener);

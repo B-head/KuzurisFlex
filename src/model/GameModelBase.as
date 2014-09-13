@@ -78,16 +78,19 @@ package model
 		protected function fallingField(from:int, to:int):void
 		{
 			var tempField:MainField = new MainField(fieldWidth, fieldHeight);
+			var blockscCount:int = _fallField.countBlock(); 
 			for (var i:int = from; i <= to; i++)
 			{
-				collideFallingBlocks(i, tempField);
+				blockscCount -= collideFallingBlocks(i, tempField);
 				onSectionDamage(shockDamage(tempField, 0, i, getNaturalShockDamage(i)));
 				_mainField.fix(tempField, 0, i);
+				if (blockscCount <= 0) break;
 			}
 		}
 		
-		protected function collideFallingBlocks(dy:int, to:MainField):void
+		protected function collideFallingBlocks(dy:int, to:MainField):int
 		{
+			var count:int = 0;
 			for (var y:int = 0; y < fieldHeight; y++)
 			{
 				var ty:int = y + dy + 1;
@@ -96,9 +99,10 @@ package model
 				{
 					if (!_fallField.isExistBlock(x, y)) continue;
 					if (ty < fieldHeight && !_mainField.isExistBlock(x, ty)) continue;
-					_fallField.extractConnection(to, x, y, true);
+					count += _fallField.extractConnection(to, x, y, true);
 				}
 			}
+			return count;
 		}
 		
 		protected function shockDamage(field:BlockField, dx:Number, dy:Number, damageCoefficient:Number):Number

@@ -75,7 +75,8 @@ package model
 					break;
 				case 2: 
 					_controlOmino.rotationLeft(cache);
-					_controlOmino = cache.clone();
+					_controlOmino = cache;
+					cache = new OminoField(GameModelBase.ominoSize);
 					_controlOmino.rotationLeft(cache); 
 					break;
 				case 3: 

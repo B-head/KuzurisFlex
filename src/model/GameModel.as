@@ -161,6 +161,7 @@ package model
 		private function forwardNonControl():void
 		{
 			fallSpeed += setting.fallAcceleration;
+			if (fallSpeed > setting.fastFallSpeed) fallSpeed = setting.fastFallSpeed;
 			fallingField(int(_ffy), int(_ffy + fallSpeed));
 			_ffy += fallSpeed;
 			if (_fallField.countBlock() > 0) return;
@@ -184,6 +185,7 @@ package model
 			if (!obstacleSettled && obstacleManager.notice > 0)
 			{
 				setObstacleBlocks();
+				fallSpeed = setting.fastFallSpeed;
 				obstacleSettled = true;
 				dispatchEvent(new GameEvent(GameEvent.obstacleFall, record.gameTime, 0));
 				return;
@@ -231,7 +233,7 @@ package model
 		
 		public function materializationNotice(player:int):void
 		{
-			obstacleManager.materializationNotice(record.gameTime, String(player));
+			obstacleManager.preMaterializationNotice(record.gameTime, String(player));
 		}
 		
 		override protected function onBreakLine(y:int, colors:Vector.<uint>):void 
@@ -575,12 +577,12 @@ package model
 			{
 				if (rest < obstacleLineMax)
 				{
-					_mainField.setObstacleLine(y, rest, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+					_fallField.setObstacleLine(y, rest, setting.hitPointMax, obstacleColor1, obstaclePRNG);
 					rest = 0;
 				}
 				else
 				{
-					_mainField.setObstacleLine(y, obstacleLineMax, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+					_fallField.setObstacleLine(y, obstacleLineMax, setting.hitPointMax, obstacleColor1, obstaclePRNG);
 					rest -= obstacleLineMax;
 				}
 			}

@@ -28,6 +28,7 @@ package model.ai
 			}
 			var maxs:Vector.<AppraiseTree> = treeRoot.getMaxs();
 			var ret:AppraiseTree = maxs[int(Math.random() * maxs.length)];
+			trace("lx = " + ret.way.lx + ", dir = " + ret.way.dir);
 			return ret.way;
 		}
 		
@@ -37,9 +38,9 @@ package model.ai
 			var chasm:Vector.<int> = appraiseChasm(gameModel);
 			var roughness:int = appraiseRoughness(tops);
 			var ret:int = 0;
-			tops.forEach(function (item:int, index:int, vector:Vector.<int>):void { ret -= (GameModelBase.fieldHeight - item); } );
-			chasm.forEach(function (item:int, index:int, vector:Vector.<int>):void { ret -= item; } );
-			ret -= roughness;
+			tops.forEach(function (item:int, index:int, vector:Vector.<int>):void { ret += item; } );
+			chasm.forEach(function (item:int, index:int, vector:Vector.<int>):void { ret -= item * 10; } );
+			ret -= roughness * 5;
 			return ret;
 		}
 		

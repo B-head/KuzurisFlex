@@ -20,9 +20,9 @@ package model
 		public function getNoticeSaveCount():int
 		{
 			var ret:int;
-			for (var a:String in noticeSave)
+			for (var i:int = 0; i < noticeSave.length; i++)
 			{
-				var n:Object = noticeSave[a];
+				var n:Object = noticeSave[i];
 				if (n == null) continue;
 				ret += n.count;
 			}
@@ -39,7 +39,7 @@ package model
 			var ns:Object = findKey(key);
 			if (ns == null)
 			{
-				ns = { key:key, count:count };
+				ns = { key:key, count:count, preMaterialization:false };
 				noticeSave.push(ns);
 			}
 			else
@@ -47,6 +47,16 @@ package model
 				ns.count += count;
 			}
 			dispatchEvent(new ObstacleEvent(ObstacleEvent.addObstacle, gameTime, 0, count));
+		}
+		
+		public function preMaterializationNotice(gameTime:int, key:String):void
+		{
+			var ns:Object = findKey(key);
+			if (ns == null) return;
+			ns.key += "@" + String(gameTime);
+			ns.lastAddition = gameTime;
+			ns.preMaterialization = true;
+			dispatchEvent(new ObstacleEvent(ObstacleEvent.preMaterializationNotice, gameTime, 0, ns.count));
 		}
 		
 		public function materializationNotice(gameTime:int, key:String):void
@@ -93,11 +103,16 @@ package model
 			if (gameTime >= lastAddition + setting.obstacleInterval)
 			{
 				addObstacle(gameTime, "trial", setting.obstacleAdditionCount);
+				preMaterializationNotice(gameTime, "trial");
 				lastAddition = gameTime;
 			}
-			if (gameTime >= lastAddition + setting.obstacleSaveTime)
+			for (var i:int = 0; i < noticeSave.length; i++)
 			{
-				materializationNotice(gameTime, "trial");
+				if (noticeSave[i].preMaterialization == false) continue;
+				if (gameTime >= noticeSave[i].lastAddition + setting.obstacleSaveTime)
+				{
+					materializationNotice(gameTime, noticeSave[i].key);
+				}
 			}
 		}
 	}

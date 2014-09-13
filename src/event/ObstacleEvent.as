@@ -12,6 +12,7 @@ package event
 		
 		public static const addObstacle:String = "addObstacle";
 		public static const materializationNotice:String = "materializationNotice";
+		public static const preMaterializationNotice:String = "preMaterializationNotice";
 		public static const occurObstacle:String = "occurObstacle";
 		public static const counterbalanceObstacle:String = "counterbalanceObstacle";
 		

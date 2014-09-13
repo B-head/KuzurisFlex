@@ -30,6 +30,7 @@ package model
 			{
 				targetWay = ai.createTargetWay();
 				primaryMove = true;
+				moveDelay = secondaryMoveDelay * 3;
 			}
 		}
 		
