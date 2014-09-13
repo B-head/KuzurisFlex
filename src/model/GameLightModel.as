@@ -47,7 +47,75 @@ package model
 		{
 			_nextOmino = value;
 		}
+			
+		public function clone():GameLightModel
+		{
+			var result:GameLightModel = new GameLightModel();
+			result.mainField = _mainField.clone();
+			result.fallField = _fallField.clone();
+			result.controlOmino = _controlOmino.clone();
+			result.nextOmino = new Vector.<OminoField>(nextLength, true);
+			for (var i:int = 0; i < nextLength; i++)
+			{
+				result.nextOmino[i] = _nextOmino[i].clone();
+			}
+			return result;
+		}
 		
+		public function forwardNext(way:ControlWay):Boolean
+		{
+			var cache:OminoField = new OminoField(GameModelBase.ominoSize);
+			switch(way.dir)
+			{
+				case 0:
+					cache = _controlOmino;
+					break;
+				case 1: 
+					_controlOmino.rotationLeft(cache); 
+					break;
+				case 2: 
+					_controlOmino.rotationLeft(cache);
+					_controlOmino = cache.clone();
+					_controlOmino.rotationLeft(cache); 
+					break;
+				case 3: 
+					_controlOmino.rotationRight(cache); 
+					break;
+			}
+			_controlOmino = cache;
+			var rect:Rect = _controlOmino.getRect();
+			var cox:int = way.lx - rect.left;
+			var coy:int = init_coy(rect);
+			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return false;
+			earthFix(cox, coy, false);
+			do
+			{
+				fallingField(0, GameModelBase.fieldHeight - 1);
+				breakLines();
+				extractFallBlocks();
+			}
+			while (_fallField.countBlock() > 0);
+			_mainField.clearSpecialUnion();
+			rotateNext(null);
+			return true;
+		}
+		
+		private function earthFix(cox:int, coy:int, shockSave:Boolean):void
+		{
+			for (var i:int = coy; i < GameModelBase.fieldHeight; i++)
+			{
+				if (_controlOmino.blocksHitChack(_mainField, cox, i + 1, true) == 0)
+				{
+					continue;
+				}
+				if (!shockSave)
+				{
+					shockDamage(_controlOmino, cox, i, 1);
+				}
+				_mainField.fix(_controlOmino, cox, i);
+				break;
+			}
+		}
 	}
 
 }

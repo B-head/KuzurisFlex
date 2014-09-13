@@ -66,17 +66,46 @@ package model
 		
 		public function setLevelParameter(level:int):void
 		{
+			if (level > 20) level = 20;
 			hitPointMax = 10;
 			setSpeed(level);
 			setObstacleAddition(level);
 			setQuantityOdds(level);
 		}
 		
+		private function linerLeveling(level:int, low:Number, high:Number):Number
+		{
+			if (low < high)
+			{
+				return low + (high - low) * (level - 1) / 19
+			}
+			else
+			{
+				return high + (low - high) * (20 - level) / 19;
+			}
+		}
+		
+		private function exponentLeveling(level:int, low:Number, high:Number, u:Number):Number
+		{
+			var ret:Number;
+			var l:Number = (level - 1) / 19;
+			if (low < high)
+			{
+				ret = low + (high - low) * (Math.pow(u, l) - 1) / (u - 1);
+			}
+			else
+			{
+				ret = high + (low - high) * (Math.pow(u, 1 - l) - 1) / (u - 1);
+			}
+			trace(ret);
+			return ret;
+		}
+		
 		private function setSpeed(level:int):void
 		{
 			if (gameMode == axelSpeed)
 			{
-				naturalFallSpeed = 20 / (1 + 1199 * (Math.pow(100, 1 - (level - 1) / 19) - 1) / 99);
+				naturalFallSpeed = 20 / exponentLeveling(level, 1200, 1, 100);
 				fastFallSpeed = (naturalFallSpeed > 1 ? naturalFallSpeed : 1);
 				fallAcceleration = 10 / 400;
 				playTime = 60;
@@ -85,8 +114,8 @@ package model
 			{
 				naturalFallSpeed = 20;
 				fastFallSpeed = 20;
-				fallAcceleration = 10 / Math.pow(400, 1 - (level - 1) / 19);
-				playTime = int(20 * Math.pow(3, 1 - (level - 1) / 19));
+				fallAcceleration = 10 / exponentLeveling(level, 400, 1, 100);
+				playTime = linerLeveling(level, 60, 20);
 			}
 			else
 			{
@@ -103,11 +132,11 @@ package model
 			if (gameMode == obstacleAttack)
 			{
 				obstacleInterval = 900;
-				obstacleAdditionCount = 10 + 40 * (level - 1) / 19;
+				obstacleAdditionCount = linerLeveling(level, 10, 50);
 			}
 			else if (gameMode == obstacleFight)
 			{
-				obstacleInterval = int(450 * Math.pow(2, 1 - (level - 1) / 19));
+				obstacleInterval = linerLeveling(level, 900, 450);
 				obstacleAdditionCount = 50;
 			}
 			else

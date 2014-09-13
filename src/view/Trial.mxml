@@ -66,6 +66,7 @@
 		
 		private function onEnterFrame():void
 		{
+			parentApplication.input.enable = execution;
 			if (!execution)
 			{
 				return;

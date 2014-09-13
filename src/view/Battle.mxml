@@ -10,6 +10,7 @@
 		import event.GameEvent;
 		import model.*;
 		import flash.events.*;
+		import model.ai.SimpleAI;
 		
 		public static const versusComputer:String = "versusComputer";
 		public static const versusPlayer:String = "versusPlayer";
@@ -27,8 +28,9 @@
 			if (mode == versusComputer)
 			{
 				manager = new GameManager(2);
-				manager.setPlayer(0, parentApplication.input);
-				manager.setPlayer(1, new GameAIManager());
+				//manager.setPlayer(0, parentApplication.input);
+				manager.setPlayer(0, new GameAIManager(new SimpleAI()));
+				manager.setPlayer(1, new GameAIManager(new SimpleAI()));
 				manager.addEventListener(GameEvent.gameOver, endListener);
 				manager.addEventListener(GameEvent.gameClear, endListener);
 				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
@@ -47,13 +49,13 @@
 			{
 				manager = new GameManager(8);
 				manager.setPlayer(0, parentApplication.input);
-				manager.setPlayer(1, new GameAIManager());
-				manager.setPlayer(2, new GameAIManager());
-				manager.setPlayer(3, new GameAIManager());
-				manager.setPlayer(4, new GameAIManager());
-				manager.setPlayer(5, new GameAIManager());
-				manager.setPlayer(6, new GameAIManager());
-				manager.setPlayer(7, new GameAIManager());
+				manager.setPlayer(1, new GameAIManager(null));
+				manager.setPlayer(2, new GameAIManager(null));
+				manager.setPlayer(3, new GameAIManager(null));
+				manager.setPlayer(4, new GameAIManager(null));
+				manager.setPlayer(5, new GameAIManager(null));
+				manager.setPlayer(6, new GameAIManager(null));
+				manager.setPlayer(7, new GameAIManager(null));
 				manager.addEventListener(GameEvent.gameOver, endListener);
 				manager.addEventListener(GameEvent.gameClear, endListener);
 				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
@@ -99,6 +101,9 @@
 		
 		private function onEnterFrame():void
 		{
+			parentApplication.input.enable = execution;
+			parentApplication.inputVersus1.enable = execution;
+			parentApplication.inputVersus2.enable = execution;
 			if (!execution)
 			{
 				return;

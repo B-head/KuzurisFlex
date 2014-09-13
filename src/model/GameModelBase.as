@@ -34,6 +34,21 @@ package model
 			_nextOmino = new Vector.<OminoField>(nextLength, true);
 		}
 		
+		protected function onBreakLine(y:int, colors:Vector.<uint>):void
+		{
+			return;
+		}
+		
+		protected function onSectionDamage(damage:Number):void
+		{
+			return;
+		}
+		
+		protected function onBlockDamage(x:int, y:int, damage:Number):void
+		{
+			return;
+		}
+		
 		protected function breakLines():int
 		{
 			var count:int = 0;
@@ -49,11 +64,6 @@ package model
 			return count;
 		}
 		
-		protected function onBreakLine(y:int, colors:Vector.<uint>):void
-		{
-			
-		}
-		
 		protected function extractFallBlocks():void
 		{
 			var temp:MainField = _mainField;
@@ -62,6 +72,17 @@ package model
 			for (var x:int = 0; x < fieldWidth; x++)
 			{
 				_fallField.extractConnection(_mainField, x, fieldHeight - 1, true);
+			}
+		}
+		
+		protected function fallingField(from:int, to:int):void
+		{
+			var tempField:MainField = new MainField(fieldWidth, fieldHeight);
+			for (var i:int = from; i <= to; i++)
+			{
+				collideFallingBlocks(i, tempField);
+				onSectionDamage(shockDamage(tempField, 0, i, getNaturalShockDamage(i)));
+				_mainField.fix(tempField, 0, i);
 			}
 		}
 		
@@ -115,13 +136,19 @@ package model
 			}
 		}
 		
-		protected function onBlockDamage(x:int, y:int, damage:Number):void
+		protected function rotateNext(replenish:OminoField):void
 		{
-			
+			_controlOmino = _nextOmino[0];
+			for (var i:int = 0; i < nextLength - 1; i++)
+			{
+				_nextOmino[i] = _nextOmino[i + 1];
+			}
+			_nextOmino[nextLength - 1] = replenish;
 		}
 		
 		protected function getNaturalShockDamage(n:int):Number
 		{
+			if (n >= distanceDamageCoefficient.length) n = distanceDamageCoefficient.length - 1;
 			return naturalShockDamageCoefficient * distanceDamageCoefficient[n];
 		}
 		
@@ -143,6 +170,24 @@ package model
 			return vec;
 		}
 		
+		public function init_cox(rect:Rect):int
+		{
+			return fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2)
+		}
+		
+		public function init_coy(rect:Rect):int
+		{
+			return fieldHeight / 2 - 1 - rect.bottom;
+		}
+		
+		public function rotateReviseX(from:Rect, to:Rect):int
+		{
+			return (from.right - to.right + from.left - to.left) / 2;
+		}
+		
+		public function rotateReviseY(from:Rect, to:Rect):int
+		{
+			return from.bottom - to.bottom;
+		}
 	}
-
 }

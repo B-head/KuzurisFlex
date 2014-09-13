@@ -48,10 +48,12 @@ package model
 				}
 				replay[i] = new GameReplay();
 				gameModel[i] = new GameModel(setting, seed);
+				control[i].updateModel(gameModel[i].getLightModel());
 				gameModel[i].addEventListener(GameEvent.gameOver, GameEndListener);
 				gameModel[i].addEventListener(GameEvent.gameClear, GameEndListener);
-				gameModel[i].addEventListener(GameEvent.setOmino, createChangePhaseListener(i, true));
-				gameModel[i].addEventListener(GameEvent.fixOmino, createChangePhaseListener(i, false));
+				gameModel[i].addEventListener(ControlEvent.setOmino, createUpdateModelListener(i), false);
+				gameModel[i].addEventListener(ControlEvent.setOmino, createChangePhaseListener(i, true));
+				gameModel[i].addEventListener(ControlEvent.fixOmino, createChangePhaseListener(i, false));
 				gameModel[i].addEventListener(ObstacleEvent.occurObstacle, createOccurObstacleListener(i));
 				gameModel[i].addEventListener(GameEvent.breakConbo, createBreakComboListener(i));
 			}
@@ -86,9 +88,17 @@ package model
 		
 		private function createChangePhaseListener(self:int, phase:Boolean):Function
 		{
-			return function(e:GameEvent):void
+			return function(e:ControlEvent):void
 			{
 				control[self].changePhase(phase);
+			}
+		}
+		
+		private function createUpdateModelListener(self:int):Function
+		{
+			return function(e:GameEvent):void
+			{
+				control[self].updateModel(gameModel[self].getLightModel());
 			}
 		}
 		

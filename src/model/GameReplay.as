@@ -19,7 +19,12 @@ package model
 		
 		public function changePhase(controlPhase:Boolean):void 
 		{
-			
+			return;
+		}
+		
+		public function updateModel(currentModel:GameLightModel):void
+		{
+			return;
 		}
 		
 		public function issueGameCommand():GameCommand 

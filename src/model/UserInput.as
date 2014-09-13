@@ -23,6 +23,7 @@ package model
 		public var pause:Vector.<uint>;
 		public var oneFrameMove:Boolean;
 		public var replaceFixCommand:Boolean;
+		public var enable:Boolean;
 		
 		private var downKeyCodes:Vector.<uint>;
 		private var lastControl:GameCommand;
@@ -57,6 +58,11 @@ package model
 				}
 			}
 			downKeyCodes[downKeyCodes.length] = keyCode;
+			if (pause.indexOf(keyCode) != -1)
+			{
+				dispatchEvent(new Event(pauseEvent));
+			}
+			if (!enable) return;
 			if (rightRotation.indexOf(keyCode) != -1)
 			{
 				remainderRotation++;
@@ -77,10 +83,6 @@ package model
 			{
 				remainderEarthFalling++;
 			}
-			if (pause.indexOf(keyCode) != -1)
-			{
-				dispatchEvent(new Event(pauseEvent));
-			}
 		}
 		
 		public function keyUp(keyCode:int):void
@@ -97,19 +99,16 @@ package model
 		
 		public function changePhase(controlPhase:Boolean):void
 		{
-			if (controlPhase)
-			{
-				if (!oneFrameMove && moveDelay <= 0)
-				{
-					moveDelay = secondaryMoveDelay;
-				}
-				this.controlPhase = true;
-			}
-			else
+			this.controlPhase = controlPhase;
+			if (!controlPhase)
 			{
 				moveDelay = primaryMoveDelay;
-				this.controlPhase = false
 			}
+		}
+		
+		public function updateModel(gameModel:GameLightModel):void
+		{
+			return;
 		}
 		
 		public function issueGameCommand():GameCommand 

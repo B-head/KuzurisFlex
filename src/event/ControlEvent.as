@@ -10,6 +10,8 @@ package event
 		public var fromX:Number;
 		public var fromY:Number;
 		
+		public static const fixOmino:String = "fixOmino"; 
+		public static const setOmino:String = "setOmino";
 		public static const moveOK:String = "moveOK";
 		public static const moveNG:String = "moveNG";
 		public static const fallingShock:String = "fallingShock";

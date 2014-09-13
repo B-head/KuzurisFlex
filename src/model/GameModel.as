@@ -122,7 +122,7 @@ package model
 			return obstacleManager.getNoticeSaveCount();
 		}
 		
-		[Bindable(event="forwardStep")]
+		[Bindable(event="forwardGame")]
 		public function getNextObstacleTime():int
 		{
 			return obstacleManager.getNextObstacleTime(record.gameTime, setting);
@@ -160,7 +160,9 @@ package model
 		
 		private function forwardNonControl():void
 		{
-			fallingField();
+			fallSpeed += setting.fallAcceleration;
+			fallingField(int(_ffy), int(_ffy + fallSpeed));
+			_ffy += fallSpeed;
 			if (_fallField.countBlock() > 0) return;
 			_ffy = 0;
 			fallSpeed = 0;
@@ -193,7 +195,7 @@ package model
 				return;
 			}
 			setNextOmino(false);
-			dispatchEvent(new GameEvent(GameEvent.setOmino, record.gameTime, 0));
+			dispatchEvent(new ControlEvent(ControlEvent.setOmino, record.gameTime, 0, _cox, _coy));
 			if (_controlOmino.blocksHitChack(_mainField, _cox, _coy, true) > 0)
 			{
 				gameOverFlag = true;
@@ -216,7 +218,7 @@ package model
 			if(playRest <= 0 || playRest <= playLimit)
 			{
 				_mainField.fix(_controlOmino, _cox, _coy);
-				dispatchEvent(new GameEvent(GameEvent.fixOmino, record.gameTime, 0));
+				dispatchEvent(new ControlEvent(ControlEvent.fixOmino, record.gameTime, 0, _cox, _coy));
 				record.fixOmino++;
 				controlPhase = false;
 			}
@@ -242,7 +244,6 @@ package model
 			if (setting.gameMode == GameSetting.battle)
 			{
 				var obs:int = comboCount > 1 ? fieldWidth * 2 : fieldWidth;
-				//var obs:int = fieldWidth * comboCount;
 				var cb:int = Math.min(obs, obstacleManager.notice + obstacleManager.getNoticeSaveCount());
 				if (cb > 0)
 				{
@@ -254,17 +255,17 @@ package model
 			}
 		}
 		
-		override protected function onBlockDamage(x:int, y:int, damage:Number):void 
-		{
-			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, record.gameTime, 0, damage, x, y));
-		}
-		
-		private function onSectionDamage(damage:Number):void
+		override protected function onSectionDamage(damage:Number):void
 		{
 			var plus:int = totalDamage % 1 + damage;
 			record.gameScore += plus;
 			totalDamage += damage;
 			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.sectionDamage, record.gameTime, plus, damage, int.MIN_VALUE, int.MIN_VALUE));
+		}
+		
+		override protected function onBlockDamage(x:int, y:int, damage:Number):void 
+		{
+			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, record.gameTime, 0, damage, x, y));
 		}
 		
 		private function rotationOmino(rotation:int):void
@@ -284,8 +285,8 @@ package model
 			}
 			var controlRect:Rect = _controlOmino.getRect();
 			var cacheRect:Rect = cacheOmino.getRect();
-			var sx:int = int((controlRect.right - cacheRect.right + controlRect.left - cacheRect.left) / 2);
-			var sy:int = controlRect.bottom - cacheRect.bottom;
+			var sx:int = rotateReviseX(controlRect, cacheRect);
+			var sy:int = rotateReviseY(controlRect, cacheRect);
 			var a:int;
 			for (var i:int = 0; i < ominoSize; i++)
 			{
@@ -476,20 +477,6 @@ package model
 			_coy += fallSpeed;
 		}
 		
-		//FIXME いつか衝突ダメージの処理をちゃんとしたい。
-		private function fallingField():void
-		{
-			var tempField:MainField = new MainField(fieldWidth, fieldHeight);
-			fallSpeed += setting.fallAcceleration;
-			for (var i:int = int(_ffy); i <= int(_ffy + fallSpeed); i++)
-			{
-				collideFallingBlocks(i, tempField);
-				onSectionDamage(shockDamage(tempField, 0, i, getNaturalShockDamage(i)));
-				_mainField.fix(tempField, 0, i);
-			}
-			_ffy += fallSpeed;
-		}
-		
 		private function levelUp():void
 		{
 			if (setting.isLevelUp(record.level, record.breakLine))
@@ -519,14 +506,7 @@ package model
 			}
 			var color:uint = omino.coloringOmino();
 			omino.allSetState(setting.hitPointMax, color, true);
-			
-			_controlOmino = _nextOmino[0];
-			for (var i:int = 0; i < nextLength - 1; i++)
-			{
-				_nextOmino[i] = _nextOmino[i + 1];
-			}
-			_nextOmino[nextLength - 1] = omino;
-			
+			rotateNext(omino);
 			if (init ? _nextOmino[0] == null : _controlOmino == null)
 			{
 				setNextOmino(init);
@@ -534,8 +514,8 @@ package model
 			else if (_controlOmino != null)
 			{
 				var rect:Rect = _controlOmino.getRect();
-				_cox = fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2);
-				_coy = fieldHeight / 2 - 1 - rect.bottom;
+				_cox = init_cox(rect);
+				_coy = init_coy(rect);
 			}
 		}
 		
