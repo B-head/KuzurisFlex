@@ -1,75 +1,79 @@
 package view 
 {
+	import event.*;
+	import model.*;
 	import flash.media.Sound;
 	import flash.media.SoundTransform;
+	import mx.core.UIComponent;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class GameSoundEffect 
+	public class GameSoundEffect extends UIComponent
 	{
-		[Embed(source = "sounds/line/line-1.mp3")]
+		[Embed(source = "../sound/line/line-1.mp3")]
 		private const Line1:Class;
-		[Embed(source = "sounds/line/line-2.mp3")]
+		[Embed(source = "../sound/line/line-2.mp3")]
 		private const Line2:Class;
-		[Embed(source = "sounds/line/line-3.mp3")]
+		[Embed(source = "../sound/line/line-3.mp3")]
 		private const Line3:Class;
-		[Embed(source = "sounds/line/line-4.mp3")]
+		[Embed(source = "../sound/line/line-4.mp3")]
 		private const Line4:Class;
-		[Embed(source = "sounds/line/line-5.mp3")]
+		[Embed(source = "../sound/line/line-5.mp3")]
 		private const Line5:Class;
-		[Embed(source = "sounds/line/line-6.mp3")]
+		[Embed(source = "../sound/line/line-6.mp3")]
 		private const Line6:Class;
-		[Embed(source = "sounds/line/line-7.mp3")]
+		[Embed(source = "../sound/line/line-7.mp3")]
 		private const Line7:Class;
-		[Embed(source = "sounds/line/line-8.mp3")]
+		[Embed(source = "../sound/line/line-8.mp3")]
 		private const Line8:Class;
-		[Embed(source = "sounds/line/line-9.mp3")]
+		[Embed(source = "../sound/line/line-9.mp3")]
 		private const Line9:Class;
-		[Embed(source = "sounds/line/line-10.mp3")]
+		[Embed(source = "../sound/line/line-10.mp3")]
 		private const Line10:Class;
-		[Embed(source = "sounds/line/line-11.mp3")]
+		[Embed(source = "../sound/line/line-11.mp3")]
 		private const Line11:Class;
-		[Embed(source = "sounds/line/line-12.mp3")]
+		[Embed(source = "../sound/line/line-12.mp3")]
 		private const Line12:Class;
-		[Embed(source = "sounds/line/line-13.mp3")]
+		[Embed(source = "../sound/line/line-13.mp3")]
 		private const Line13:Class;
-		[Embed(source = "sounds/line/line-14.mp3")]
+		[Embed(source = "../sound/line/line-14.mp3")]
 		private const Line14:Class;
-		[Embed(source = "sounds/line/line-15.mp3")]
+		[Embed(source = "../sound/line/line-15.mp3")]
 		private const Line15:Class;
-		[Embed(source = "sounds/line/line-16.mp3")]
+		[Embed(source = "../sound/line/line-16.mp3")]
 		private const Line16:Class;
-		[Embed(source = "sounds/line/line-17.mp3")]
+		[Embed(source = "../sound/line/line-17.mp3")]
 		private const Line17:Class;
-		[Embed(source = "sounds/line/line-18.mp3")]
+		[Embed(source = "../sound/line/line-18.mp3")]
 		private const Line18:Class;
-		[Embed(source = "sounds/line/line-19.mp3")]
+		[Embed(source = "../sound/line/line-19.mp3")]
 		private const Line19:Class;
-		[Embed(source = "sounds/line/line-20.mp3")]
+		[Embed(source = "../sound/line/line-20.mp3")]
 		private const Line20:Class;
 		
-		[Embed(source = "sounds/level_up.mp3")]
+		[Embed(source = "../sound/level_up.mp3")]
 		private const LevelUp:Class;
-		[Embed(source = "sounds/bom26_a.mp3")]
+		[Embed(source = "../sound/bom26_a.mp3")]
 		private const Shock:Class;
-		[Embed(source = "sounds/hit28.mp3")]
+		[Embed(source = "../sound/hit28.mp3")]
 		private const ShockSave:Class;
-		[Embed(source = "sounds/on01b.mp3")]
+		[Embed(source = "../sound/on01b.mp3")]
 		private const Move:Class;
-		[Embed(source = "sounds/on04.mp3")]
+		[Embed(source = "../sound/on04.mp3")]
 		private const Rotation:Class;
-		[Embed(source = "sounds/on01.mp3")]
+		[Embed(source = "../sound/on01.mp3")]
 		private const Fall:Class;
-		[Embed(source = "sounds/clock03.mp3")]
+		[Embed(source = "../sound/clock03.mp3")]
 		private const Shift:Class;
 		
+		private var _gameModel:GameModel;
 		private var line:Vector.<Sound>;
 		private var levelUp:Sound;
 		private var shock:Sound;
 		private var shockSave:Sound;
-		private var move:Sound;
-		private var rotation:Sound;
+		private var cMove:Sound;
+		private var cRotation:Sound;
 		private var fall:Sound;
 		private var shift:Sound;
 		
@@ -84,50 +88,39 @@ package view
 			levelUp = new LevelUp();
 			shock = new Shock();
 			shockSave = new ShockSave();
-			move = new Move();
-			rotation = new Rotation();
+			cMove = new Move();
+			cRotation = new Rotation();
 			fall = new Fall();
 			shift = new Shift();
 		}
 		
-		public function playLine(line:int):void
+		public function get gameModel():GameModel
 		{
-			this.line[line].play();
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			value.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
+			value.addEventListener(LevelClearEvent.levelClear, function(e:LevelClearEvent):void { levelUp.play(); } );
+			value.addEventListener(ShockBlockEvent.sectionDamage, shockBlockListener);
+			value.addEventListener(ControlEvent.fallShockSave, function(e:ControlEvent):void { shockSave.play(); } );
+			value.addEventListener(ControlEvent.moveOK, function(e:ControlEvent):void { cMove.play(0, 0, new SoundTransform(0.5)); } );
+			value.addEventListener(ControlEvent.rotationOK, function(e:ControlEvent):void { cRotation.play(0, 0, new SoundTransform(0.5)); } );
+			value.addEventListener(ControlEvent.startFall, function(e:ControlEvent):void { fall.play(0, 0, new SoundTransform(0.5)); } );
+			value.addEventListener(ControlEvent.shockSaveON, function(e:ControlEvent):void { shift.play(0, 0, new SoundTransform(0.5)); } );
+			value.addEventListener(ControlEvent.shockSaveOFF, function(e:ControlEvent):void { shift.play(0, 0, new SoundTransform(0.5)); } );
 		}
 		
-		public function playLevelUp():void
+		public function shockBlockListener(e:ShockBlockEvent):void
 		{
-			levelUp.play();
+			var v:Number = e.coefficient;
+			shock.play(0, 0, new SoundTransform(v));
 		}
 		
-		public function playShock(volume:Number):void
+		public function breakLineListener(e:BreakLineEvent):void
 		{
-			shock.play(0, 0, new SoundTransform(volume));
-		}
-		
-		public function playShockSave():void
-		{
-			shockSave.play();
-		}
-		
-		public function playMove():void
-		{
-			move.play(0, 0, new SoundTransform(0.5));
-		}
-		
-		public function playRotation():void
-		{
-			rotation.play(0, 0, new SoundTransform(0.5));
-		}
-		
-		public function playFall():void
-		{
-			fall.play(0, 0, new SoundTransform(0.5));
-		}
-		
-		public function playShift():void
-		{
-			shift.play(0, 0, new SoundTransform(0.5));
+			line[e.combo].play(); 
 		}
 		
 		private function indexToLine(index:int):Sound

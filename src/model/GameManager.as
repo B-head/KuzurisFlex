@@ -78,7 +78,7 @@ package model
 			var count:int = 0;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				if (gameModel[i].isGameOver()) count++;
+				if (gameModel[i].isGameOver) count++;
 			}
 			if (count >= maxPlayer - 1)
 			{

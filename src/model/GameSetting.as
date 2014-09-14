@@ -97,7 +97,7 @@ package model
 			{
 				ret = high + (low - high) * (Math.pow(u, 1 - l) - 1) / (u - 1);
 			}
-			trace(ret);
+			//trace(ret);
 			return ret;
 		}
 		

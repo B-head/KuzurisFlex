@@ -123,22 +123,15 @@ package model
 		public function verticalShock(x:int, y:int, shockDamage:Number, indirectShockDamage:Number, onBlockDamageDelegate:Function, up:Boolean):Number
 		{
 			var totalDamage:Number = 0;
-			var damage:Number = 0;
 			for (var i:int = y; i >= 0 && i < _height; up ? i-- : i++)
 			{
 				if (value[x][i] == null)
 				{
 					break;
 				}
-				if (i == y)
-				{
-					damage = blockShock(x, i, shockDamage);
-				}
-				else
-				{
-					damage += blockShock(x, i, indirectShockDamage);
-				}
-				onBlockDamageDelegate(x, y, damage);
+				var coefficient:Number = i == y ? shockDamage : indirectShockDamage;
+				var damage:Number = blockShock(x, i, coefficient);
+				onBlockDamageDelegate(x, y, damage, coefficient);
 				totalDamage += damage;
 			}
 			return totalDamage;
@@ -170,7 +163,7 @@ package model
 			{
 				for (var y:int = 0; y < _height; y++)
 				{
-					if (value[x][y] != null)
+					if (isExistBlock(x, y))
 					{
 						count++;
 					}

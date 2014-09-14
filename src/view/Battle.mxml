@@ -10,7 +10,7 @@
 		import event.GameEvent;
 		import model.*;
 		import flash.events.*;
-		import model.ai.SimpleAI;
+		import model.ai.*;
 		
 		public static const versusComputer:String = "versusComputer";
 		public static const versusPlayer:String = "versusPlayer";
@@ -28,9 +28,9 @@
 			if (mode == versusComputer)
 			{
 				manager = new GameManager(2);
-				manager.setPlayer(0, parentApplication.input);
-				//manager.setPlayer(0, new GameAIManager(new SimpleAI()));
-				manager.setPlayer(1, new GameAIManager(new SimpleAI()));
+				//manager.setPlayer(0, parentApplication.input);
+				manager.setPlayer(0, new GameAIManager(new GreedyAI()));
+				manager.setPlayer(1, new GameAIManager(new GreedyAI()));
 				manager.addEventListener(GameEvent.gameOver, endListener);
 				manager.addEventListener(GameEvent.gameClear, endListener);
 				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
@@ -67,6 +67,7 @@
 		
 		private function prepare():void
 		{
+			parentApplication.bgm.stop();
 			currentState = "prepare";
 			execution = false;
 			pause = false;
@@ -78,6 +79,7 @@
 			manager.initializeGame(setting);
 			player1.gameModel = manager.getGameModel(0);
 			player2.gameModel = manager.getGameModel(1);
+			parentApplication.bgm.play(false);
 			currentState = "hidden";
 			setFocus();
 			execution = true;
@@ -86,6 +88,7 @@
 		
 		private function pauseing():void
 		{
+			parentApplication.bgm.stop();
 			currentState = "pause";
 			execution = false;
 			pause = true;
@@ -93,6 +96,7 @@
 		
 		private function resume():void
 		{
+			parentApplication.bgm.play(true);
 			currentState = "hidden";
 			setFocus();
 			execution = true;

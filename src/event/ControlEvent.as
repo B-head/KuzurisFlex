@@ -14,10 +14,12 @@ package event
 		public static const setOmino:String = "setOmino";
 		public static const moveOK:String = "moveOK";
 		public static const moveNG:String = "moveNG";
-		public static const fallingShock:String = "fallingShock";
-		public static const fallingShockSave:String = "fallingShockSave";
 		public static const rotationOK:String = "rotationOK";
 		public static const rotationNG:String = "rotationNG";
+		public static const startFall:String = "startFall";
+		public static const endFall:String = "endFall";
+		public static const fallShock:String = "fallShock";
+		public static const fallShockSave:String = "fallShockSave";
 		public static const shockSaveON:String = "shockSaveON";
 		public static const shockSaveOFF:String = "shockSaveOFF";
 		

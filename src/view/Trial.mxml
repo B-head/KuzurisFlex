@@ -29,6 +29,7 @@
 		
 		private function prepare():void
 		{
+			parentApplication.bgm.stop();
 			currentState = "prepare";
 			execution = false;
 			pause = false;
@@ -43,6 +44,7 @@
 			setting.levelClearLine = 10;
 			manager.initializeGame(setting);
 			main.gameModel = manager.getGameModel(0);
+			parentApplication.bgm.play(false);
 			currentState = "hidden";
 			setFocus();
 			execution = true;
@@ -51,6 +53,7 @@
 		
 		private function pauseing():void
 		{
+			parentApplication.bgm.stop();
 			currentState = "pause";
 			execution = false;
 			pause = true;
@@ -58,6 +61,7 @@
 		
 		private function resume():void
 		{
+			parentApplication.bgm.play(true);
 			currentState = "hidden";
 			setFocus();
 			execution = true;
@@ -90,6 +94,7 @@
 		
 		private function endListener(e:GameEvent):void
 		{
+			parentApplication.bgm.stop();
 			currentState = "end";
 			execution = false;
 			pause = false;
@@ -120,7 +125,7 @@
 		<s:Label text="開始レベル{level.value}" />
 		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
 		<s:CheckBox id="endless" label="エンドレス" />
-		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'"/>
+		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'" enabled="false" />
 		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
 		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
 	</s:VGroup>

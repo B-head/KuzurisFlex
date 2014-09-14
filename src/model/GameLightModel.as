@@ -6,6 +6,7 @@ package model
 	 */
 	public class GameLightModel extends GameModelBase 
 	{
+		public var notice:int;
 		
 		public function GameLightModel() 
 		{
@@ -55,6 +56,7 @@ package model
 			result.fallField = _fallField.clone();
 			result.controlOmino = _controlOmino.clone();
 			result.nextOmino = new Vector.<OminoField>(nextLength, true);
+			result.notice = notice;
 			for (var i:int = 0; i < nextLength; i++)
 			{
 				result.nextOmino[i] = _nextOmino[i].clone();
@@ -62,7 +64,7 @@ package model
 			return result;
 		}
 		
-		public function forwardNext(way:ControlWay):Boolean
+		public function forwardNext(way:ControlWay):ForwardResult
 		{
 			var cache:OminoField = new OminoField(GameModelBase.ominoSize);
 			switch(way.dir)
@@ -87,18 +89,23 @@ package model
 			var rect:Rect = _controlOmino.getRect();
 			var cox:int = way.lx - rect.left;
 			var coy:int = init_coy(rect);
-			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return false;
+			way.cox = cox;
+			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
+			var ret:ForwardResult = new ForwardResult();
 			earthFix(cox, coy, false);
 			do
 			{
 				fallingField(0, GameModelBase.fieldHeight - 1);
-				breakLines();
+				ret.breakLine += breakLines();
 				extractFallBlocks();
 			}
 			while (_fallField.countBlock() > 0);
 			_mainField.clearSpecialUnion();
 			rotateNext(null);
-			return true;
+			var atk:int = Math.max(0, (ret.breakLine * 2 - 1) * 10);
+			ret.counterbalance = Math.min(atk, notice);
+			notice -= atk;
+			return ret;
 		}
 		
 		private function earthFix(cox:int, coy:int, shockSave:Boolean):void

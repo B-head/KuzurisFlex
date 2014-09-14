@@ -12,6 +12,7 @@ package event
 		public var colors:Vector.<uint>;
 		
 		public static const breakLine:String = "breakLine";
+		public static const sectionBreakLine:String = "sectionBreakLine";
 		public static const totalBreakLine:String = "totalBreakLine";
 		
 		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, combo:int, position:int, colors:Vector.<uint>) 

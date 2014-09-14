@@ -10,6 +10,7 @@ package model
 	{
 		public static const fieldWidth:int = 10;
 		public static const fieldHeight:int = 40;
+		public static const gameOverHeight:int = 19;
 		public static const ominoSize:int = 10;
 		public static const nextLength:int = 6;
 		
@@ -39,12 +40,17 @@ package model
 			return;
 		}
 		
-		protected function onSectionDamage(damage:Number):void
+		protected function onSectionBreakLine(count:int):void
 		{
 			return;
 		}
 		
-		protected function onBlockDamage(x:int, y:int, damage:Number):void
+		protected function onBlockDamage(x:int, y:int, damage:Number, coefficient:Number):void
+		{
+			return;
+		}
+		
+		protected function onSectionDamage(damage:Number, coefficient:Number):void
 		{
 			return;
 		}
@@ -56,11 +62,13 @@ package model
 			{
 				if (_mainField.isFillLine(y))
 				{
+					count++;
 					var colors:Vector.<uint>;
 					colors = _mainField.clearLine(y);
 					onBreakLine(y, colors);
 				}
 			}
+			onSectionBreakLine(count);
 			return count;
 		}
 		
@@ -82,7 +90,9 @@ package model
 			for (var i:int = from; i <= to; i++)
 			{
 				blockscCount -= collideFallingBlocks(i, tempField);
-				onSectionDamage(shockDamage(tempField, 0, i, getNaturalShockDamage(i)));
+				var coefficient:Number = getNaturalShockDamage(i);
+				var damage:Number = shockDamage(tempField, 0, i, coefficient)
+				onSectionDamage(damage, shockDamageCoefficient * coefficient);
 				_mainField.fix(tempField, 0, i);
 				if (blockscCount <= 0) break;
 			}
@@ -134,9 +144,9 @@ package model
 			}
 			return result;
 			
-			function onDifference(ix:int, iy:int, damage:Number):void
+			function onDifference(ix:int, iy:int, damage:Number, coefficient:Number):void
 			{ 
-				onBlockDamage(ix + dx, iy + dy, damage);
+				onBlockDamage(ix + dx, iy + dy, damage, coefficient);
 			}
 		}
 		
@@ -176,12 +186,12 @@ package model
 		
 		public function init_cox(rect:Rect):int
 		{
-			return fieldWidth / 2 - 1 - rect.left - int((rect.right - rect.left) / 2)
+			return fieldWidth / 2 - (rect.left + rect.width / 2);
 		}
 		
 		public function init_coy(rect:Rect):int
 		{
-			return fieldHeight / 2 - 1 - rect.bottom;
+			return gameOverHeight - rect.bottom;
 		}
 		
 		public function rotateReviseX(from:Rect, to:Rect):int

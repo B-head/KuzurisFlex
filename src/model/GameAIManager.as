@@ -28,9 +28,8 @@ package model
 			this.controlPhase = controlPhase;
 			if (controlPhase)
 			{
-				targetWay = ai.createTargetWay();
 				primaryMove = true;
-				moveDelay = secondaryMoveDelay * 3;
+				//moveDelay = secondaryMoveDelay * 3;
 			}
 		}
 		
@@ -39,6 +38,7 @@ package model
 			this.currentModel = currentModel;
 			ai.setCurrentModel(currentModel);
 			currentWay = ControlWay.getCurrent(currentModel);
+			targetWay = ai.createTargetWay();
 		}
 		
 		public function issueGameCommand():GameCommand 
@@ -53,6 +53,9 @@ package model
 			{
 				ret.falling = GameCommand.earth;
 				ret.fix = true;
+				var rect:Rect = currentModel.controlOmino.getRect();
+				var cox:int = currentWay.lx - rect.left;
+				if (targetWay.cox != cox) throw new Error();
 			}
 			if (currentWay.dir != targetWay.dir)
 			{

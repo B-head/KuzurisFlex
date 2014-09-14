@@ -60,6 +60,10 @@
 		}
 		]]>
 	</fx:Script>
+	
+	<fx:Declarations>
+		<v:BackGroundMugic id="bgm" />
+	</fx:Declarations>
 
 	<s:states>
 		<s:State name="top" stateGroups="title" />
@@ -85,8 +89,8 @@
 		<s:VGroup includeIn="top" x="454" y="50" horizontalAlign="center">
 			<s:Button width="300" label="トライアルモード" buttonDown="currentState = 'preTrial'"/>
 			<s:Button width="300" label="対戦モード" buttonDown="currentState = 'preBattle'"/>
-			<s:Button width="300" label="インターネット対戦モード" buttonDown="currentState = 'network'"/>
-			<s:Button width="300" label="あそびかた" buttonDown="currentState = 'howToPlay'"/>
+			<s:Button width="300" label="インターネット対戦モード" buttonDown="currentState = 'network'" enabled="false" />
+			<s:Button width="300" label="あそびかた" buttonDown="currentState = 'howToPlay'" enabled="false" />
 		</s:VGroup>
 		<s:VGroup includeIn="preTrial" x="454" y="50" horizontalAlign="center">
 			<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)"/>

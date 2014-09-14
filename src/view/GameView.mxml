@@ -21,11 +21,6 @@
 		{
 			var blockWidth:int = blockGraphics.blockWidth;
 			var blockHeight:int = blockGraphics.blockHeight;
-			fall.y = gameModel.ffy * blockHeight - 256;
-			ghost.x = gameModel.cox * blockWidth + 120;
-			ghost.y = gameModel.goy * blockHeight - 256;
-			control.x = gameModel.cox * blockWidth + 120;
-			control.y = gameModel.coy * blockHeight - 256;
 			var light:GameLightModel = gameModel.getLightModel();
 			var shockSave:Boolean = gameModel.shockSave;
 			main.update(light.mainField, shockSave);
@@ -33,28 +28,29 @@
 			ghost.update(light.controlOmino, shockSave);
 			control.update(light.controlOmino, shockSave);
 			next.update(light.nextOmino, shockSave);
-			obstacle.update(gameModel.getObstacleNotice(), gameModel.getObstacleNoticeSave());
+			obstacle.update(gameModel.obstacleNotice, gameModel.obstacleNoticeSave);
 		}
 		]]>
 	</fx:Script>
 	
 	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<v:GameSoundEffect gameModel="{gameModel}"/>
+		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
 	</fx:Declarations>
 	
 	<s:Group x="{reverse ? 304 : 0}" y="64">
-		<s:Label y="0" text="レベル　{gameModel.getRecord().level}"/>
-		<s:Label y="20" text="ライン　{gameModel.getRecord().breakLine}"/>
-		<s:Label y="40" text="ミノ　{gameModel.getRecord().fixOmino}"/>
-		<s:Label y="80" text="スコア　{gameModel.getRecord().gameScore}"/>
-		<s:Label y="60" text="タイム　{gameModel.getRecord().gameTime}"/>
-		<s:Label y="100" text="次のおじゃま　{gameModel.getNextObstacleTime()}" visible="{gameModel.isObstacleAddition()}" />
+		<s:Label y="0" text="レベル　{gameModel.record.level}"/>
+		<s:Label y="20" text="ライン　{gameModel.record.breakLine}"/>
+		<s:Label y="40" text="ミノ　{gameModel.record.fixOmino}"/>
+		<s:Label y="80" text="スコア　{gameModel.record.gameScore}"/>
+		<s:Label y="60" text="タイム　{frameTime.format(gameModel.record.gameTime)}"/>
+		<s:Label y="100" text="次のおじゃま　{frameTime.format(gameModel.nextObstacleTime)}" visible="{gameModel.isObstacleAddition}" />
 	</s:Group>
 	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" blockGraphics="{blockGraphics}" pause="{pause}"/>
 	<s:Image x="104" y="64" source="@Embed('../graphic/frame.png')"/>
-	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}" showSpecial="true" alpha="0.5"/>
-	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}" showSpecial="true"/>
+	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}" x="{gameModel.cox * blockGraphics.blockWidth + 120}" y="{gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
+	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}" x="{gameModel.cox * blockGraphics.blockWidth + 120}" y="{gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
 	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible="{!pause}" x="120" y="-256" showSpecial="true"/>
-	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible="{!pause}" x="120" showSpecial="true"/>
+	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible="{!pause}" x="120" y="{gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
 	<v:ObstacleView id="obstacle" x="120" y="0" width="160" height="32" visible="false" blockGraphics="{blockGraphics}"/>
 </s:Group>

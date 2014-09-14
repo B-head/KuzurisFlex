@@ -8,6 +8,7 @@ package model
 	{
 		public var lx:int;
 		public var dir:int;
+		public var cox:int;
 		
 		public function getWayIndex():int
 		{
@@ -41,10 +42,10 @@ package model
 				ret.dir = cw.dir - 1;
 				if (ret.dir < 0) ret.dir = 3;
 			}
-			currentModel.controlOmino = cache;
 			var fr:Rect = control.getRect();
 			var tr:Rect = cache.getRect();
 			ret.lx = (cw.lx - fr.left) + currentModel.rotateReviseX(fr, tr) + tr.left;
+			currentModel.controlOmino = cache;
 			return ret;
 		}
 	}

@@ -4,11 +4,12 @@ package view
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.net.URLRequest;
+	import mx.core.UIComponent;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class BackGroundMugic 
+	public class BackGroundMugic extends UIComponent
 	{
 		private var mugic:Sound;
 		private var mugicChannel:SoundChannel
@@ -16,7 +17,7 @@ package view
 		
 		public function BackGroundMugic() 
 		{
-			mugic = new Sound(new URLRequest(""));
+			mugic = new Sound(new URLRequest("./tetris-tribe.mp3"));
 		}
 		
 		public function play(continuation:Boolean):void
