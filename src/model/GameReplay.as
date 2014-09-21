@@ -6,6 +6,7 @@ package model
 	 */
 	public class GameReplay implements GameControl 
 	{
+		private var _enable:Boolean;
 		
 		public function GameReplay() 
 		{
@@ -17,12 +18,15 @@ package model
 			
 		}
 		
-		public function changePhase(controlPhase:Boolean):void 
+		public function get enable():Boolean { return _enable; }
+		public function set enable(value:Boolean):void { _enable = value; };
+		
+		public function reset():void
 		{
 			return;
 		}
 		
-		public function updateModel(currentModel:GameLightModel):void
+		public function changePhase(controlPhase:Boolean):void 
 		{
 			return;
 		}

@@ -15,6 +15,7 @@ package event
 		public static const preMaterializationNotice:String = "preMaterializationNotice";
 		public static const occurObstacle:String = "occurObstacle";
 		public static const counterbalanceObstacle:String = "counterbalanceObstacle";
+		public static const obstacleFall:String = "obstacleFall";
 		
 		public function ObstacleEvent(type:String, gameTime:int, plusScore:int, count:int) 
 		{ 

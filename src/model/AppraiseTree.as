@@ -9,10 +9,12 @@ package model
 		public var way:ControlWay;
 		public var next:Vector.<AppraiseTree>;
 		public var marks:Number;
+		public var fr:ForwardResult;
 		
 		public function AppraiseTree(way:ControlWay) 
 		{
 			this.way = way;
+			next = new Vector.<AppraiseTree>();
 		}
 		
 		public function isExistNext():Boolean
@@ -20,32 +22,22 @@ package model
 			return next != null;
 		}
 		
-		public function createNext(width:int):void
+		public function getChoices(border:Number):Vector.<AppraiseTree>
 		{
-			next = new Vector.<AppraiseTree>(width * 4);
-			for (var lx:int = 0; lx < width; lx++)
-			{
-				for (var dir:int = 0; dir < 4; dir++)
-				{
-					var w:ControlWay = new ControlWay();
-					w.lx = lx;
-					w.dir = dir;
-					next[lx * 4 + dir] = new AppraiseTree(w);
-				}
-			}
-		}
-		
-		public function getMaxs():Vector.<AppraiseTree>
-		{
-			var m:Number = next[0].marks;
+			if (next.length == 0) return new Vector.<AppraiseTree>();
+			var max:Number = next[0].marks;
 			for (var i:int = 1; i < next.length; i++)
 			{
-				if (m < next[i].marks)
-				{
-					m = next[i].marks;
-				}
+				if (max < next[i].marks) max = next[i].marks;
 			}
-			return next.filter(function (item:AppraiseTree, index:int, vector:Vector.<AppraiseTree>):Boolean { return item.marks == m; } );
+			var min:Number = next[0].marks;
+			for (i = 1; i < next.length; i++)
+			{
+				if (min > next[i].marks) min = next[i].marks;
+			}
+			var sub:Number = max - min;
+			var b:Number = max - sub * border;
+			return next.filter(function (item:AppraiseTree, index:int, vector:Vector.<AppraiseTree>):Boolean { return item.marks >= b; } );
 		}
 	}
 

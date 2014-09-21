@@ -58,12 +58,10 @@ package view
 		private const Shock:Class;
 		[Embed(source = "../sound/hit28.mp3")]
 		private const ShockSave:Class;
-		[Embed(source = "../sound/on01b.mp3")]
+		[Embed(source = "../sound/on01.mp3")]
 		private const Move:Class;
 		[Embed(source = "../sound/on04.mp3")]
 		private const Rotation:Class;
-		[Embed(source = "../sound/on01.mp3")]
-		private const Fall:Class;
 		[Embed(source = "../sound/clock03.mp3")]
 		private const Shift:Class;
 		
@@ -74,7 +72,6 @@ package view
 		private var shockSave:Sound;
 		private var cMove:Sound;
 		private var cRotation:Sound;
-		private var fall:Sound;
 		private var shift:Sound;
 		
 		public function GameSoundEffect() 
@@ -90,7 +87,6 @@ package view
 			shockSave = new ShockSave();
 			cMove = new Move();
 			cRotation = new Rotation();
-			fall = new Fall();
 			shift = new Shift();
 		}
 		
@@ -101,15 +97,16 @@ package view
 		public function set gameModel(value:GameModel):void
 		{
 			_gameModel = value;
+			var st:SoundTransform = new SoundTransform(0.5);
 			value.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
 			value.addEventListener(LevelClearEvent.levelClear, function(e:LevelClearEvent):void { levelUp.play(); } );
 			value.addEventListener(ShockBlockEvent.sectionDamage, shockBlockListener);
 			value.addEventListener(ControlEvent.fallShockSave, function(e:ControlEvent):void { shockSave.play(); } );
-			value.addEventListener(ControlEvent.moveOK, function(e:ControlEvent):void { cMove.play(0, 0, new SoundTransform(0.5)); } );
-			value.addEventListener(ControlEvent.rotationOK, function(e:ControlEvent):void { cRotation.play(0, 0, new SoundTransform(0.5)); } );
-			value.addEventListener(ControlEvent.startFall, function(e:ControlEvent):void { fall.play(0, 0, new SoundTransform(0.5)); } );
-			value.addEventListener(ControlEvent.shockSaveON, function(e:ControlEvent):void { shift.play(0, 0, new SoundTransform(0.5)); } );
-			value.addEventListener(ControlEvent.shockSaveOFF, function(e:ControlEvent):void { shift.play(0, 0, new SoundTransform(0.5)); } );
+			value.addEventListener(ControlEvent.moveOK, function(e:ControlEvent):void { cMove.play(0, 0, st); } );
+			value.addEventListener(ControlEvent.rotationOK, function(e:ControlEvent):void { cRotation.play(0, 0, st); } );
+			value.addEventListener(ControlEvent.startFall, function(e:ControlEvent):void { cMove.play(0, 0, st); } );
+			value.addEventListener(ControlEvent.shockSaveON, function(e:ControlEvent):void { shift.play(0, 0, st); } );
+			value.addEventListener(ControlEvent.shockSaveOFF, function(e:ControlEvent):void { shift.play(0, 0, st); } );
 		}
 		
 		public function shockBlockListener(e:ShockBlockEvent):void

@@ -40,6 +40,14 @@ package view
 		
 		public function update(field:BlockField, shockSave:Boolean):void
 		{
+			if (field == null)
+			{
+				for (var i:int = 0; i < sprites.length; i++)
+				{
+					sprites[i].visible = false;
+				}
+				return;
+			}
 			var w:int = field.width;
 			var h:int = field.height;
 			for (var x:int = 0; x < w; x++)

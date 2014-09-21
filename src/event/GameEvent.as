@@ -8,15 +8,20 @@ package event
 	 */
 	public class GameEvent extends Event 
 	{
+		[Bindable]
 		public var gameTime:int;
+		[Bindable]
 		public var plusScore:int;
 		
 		public static const forwardGame:String = "forwardGame";
+		public static const updateField:String = "updateField";
+		public static const updateControl:String = "updateControl";
+		public static const updateNext:String = "updateNext";
+		public static const firstUpdateNext:String = "firstUpdateNext";
 		public static const gameOver:String = "gameOver";
 		public static const gameClear:String = "gameClear";
 		public static const breakConbo:String = "breakConbo";
 		public static const extractFall:String = "extractFall";
-		public static const obstacleFall:String = "obstacleFall";
 		
 		public function GameEvent(type:String, gameTime:int, plusScore:int) 
 		{ 

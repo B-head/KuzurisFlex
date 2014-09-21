@@ -8,7 +8,14 @@ package model
 	{
 		public var lx:int;
 		public var dir:int;
-		public var cox:int;
+		public var shift:Boolean;
+		
+		public function ControlWay(lx:int = 0, dir:int = 0, shift:Boolean = false)
+		{
+			this.lx = lx;
+			this.dir = dir;
+			this.shift = shift;
+		}
 		
 		public function getWayIndex():int
 		{
@@ -45,6 +52,7 @@ package model
 			var fr:Rect = control.getRect();
 			var tr:Rect = cache.getRect();
 			ret.lx = (cw.lx - fr.left) + currentModel.rotateReviseX(fr, tr) + tr.left;
+			ret.shift = cw.shift;
 			currentModel.controlOmino = cache;
 			return ret;
 		}

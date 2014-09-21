@@ -6,6 +6,9 @@ package model
 	 * ...
 	 * @author B_head
 	 */
+	[Event(name="addObstacle", type="event.ObstacleEvent")]
+	[Event(name="materializationNotice", type="event.ObstacleEvent")]
+	[Event(name="preMaterializationNotice", type="event.ObstacleEvent")]
 	public class ObstacleManager extends EventDispatcher
 	{
 		public var notice:int;

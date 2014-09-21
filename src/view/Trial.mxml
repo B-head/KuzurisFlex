@@ -5,24 +5,22 @@
 
 	<fx:Script>
 		<![CDATA[
-		import event.GameEvent;
-		import model.*;
+		import event.*;
 		import flash.events.*;
+		import model.*;
 		
 		private var mode:String;
 		private var manager:GameManager;
-		private var execution:Boolean;
 		[Bindable]
 		private var pause:Boolean;
 		
 		public function init(mode:String):void
 		{
 			this.mode = mode;
+			parentApplication.addEventListener(Main.pauseEvent, pauseListener);
 			manager = new GameManager(1);
 			manager.setPlayer(0, parentApplication.input);
-			manager.addEventListener(GameEvent.gameOver, endListener);
-			manager.addEventListener(GameEvent.gameClear, endListener);
-			parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
+			manager.addEventListener(GameManagerEvent.gameEnd, endListener);
 			main.blockGraphics = new BlockGraphics();
 			prepare();
 		}
@@ -30,8 +28,10 @@
 		private function prepare():void
 		{
 			parentApplication.bgm.stop();
+			manager.endGame();
+			manager.initialize();
+			main.gameModel = manager.getGameModel(0);
 			currentState = "prepare";
-			execution = false;
 			pause = false;
 		}
 		
@@ -42,41 +42,34 @@
 			setting.startLevel = level.value;
 			setting.endless = endless.selected;
 			setting.levelClearLine = 10;
-			manager.initializeGame(setting);
-			main.gameModel = manager.getGameModel(0);
+			manager.startGame(setting);
 			parentApplication.bgm.play(false);
 			currentState = "hidden";
 			setFocus();
-			execution = true;
 			pause = false;
 		}
 		
 		private function pauseing():void
 		{
 			parentApplication.bgm.stop();
+			manager.phaseGame();
 			currentState = "pause";
-			execution = false;
 			pause = true;
 		}
 		
 		private function resume():void
 		{
 			parentApplication.bgm.play(true);
+			manager.resumeGame();
 			currentState = "hidden";
 			setFocus();
-			execution = true;
 			pause = false;
 		}
 		
 		private function onEnterFrame():void
 		{
-			parentApplication.input.enable = execution;
-			if (!execution)
-			{
-				return;
-			}
+			if (!manager.isExecution()) return;
 			manager.forwardGame();
-			main.update();
 		}
 		
 		private function pauseListener(e:Event):void
@@ -87,16 +80,16 @@
 			}
 			else
 			{
-				if (!execution) return;
+				if (!manager.isExecution()) return;
 				pauseing();
 			}
 		}
 		
-		private function endListener(e:GameEvent):void
+		private function endListener(e:GameManagerEvent):void
 		{
 			parentApplication.bgm.stop();
+			manager.endGame();
 			currentState = "end";
-			execution = false;
 			pause = false;
 		}
 		]]>
@@ -121,21 +114,21 @@
 
 	<v:GameView id="main" x="227" y="24" pause="{pause}"/>
 	<s:VGroup includeIn="prepare" x="352" y="224" width="150" horizontalAlign="center">
-		<s:Button width="150" label="スタート" buttonDown="start()"/>
-		<s:Label text="開始レベル{level.value}" />
+		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()"/>
+		<s:Label styleName="menu-label" text="開始レベル{level.value}" />
 		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
 		<s:CheckBox id="endless" label="エンドレス" />
 		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'" enabled="false" />
 		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
-		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
 	</s:VGroup>
 	<s:VGroup includeIn="pause" x="352" y="224" width="150" horizontalAlign="center">
 		<s:Button width="100" label="つづける" buttonDown="resume()" />
 		<s:Button width="100" label="やりなおす" buttonDown="start()" />
-		<s:Button width="100" label="おわる" buttonDown="prepare()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
 	<s:VGroup includeIn="end" x="352" y="224" width="150" horizontalAlign="center">
-		<s:Button width="100" label="おわる" buttonDown="prepare()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
 	<v:KeyConfig includeIn="keyConfig"/>
 </s:Group>

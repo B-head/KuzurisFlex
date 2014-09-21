@@ -1,120 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/halo"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:v="view.*"
+			   initialize="init()"
 			   enterFrame="onEnterFrame()">
 			   
 	<fx:Script>
 		<![CDATA[
 		import event.GameEvent;
+		import event.GameManagerEvent;
 		import model.*;
 		import flash.events.*;
 		import model.ai.*;
 		
-		public static const versusComputer:String = "versusComputer";
-		public static const versusPlayer:String = "versusPlayer";
-		public static const thoroughlyBattle:String = "thoroughlyBattle";
-		public static const duelNetworkBattle:String = "duelNetworkBattle";
-		public static const multiNetworkBattle:String = "multiNetworkBattle";
-		
 		private var manager:GameManager;
-		private var execution:Boolean;
 		[Bindable]
 		private var pause:Boolean;
 		
-		public function init(mode:String):void
+		public function init():void
 		{
-			if (mode == versusComputer)
-			{
-				manager = new GameManager(2);
-				//manager.setPlayer(0, parentApplication.input);
-				manager.setPlayer(0, new GameAIManager(new GreedyAI()));
-				manager.setPlayer(1, new GameAIManager(new GreedyAI()));
-				manager.addEventListener(GameEvent.gameOver, endListener);
-				manager.addEventListener(GameEvent.gameClear, endListener);
-				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
-			}
-			else if (mode == versusPlayer)
-			{
-				manager = new GameManager(2);
-				manager.setPlayer(0, parentApplication.inputVersus1);
-				manager.setPlayer(1, parentApplication.inputVersus2);
-				manager.addEventListener(GameEvent.gameOver, endListener);
-				manager.addEventListener(GameEvent.gameClear, endListener);
-				parentApplication.inputVersus1.addEventListener(UserInput.pauseEvent, pauseListener);
-				parentApplication.inputVersus2.addEventListener(UserInput.pauseEvent, pauseListener);
-			}
-			else if (mode == thoroughlyBattle)
-			{
-				manager = new GameManager(8);
-				manager.setPlayer(0, parentApplication.input);
-				manager.setPlayer(1, new GameAIManager(null));
-				manager.setPlayer(2, new GameAIManager(null));
-				manager.setPlayer(3, new GameAIManager(null));
-				manager.setPlayer(4, new GameAIManager(null));
-				manager.setPlayer(5, new GameAIManager(null));
-				manager.setPlayer(6, new GameAIManager(null));
-				manager.setPlayer(7, new GameAIManager(null));
-				manager.addEventListener(GameEvent.gameOver, endListener);
-				manager.addEventListener(GameEvent.gameClear, endListener);
-				parentApplication.input.addEventListener(UserInput.pauseEvent, pauseListener);
-			}
+			parentApplication.addEventListener(Main.pauseEvent, pauseListener);
+			manager = new GameManager(2);
+			manager.addEventListener(GameManagerEvent.gameEnd, endListener);
+			manager.setPlayer(0, parentApplication.input);
+			manager.setPlayer(1, GameAIManager.createDefaultAIManager());
+			manager.initialize();
+			player1.gameModel = manager.getGameModel(0);
+			player2.gameModel = manager.getGameModel(1);
 			player1.blockGraphics = new BlockGraphics();
 			player2.blockGraphics = new BlockGraphics();
 			prepare();
 		}
 		
+		private function changePlayer(p2:Boolean):void
+		{
+			if (manager.isHumanPlayer(0) && manager.isHumanPlayer(1))
+			{
+				if (p2)
+				{
+					manager.setPlayer(0, parentApplication.input);
+					manager.setPlayer(1, GameAIManager.createDefaultAIManager());
+				}
+				else
+				{
+					manager.setPlayer(0, GameAIManager.createDefaultAIManager());
+					manager.setPlayer(1, parentApplication.input);
+				}
+			}
+			else if (p2)
+			{
+				if (manager.isHumanPlayer(0))
+				{
+					manager.setPlayer(0, parentApplication.inputVersus1);
+					manager.setPlayer(1, parentApplication.inputVersus2);
+				}
+				else if (manager.isHumanPlayer(1))
+				{
+					manager.setPlayer(1, GameAIManager.createDefaultAIManager());
+				}
+				else
+				{
+					manager.setPlayer(1, parentApplication.input);
+				}
+			}
+			else
+			{
+				if (manager.isHumanPlayer(1))
+				{
+					manager.setPlayer(0, parentApplication.inputVersus1);
+					manager.setPlayer(1, parentApplication.inputVersus2);
+				}
+				else if (manager.isHumanPlayer(0))
+				{
+					manager.setPlayer(0, GameAIManager.createDefaultAIManager());
+				}
+				else
+				{
+					manager.setPlayer(0, parentApplication.input);
+				}
+			}
+		}
+		
 		private function prepare():void
 		{
 			parentApplication.bgm.stop();
+			manager.endGame();
 			currentState = "prepare";
-			execution = false;
 			pause = false;
 		}
 		
 		private function start():void
 		{
 			var setting:GameSetting = new GameSetting();
-			manager.initializeGame(setting);
+			manager.initialize();
+			manager.setAILevel(0, aiLevel1.value);
+			manager.setAILevel(1, aiLevel2.value);
 			player1.gameModel = manager.getGameModel(0);
 			player2.gameModel = manager.getGameModel(1);
+			manager.startGame(setting);
 			parentApplication.bgm.play(false);
 			currentState = "hidden";
 			setFocus();
-			execution = true;
 			pause = false;
 		}
 		
 		private function pauseing():void
 		{
 			parentApplication.bgm.stop();
+			manager.phaseGame();
 			currentState = "pause";
-			execution = false;
 			pause = true;
 		}
 		
 		private function resume():void
 		{
 			parentApplication.bgm.play(true);
+			manager.resumeGame();
 			currentState = "hidden";
 			setFocus();
-			execution = true;
 			pause = false;
 		}
 		
 		private function onEnterFrame():void
 		{
-			parentApplication.input.enable = execution;
-			parentApplication.inputVersus1.enable = execution;
-			parentApplication.inputVersus2.enable = execution;
-			if (!execution)
-			{
-				return;
-			}
+			if (!manager.isExecution()) return;
 			manager.forwardGame();
-			player1.update();
-			player2.update();
 		}
 		
 		private function pauseListener(e:Event):void
@@ -125,12 +136,12 @@
 			}
 			else
 			{
-				if (!execution) return;
+				if (!manager.isExecution()) return;
 				pauseing();
 			}
 		}
 		
-		private function endListener(e:GameEvent):void
+		private function endListener(e:GameManagerEvent):void
 		{
 			prepare();
 		}
@@ -155,16 +166,28 @@
 	<v:GameView id="player1" x="18" y="24" reverse="false" pause="{pause}"/>
 	<v:GameView id="player2" x="436" y="24" reverse="true" pause="{pause}"/>
 	<s:VGroup includeIn="prepare" x="143" y="224" width="150" horizontalAlign="center">
-		<s:Button width="150" label="スタート" buttonDown="start()" />
-		<s:Label text="コンピューターレベル{level.value}" />
-		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
+		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()" />
 		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
-		<s:Button width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
+	</s:VGroup>
+	<s:VGroup includeIn="prepare" x="143" y="334" width="150" horizontalAlign="center">
+		<s:ButtonBar id="playerType1" width="150" requireSelection="true" selectedIndex="0" changing="changePlayer(false)">  
+			<mx:ArrayCollection source="['人間', 'AI']"/>
+		</s:ButtonBar>
+		<s:Label styleName="menu-label" text="AIレベル{aiLevel1.value}" visible="{playerType1.selectedIndex == 1}" />
+		<s:HSlider id="aiLevel1" width="150" minimum="1" maximum="20" showDataTip="false" visible="{playerType1.selectedIndex == 1}" />
+	</s:VGroup>
+	<s:VGroup includeIn="prepare" x="561" y="334" width="150" horizontalAlign="center">
+		<s:ButtonBar id="playerType2" width="150" requireSelection="true" selectedIndex="1" changing="changePlayer(true)">  
+			<mx:ArrayCollection source="['人間', 'AI']"/>
+		</s:ButtonBar>
+		<s:Label styleName="menu-label" text="AIレベル{aiLevel2.value}" visible="{playerType2.selectedIndex == 1}" />
+		<s:HSlider id="aiLevel2" width="150" minimum="1" maximum="20" showDataTip="false" visible="{playerType2.selectedIndex == 1}" />
 	</s:VGroup>
 	<s:VGroup includeIn="pause" x="143" y="224" width="150" horizontalAlign="center">
 		<s:Button width="100" label="つづける" buttonDown="resume()" />
 		<s:Button width="100" label="やりなおす" buttonDown="start()" />
-		<s:Button width="100" label="おわる" buttonDown="prepare()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
 	<v:KeyConfig includeIn="keyConfig"/>
 </s:Group>

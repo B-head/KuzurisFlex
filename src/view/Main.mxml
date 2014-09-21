@@ -1,66 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:v="view.*" addedToStage="onAddedToStage()">
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:v="view.*"
+			   applicationComplete="applicationCompleteListener()"
+			   >
 	<fx:Script>
 		<![CDATA[
-		import flash.net.*;
-		import model.*;
-		
-		public var shared:SharedObject;
-		public var input:UserInput;
-		public var inputVersus1:UserInput;
-		public var inputVersus2:UserInput;
-		
-		private function onAddedToStage():void
-		{
-			registerClassAlias("UserInput", UserInput);
-			shared = SharedObject.getLocal("main");
-			if (!(shared.data.input as UserInput))
+			import flash.net.*;
+			import model.*;
+			
+			public static const pauseEvent:String = "pause";
+			public var shared:SharedObject;
+			public var input:UserInput;
+			public var inputVersus1:UserInput;
+			public var inputVersus2:UserInput;
+			public var pause:Vector.<uint>;
+			
+			private function applicationCompleteListener():void
 			{
-				shared.data.input = new UserInput();
+				registerClassAlias("UserInput", UserInput);
+				shared = SharedObject.getLocal("main");
+				if (!(shared.data.input is UserInput))
+				{
+					shared.data.input = new UserInput();
+				}
+				if (!(shared.data.inputVersus1 is UserInput))
+				{
+					shared.data.inputVersus1 = new UserInput();
+				}
+				if (!(shared.data.inputVersus2 is UserInput))
+				{
+					shared.data.inputVersus2 = new UserInput();
+				}
+				input = shared.data.input;
+				inputVersus1 = shared.data.inputVersus1;
+				inputVersus2 = shared.data.inputVersus2;
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
+				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE]
 			}
-			if (!(shared.data.inputVersus1 as UserInput))
+			
+			private function onKeyDown(e:KeyboardEvent):void
 			{
-				shared.data.inputVersus1 = new UserInput();
+				input.keyDown(e.keyCode);
+				inputVersus1.keyDown(e.keyCode);
+				inputVersus2.keyDown(e.keyCode);
+				if (pause.indexOf(e.keyCode) != -1)
+				{
+					dispatchEvent(new Event(pauseEvent));
+				}
 			}
-			if (!(shared.data.inputVersus2 as UserInput))
+			
+			private function onKeyUp(e:KeyboardEvent):void
 			{
-				shared.data.inputVersus2 = new UserInput();
+				input.keyUp(e.keyCode);
+				inputVersus1.keyUp(e.keyCode);
+				inputVersus2.keyUp(e.keyCode);
 			}
-			input = shared.data.input;
-			inputVersus1 = shared.data.inputVersus1;
-			inputVersus2 = shared.data.inputVersus2;
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-		}
-		
-		private function onKeyDown(e:KeyboardEvent):void
-		{
-			input.keyDown(e.keyCode);
-			inputVersus1.keyDown(e.keyCode);
-			inputVersus2.keyDown(e.keyCode);
-		}
-		
-		private function onKeyUp(e:KeyboardEvent):void
-		{
-			input.keyUp(e.keyCode);
-			inputVersus1.keyUp(e.keyCode);
-			inputVersus2.keyUp(e.keyCode);
-		}
-		
-		private function decideTlial(mode:String):void
-		{
-			currentState = "trial";
-			trial.init(mode);
-		}
-		
-		private function decideBattle(mode:String):void
-		{
-			currentState = "battle";
-			battle.init(mode);
-		}
+			
+			private function decideTlial(mode:String):void
+			{
+				currentState = "trial";
+				trial.init(mode);
+			}
 		]]>
 	</fx:Script>
-	
+
+	<fx:Style source="basic.css" />
+	<fx:Metadata>
+		[Event(name="pause", type="flash.events.Event")]
+	</fx:Metadata>
+
 	<fx:Declarations>
 		<v:BackGroundMugic id="bgm" />
 	</fx:Declarations>
@@ -75,40 +84,56 @@
 		<s:State name="howToPlay" />
 	</s:states>
 
+	<s:Image width="854" height="480" source="./photo0000-1251.jpg" />
 	<s:Group includeIn="title">
-		<s:Label width="300" x="100" y="50" text="壊リスの偽物" />
-		<s:Label width="300" x="100" y="100" text="崩リス" />
+		<s:BorderContainer width="300" x="100" y="200">
+			<s:layout>
+				<s:VerticalLayout horizontalAlign="justify" />
+			</s:layout>
+			<s:Label styleName="sub-title" text="壊リスの偽物" />
+			<s:Label styleName="main-title" text="崩リス" />
+		</s:BorderContainer>
 
-		<s:BorderContainer x="100" y="200">
+		<s:BorderContainer x="100" y="200" visible="false">
 			<s:RichText width="300" height="230">
 			崩れて壊れない「壊リス」の偽物。
 			転じて「崩リス」。
 			</s:RichText>
 		</s:BorderContainer>
 
-		<s:VGroup includeIn="top" x="454" y="50" horizontalAlign="center">
-			<s:Button width="300" label="トライアルモード" buttonDown="currentState = 'preTrial'"/>
-			<s:Button width="300" label="対戦モード" buttonDown="currentState = 'preBattle'"/>
-			<s:Button width="300" label="インターネット対戦モード" buttonDown="currentState = 'network'" enabled="false" />
-			<s:Button width="300" label="あそびかた" buttonDown="currentState = 'howToPlay'" enabled="false" />
+		<s:VGroup includeIn="top" height="380" x="454" y="50" verticalAlign="middle"
+				  horizontalAlign="center">
+			<s:Button styleName="title-menu" width="300" label="トライアル"
+					  buttonDown="currentState = 'preTrial'" />
+			<s:Button styleName="title-menu" width="300" label="ローカル対戦"
+					  buttonDown="currentState = 'battle'" />
+			<s:Button styleName="title-menu" width="300" label="インターネット対戦"
+					  buttonDown="currentState = 'network'" enabled="false" />
+			<s:Button styleName="title-menu" width="300" label="あそびかた"
+					  buttonDown="currentState = 'howToPlay'" enabled="false" />
 		</s:VGroup>
-		<s:VGroup includeIn="preTrial" x="454" y="50" horizontalAlign="center">
-			<s:Button width="300" label="アクセルスピード" buttonDown="decideTlial(GameSetting.axelSpeed)"/>
-			<s:Button width="300" label="おじゃまアタック" buttonDown="decideTlial(GameSetting.obstacleAttack)"/>
-			<s:Button width="300" label="ポリオミノ" buttonDown="decideTlial(GameSetting.polyOmino)"/>
-			<s:Button width="300" label="オーバースピード" buttonDown="decideTlial(GameSetting.overSpeed)"/>
-			<s:Button width="300" label="おじゃまファイト" buttonDown="decideTlial(GameSetting.obstacleFight)"/>
-			<s:Button width="300" label="ビッグミノ" buttonDown="decideTlial(GameSetting.bigOmino)"/>
-			<s:Button width="300" label="レベルフリー" buttonDown="decideTlial(GameSetting.free)"/>
-			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'"/>
-		</s:VGroup>
-		<s:VGroup includeIn="preBattle" x="454" y="50" horizontalAlign="center">
-			<s:Button width="300" label="VSコンピューター" buttonDown="decideBattle(Battle.versusComputer)"/>
-			<s:Button width="300" label="VSプレイヤー" buttonDown="decideBattle(Battle.versusPlayer)"/>
-			<s:Button width="300" label="とことん対戦" buttonDown="decideBattle(Battle.thoroughlyBattle)"/>
-			<s:Button width="100" label="もどる" buttonDown="currentState = 'top'"/>
+		<s:VGroup includeIn="preTrial" height="380" x="454" y="50" verticalAlign="middle"
+				  horizontalAlign="center">
+			<s:Button styleName="title-menu" width="300" label="アクセルスピード"
+					  buttonDown="decideTlial(GameSetting.axelSpeed)" />
+			<s:Button styleName="title-menu" width="300" label="おじゃまアタック"
+					  buttonDown="decideTlial(GameSetting.obstacleAttack)" />
+			<s:Button styleName="title-menu" width="300" label="ポリオミノ"
+					  buttonDown="decideTlial(GameSetting.polyOmino)" />
+			<s:Button styleName="title-menu hard-mode" width="300" label="オーバースピード"
+					  buttonDown="decideTlial(GameSetting.overSpeed)" />
+			<s:Button styleName="title-menu hard-mode" width="300" label="おじゃまファイト"
+					  buttonDown="decideTlial(GameSetting.obstacleFight)" />
+			<s:Button styleName="title-menu hard-mode" width="300" label="ビッグミノ"
+					  buttonDown="decideTlial(GameSetting.bigOmino)" />
+			<s:Button styleName="title-menu" width="300" label="レベルフリー"
+					  buttonDown="decideTlial(GameSetting.free)" />
+			<s:Button styleName="title-menu back" width="200" label="もどる"
+					  buttonDown="currentState = 'top'" />
 		</s:VGroup>
 	</s:Group>
-	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto" back="currentState = 'preTrial'"/>
-	<v:Battle id="battle" includeIn="battle" itemDestructionPolicy="auto" back="currentState = 'preBattle'"/>
+	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto"
+			 back="currentState = 'preTrial'" />
+	<v:Battle id="battle" includeIn="battle" itemDestructionPolicy="auto"
+			  back="currentState = 'top'" />
 </s:Application>

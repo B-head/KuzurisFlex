@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
+			   creationComplete="creationCompleteListener()">
+			   
+	<fx:Script>
+		<![CDATA[
+		import event.*;
+		import flash.display.BitmapData;
+		import model.*;
+		
+		[Bindable]
+		public var lineEvent:BreakLineEvent;
+		[Bindable]
+		public var combo:int;
+		[Bindable] 
+		public var blockGraphics:BlockGraphics;
+		[Bindable]
+		private static var breakLineGraphics:BreakLineGraphics;
+		
+		private function creationCompleteListener():void
+		{
+			if (breakLineGraphics == null)
+			{
+				breakLineGraphics = new BreakLineGraphics();
+			}
+			/*
+			bbe1.splinterGraphics = getSplinter(0);
+			bbe2.splinterGraphics = getSplinter(1);
+			bbe3.splinterGraphics = getSplinter(2);
+			bbe4.splinterGraphics = getSplinter(3);
+			bbe5.splinterGraphics = getSplinter(4);
+			bbe6.splinterGraphics = getSplinter(5);
+			bbe7.splinterGraphics = getSplinter(6);
+			bbe8.splinterGraphics = getSplinter(7);
+			bbe9.splinterGraphics = getSplinter(8);
+			bbe10.splinterGraphics = getSplinter(9);
+			*/
+			effects.play();
+		}
+		
+		private function getSplinter(index:int):BitmapData
+		{
+			return blockGraphics.splinters[lineEvent.colors[index]];
+		}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:Parallel id="effects" effectEnd="dispatchEvent(event)">
+			<s:Sequence>
+				<s:Move yTo="-4" duration="{1000 * 30 / 60}" target="{score}" />
+				<s:SetAction property="visible" value="false" target="{score}"/>
+			</s:Sequence>
+			<s:Sequence>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(0)}" startDelay="{0}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(1)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(2)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(3)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(4)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(5)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(6)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(7)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(8)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(9)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(10)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(11)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(12)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(13)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="source" value="{breakLineGraphics.getItemAt(combo).getItemAt(14)}" startDelay="{1000 / 60}" target="{light}"/>
+				<s:SetAction property="visible" value="false" startDelay="{1000 / 60}" target="{light}"/>
+			</s:Sequence>
+			<!--
+			<s:Sequence>
+				<s:Move yTo="160" duration="1000" target="{bbeContainer}"/>
+				<s:SetAction property="visible" value="false" target="{bbeContainer}"/>
+			</s:Sequence>
+			-->
+		</s:Parallel>
+	</fx:Declarations>
+	
+	<!--
+	<s:Group id="bbeContainer">
+		<v:BreakBlockEffect id="bbe1" x="0"/> 
+		<v:BreakBlockEffect id="bbe2" x="16"/> 
+		<v:BreakBlockEffect id="bbe3" x="32"/> 
+		<v:BreakBlockEffect id="bbe4" x="48"/> 
+		<v:BreakBlockEffect id="bbe5" x="64"/> 
+		<v:BreakBlockEffect id="bbe6" x="80"/> 
+		<v:BreakBlockEffect id="bbe7" x="96"/> 
+		<v:BreakBlockEffect id="bbe8" x="112"/> 
+		<v:BreakBlockEffect id="bbe9" x="128"/> 
+		<v:BreakBlockEffect id="bbe10" x="144"/> 
+	</s:Group>
+	-->
+	<s:Image id="light"/>
+	<s:Label id="score" width="160" text="+{lineEvent.plusScore}pt" textAlign="center"/>
+</s:Group>

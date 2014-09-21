@@ -38,7 +38,10 @@ package view
 		private var Block100:Class;
 		[Embed(source='../graphic/block/1000.png')]
 		private var Block1000:Class;
+		[Embed(source='../graphic/block/splinter.png')]
+		private var Splinter:Class;
 		
+		public var splinters:Object;
 		public var obstacleOne:BitmapData;
 		public var obstacleTen:BitmapData;
 		public var obstacleHundred:BitmapData;
@@ -54,6 +57,7 @@ package view
 		{
 			this.blockWidth = blockWidth;
 			this.blockHeight = blockHeight;
+			this.splinters = new Object();
 			for (var i:int; i < 19; i++)
 			{
 				var blockColorSet:uint = indexToColor(i);
@@ -63,6 +67,7 @@ package view
 					var bitmap:Bitmap = indexToBlock(j);
 					this[blockColorSet][j] = coloring(bitmap, blockColorSet);
 				}
+				this.splinters[blockColorSet] = coloring2(new Splinter(), blockColorSet);
 			}
 			obstacleOne = coloring(new Block1(), Color.brown);
 			obstacleTen = coloring(new Block10(), Color.lightgray);
@@ -72,8 +77,16 @@ package view
 		
 		private function coloring(bitmap:Bitmap, color:uint):BitmapData
 		{
-			var data:BitmapData = new BitmapData(blockWidth, blockHeight, false, color);
+			var data:BitmapData = new BitmapData(blockWidth, blockHeight, true, color);
 			data.draw(bitmap, null, null, BlendMode.HARDLIGHT);
+			return data;
+		}
+		
+		private function coloring2(bitmap:Bitmap, color:uint):BitmapData
+		{
+			var data:BitmapData = new BitmapData(8, 8, true, color);
+			data.draw(bitmap, null, null, BlendMode.HARDLIGHT);
+			data.draw(bitmap, null, null, BlendMode.ALPHA);
 			return data;
 		}
 		

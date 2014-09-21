@@ -7,7 +7,9 @@ package event
 	 */
 	public class LevelClearEvent extends GameEvent
 	{
+		[Bindable] 
 		public var clearTime:int;
+		[Bindable] 
 		public var upLevel:int;
 		
 		public static const levelClear:String = "levelClear";

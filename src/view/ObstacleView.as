@@ -1,7 +1,11 @@
 package view 
 {
 	import flash.accessibility.ISearchableText;
+	import model.Color;
+	import mx.graphics.SolidColorStroke;
 	import spark.components.BorderContainer;
+	import spark.effects.Move;
+	import spark.effects.Scale;
 	
 	/**
 	 * ...
@@ -10,15 +14,24 @@ package view
 	public class ObstacleView extends BorderContainer 
 	{
 		private var parts:Vector.<ObstacleViewParts>;
+		private var moveEffects:Vector.<Move>;
+		private var scaleEffects:Vector.<Scale>;
 		private var _blockGraphics:BlockGraphics;
 		
 		public function ObstacleView() 
 		{
 			parts = new Vector.<ObstacleViewParts>(4);
+			moveEffects = new Vector.<Move>(4);
+			scaleEffects = new Vector.<Scale>(4);
+			var duration:Number = 1000 * 4 / 60;
 			for (var i:int = 0; i < 4; i++)
 			{
 				parts[i] = new ObstacleViewParts();
-				addElementAt(parts[i], 0);
+				moveEffects[i] = new Move(parts[i]);
+				moveEffects[i].duration = duration;
+				scaleEffects[i] = new Scale(parts[i]);
+				scaleEffects[i].duration = duration;
+				addElement(parts[i]);
 			}
 		}
 		
@@ -38,7 +51,13 @@ package view
 		public function update(notice:int, noticeSave:int):void
 		{
 			var n:int = notice + noticeSave;
-			visible = n > 0
+			visible = n > 0;
+			borderStroke = new SolidColorStroke(notice > 0 ? Color.orange : Color.green);
+			if (n == 0)
+			{
+				reset();
+				return;
+			}
 			if (n > 9999)
 			{
 				n = 9999;
@@ -46,10 +65,22 @@ package view
 			var f:int = setCounts(n);
 			var s:int = f - 1;
 			setScales(f);
-			parts[f].x = (width - parts[f].width) / 2;
-			parts[f].y = (height - parts[f].height) / (n % Math.pow(10, f) == 0 ? 2 : 4);
+			moveEffects[f].xTo = (width - parts[f].width) / 2;
+			moveEffects[f].yTo = (height - parts[f].height) / (n % Math.pow(10, f) == 0 ? 2 : 4);
 			setY(f, s);
 			setX(s);
+			playEffect();
+		}
+		
+		private function reset():void
+		{
+			for (var i:int = 0; i < 4; i++)
+			{
+				parts[i].x = 0;
+				parts[i].y = height / 4;
+				parts[i].scaleX = 1;
+				parts[i].scaleY = 1;
+			}
 		}
 		
 		private function setCounts(n:int):int
@@ -69,8 +100,8 @@ package view
 			var scale:Number = 1;
 			for (var i:int = f; i >= 0; i--)
 			{
-				parts[i].scaleX = scale;
-				parts[i].scaleY = scale;
+				scaleEffects[i].scaleXTo = scale;
+				scaleEffects[i].scaleYTo = scale;
 				scale /= 2;
 			}
 		}
@@ -80,7 +111,7 @@ package view
 			var y:Number = parts[f].y + parts[f].height;
 			for (var i:int = s; i >= 0; i--)
 			{
-				parts[i].y = y;
+				moveEffects[i].yTo = y;
 				y += parts[i].height / 2;
 			}
 		}
@@ -91,7 +122,7 @@ package view
 			var x:Number = (width - sWidth) / 2;
 			for (var i:int = s; i >= 0; i--)
 			{
-				parts[i].x = x;
+				moveEffects[i].xTo = x;
 				x += parts[i].width;
 			}
 		}
@@ -104,6 +135,17 @@ package view
 				sum += parts[i].width;
 			}
 			return sum;
+		}
+		
+		private function playEffect():void
+		{
+			for (var i:int = 0; i < 4; i++)
+			{
+				moveEffects[i].stop();
+				moveEffects[i].play();
+				scaleEffects[i].stop();
+				scaleEffects[i].play();
+			}
 		}
 	}
 

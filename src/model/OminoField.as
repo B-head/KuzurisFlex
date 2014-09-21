@@ -126,45 +126,129 @@ package model
 			}
 		}
 		
-		public function coloringOmino():uint
+		public function isPointSymmetry():Boolean
 		{
-			var returnColor:uint = Color.lightgray;
-			var pointSymmetry:Boolean = true;
-			var verticalLineSymmetry:Boolean = true;
-			var horizontalLineSymmetry:Boolean = true;
-			var slantingLineSymmetry1:Boolean = true;
-			var slantingLineSymmetry2:Boolean = true;
-			var horizontalLineBlockCount:Vector.<int> = new Vector.<int>(_height);
-			
 			var rect:Rect = getRect();
 			for (var y:int = 0; y <= rect.bottom; y++)
 			{
 				for (var x:int = 0; x <= rect.right; x++)
 				{
 					if (value[x][y] == null) continue;
-					horizontalLineBlockCount[y]++;
-					if (value[rect.right -x ][rect.bottom - y] == null) pointSymmetry = false;
-					if (value[rect.right-x][y] == null) verticalLineSymmetry = false;
-					if (value[x][rect.bottom-y] == null) horizontalLineSymmetry = false;
-					if (rect.bottom == rect.right)
-					{
-						if (value[-y + rect.bottom][-x + rect.right] == null) slantingLineSymmetry1 = false;
-						if (value[y][x] == null) slantingLineSymmetry2 = false;
-					}
-					else
-					{
-						slantingLineSymmetry1 = false;
-						slantingLineSymmetry2 = false;
-					}
+					if (value[rect.right -x][rect.bottom - y] == null) return false;
 				}
 			}
+			return true;
+		}
+		
+		public function isPoint90Symmetry():Boolean
+		{
+			var rect:Rect = getRect();
+			for (var y:int = 0; y <= rect.bottom; y++)
+			{
+				for (var x:int = 0; x <= rect.right; x++)
+				{
+					if (value[x][y] == null) continue;
+					if (value[rect.right -x][rect.bottom - y] == null) return false;
+					if (value[-y + rect.bottom][-x + rect.right] == null) return false;
+					if (value[y][x] == null) return false;
+				}
+			}
+			return true;
+		}
+		
+		public function isVerticalLineSymmetry():Boolean
+		{
+			var rect:Rect = getRect();
+			for (var y:int = 0; y <= rect.bottom; y++)
+			{
+				for (var x:int = 0; x <= rect.right; x++)
+				{
+					if (value[x][y] == null) continue;
+					if (value[rect.right-x][y] == null) return false;
+				}
+			}
+			return true;
 			
+		}
+		
+		public function isHorizontalLineSymmetry():Boolean
+		{
+			var rect:Rect = getRect();
+			for (var y:int = 0; y <= rect.bottom; y++)
+			{
+				for (var x:int = 0; x <= rect.right; x++)
+				{
+					if (value[x][y] == null) continue;
+					if (value[x][rect.bottom-y] == null) return false;
+				}
+			}
+			return true;
+			
+		}
+		
+		public function isSlantingLineSymmetry1():Boolean
+		{
+			var rect:Rect = getRect();
+			if (rect.bottom != rect.right) return false;
+			for (var y:int = 0; y <= rect.bottom; y++)
+			{
+				for (var x:int = 0; x <= rect.right; x++)
+				{
+					if (value[x][y] == null) continue;
+					if (value[-y + rect.bottom][-x + rect.right] == null) return false;
+				}
+			}
+			return true;
+			
+		}
+		
+		public function isSlantingLineSymmetry2():Boolean
+		{
+			var rect:Rect = getRect();
+			if (rect.bottom != rect.right) return false;
+			for (var y:int = 0; y <= rect.bottom; y++)
+			{
+				for (var x:int = 0; x <= rect.right; x++)
+				{
+					if (value[x][y] == null) continue;
+					if (value[y][x] == null) return false;
+				}
+			}
+			return true;
+			
+		}
+		
+		public function horizontalLineBlockCount():Vector.<int>
+		{
+			var ret:Vector.<int> = new Vector.<int>(_height);
+			for (var y:int = 0; y < _height; y++)
+			{
+				for (var x:int = 0; x < _width; x++)
+				{
+					if (value[x][y] == null) continue;
+					ret[y]++;
+				}
+			}
+			return ret;
+		}
+		
+		public function coloringOmino():uint
+		{
+			var returnColor:uint = Color.lightgray;
+			var pointSymmetry:Boolean = isPointSymmetry();
+			var verticalLineSymmetry:Boolean = isVerticalLineSymmetry();
+			var horizontalLineSymmetry:Boolean = isHorizontalLineSymmetry();
+			var slantingLineSymmetry1:Boolean = isSlantingLineSymmetry1();
+			var slantingLineSymmetry2:Boolean = isSlantingLineSymmetry2();
+			var horizontalLineBlockCount:Vector.<int> = horizontalLineBlockCount();
+			
+			var rect:Rect = getRect();
 			var toTheLeft:Boolean;
 			var toTheRight:Boolean;
 			tolr:
-			for (y = rect.bottom; y >= 0; y--)
+			for (var y:int = rect.bottom; y >= 0; y--)
 			{
-				for (x = rect.right / 2; x >= 0; x--)
+				for (var x:int = rect.right / 2; x >= 0; x--)
 				{
 					if (value[x][y] != null && value[rect.right - x][y] == null)
 					{

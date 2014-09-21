@@ -5,6 +5,41 @@ package model
 	 * ...
 	 * @author B_head
 	 */
+	[Event(name="forwardGame", type="event.GameEvent")]
+	[Event(name="updateField", type="event.GameEvent")]
+	[Event(name="updateControl", type="event.GameEvent")]
+	[Event(name="updateNext", type="event.GameEvent")]
+	[Event(name="firstUpdateNext", type="event.GameEvent")]
+	[Event(name="gameOver", type="event.GameEvent")]
+	[Event(name="gameClear", type="event.GameEvent")]
+	[Event(name="breakConbo", type="event.GameEvent")]
+	[Event(name="extractFall", type="event.GameEvent")]
+	[Event(name="fixOmino", type="event.ControlEvent")]
+	[Event(name="setOmino", type="event.ControlEvent")]
+	[Event(name="moveOK", type="event.ControlEvent")]
+	[Event(name="moveNG", type="event.ControlEvent")]
+	[Event(name="rotationOK", type="event.ControlEvent")]
+	[Event(name="rotationNG", type="event.ControlEvent")]
+	[Event(name="startFall", type="event.ControlEvent")]
+	[Event(name="endFall", type="event.ControlEvent")]
+	[Event(name="fallShock", type="event.ControlEvent")]
+	[Event(name="fallShockSave", type="event.ControlEvent")]
+	[Event(name="shockSaveON", type="event.ControlEvent")]
+	[Event(name="shockSaveOFF", type="event.ControlEvent")]
+	[Event(name="levelClear", type="event.LevelClearEvent")]
+	[Event(name="stageClear", type="event.LevelClearEvent")]
+	[Event(name="shockDamage", type="event.ShockBlockEvent")]
+	[Event(name="sectionDamage", type="event.ShockBlockEvent")]
+	[Event(name="totalDamage", type="event.ShockBlockEvent")]
+	[Event(name="breakLine", type="event.BreakLineEvent")]
+	[Event(name="sectionBreakLine", type="event.BreakLineEvent")]
+	[Event(name="totalBreakLine", type="event.BreakLineEvent")]
+	[Event(name="addObstacle", type="event.ObstacleEvent")]
+	[Event(name="materializationNotice", type="event.ObstacleEvent")]
+	[Event(name="preMaterializationNotice", type="event.ObstacleEvent")]
+	[Event(name="occurObstacle", type="event.ObstacleEvent")]
+	[Event(name="counterbalanceObstacle", type="event.ObstacleEvent")]
+	[Event(name="obstacleFall", type="event.ObstacleEvent")]
 	public class GameModel extends GameModelBase 
 	{
 		private var setting:GameSetting;
@@ -19,7 +54,7 @@ package model
 		private var controlFalling:Boolean;
 		private var firstShock:Boolean;
 		private var _shockSave:Boolean;
-		private var obstacleSettled:Boolean;
+		private var completedObstacle:Boolean;
 		
 		private var fallSpeed:Number = 0;
 		private var startFall:Number = 0;
@@ -43,29 +78,15 @@ package model
 		private const obstacleColor1:uint = Color.lightgray;
 		private const obstacleColor2:uint = Color.gray;
 		
-		public function GameModel(setting:GameSetting, seed:XorShift128) 
+		public function GameModel() 
 		{
 			super(true);
-			this.setting = setting;
 			_record = new GameRecord();
-			_record.level = setting.startLevel;
-			setting.setLevelParameter(_record.level);
+			setting = new GameSetting();
 			obstacleManager = new ObstacleManager();
-			nextPRNG = seed.clone();
-			bigNextPRNG = seed.clone();
-			obstaclePRNG = seed.clone();
-			quantityOdds = new <int>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-			ominoOdds = new Vector.<Vector.<int>>(11);
-			for (var x:String in ominoOdds)
-			{
-				ominoOdds[x] = new Vector.<int>(OminoField.ominoQuantity[x]);
-				for (var y:String in ominoOdds[x])
-				{
-					ominoOdds[x][y] = 1;
-				}
-			}
-			setNextOmino(true);
-			_controlOmino = new OminoField(ominoSize);
+			obstacleManager.addEventListener(ObstacleEvent.addObstacle, function(e:ObstacleEvent):void { dispatchEvent(e); });
+			obstacleManager.addEventListener(ObstacleEvent.preMaterializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
+			obstacleManager.addEventListener(ObstacleEvent.materializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
 		}
 		
 		[Bindable(event="forwardGame")]
@@ -146,7 +167,6 @@ package model
 			result.fallField = _fallField.clone();
 			result.controlOmino = _controlOmino.clone();
 			result.nextOmino = new Vector.<OminoField>(nextLength, true);
-			result.notice = obstacleManager.notice + obstacleManager.getNoticeSaveCount();
 			for (var i:int = 0; i < nextLength; i++)
 			{
 				result.nextOmino[i] = _nextOmino[i].clone();
@@ -154,9 +174,64 @@ package model
 			return result;
 		}
 		
+		public function getMainField():MainField
+		{
+			if (_mainField == null) return null;
+			return _mainField.clone();
+		}
+		
+		public function getFallField():MainField
+		{
+			if (_fallField == null) return null;
+			return _fallField.clone();
+		}
+		
+		public function getControlOmino():OminoField
+		{
+			if (_controlOmino == null) return null;
+			return _controlOmino.clone();
+		}
+		
+		public function getNextOmino():Vector.<OminoField>
+		{
+			var ret:Vector.<OminoField> = new Vector.<OminoField>(nextLength, true);
+			for (var i:int = 0; i < nextLength; i++)
+			{
+				if (_nextOmino[i] == null) continue;
+				ret[i] = _nextOmino[i].clone();
+			}
+			return ret;
+		}
+		
+		public function startGame(setting:GameSetting, seed:XorShift128):void
+		{
+			this.setting = setting;
+			_record = new GameRecord();
+			_record.level = setting.startLevel;
+			setting.setLevelParameter(_record.level);
+			nextPRNG = seed.clone();
+			bigNextPRNG = seed.clone();
+			obstaclePRNG = seed.clone();
+			quantityOdds = new <int>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+			ominoOdds = new Vector.<Vector.<int>>(11);
+			for (var x:String in ominoOdds)
+			{
+				ominoOdds[x] = new Vector.<int>(OminoField.ominoQuantity[x]);
+				for (var y:String in ominoOdds[x])
+				{
+					ominoOdds[x][y] = 1;
+				}
+			}
+			setNextOmino(true);
+			_controlOmino = new OminoField(ominoSize);
+			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+			dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
+			dispatchEvent(new GameEvent(GameEvent.firstUpdateNext, _record.gameTime, 0));
+		}
+		
 		public function forwardGame(command:GameCommand):void
 		{
-			if (_isGameOver) return;
+			if (_isGameOver || setting == null) return;
 			_record.gameTime++;
 			obstacleManager.trialAddition(_record.gameTime, setting);
 			if (!controlPhase)
@@ -176,6 +251,7 @@ package model
 			if (fallSpeed > setting.fastFallSpeed) fallSpeed = setting.fastFallSpeed;
 			fallingField(int(_ffy), int(_ffy + fallSpeed));
 			_ffy += fallSpeed;
+			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 			if (_fallField.countBlock() > 0) return;
 			_ffy = 0;
 			fallSpeed = 0;
@@ -184,22 +260,25 @@ package model
 			extractFallBlocks();
 			if (_fallField.countBlock() > 0)
 			{
+				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 				dispatchEvent(new GameEvent(GameEvent.extractFall, _record.gameTime, 0));
 				return;
 			}
 			_mainField.clearSpecialUnion();
 			var totalLineScore:int = comboCount * comboCount * lineScore;
+			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 			dispatchEvent(new GameEvent(GameEvent.breakConbo, _record.gameTime, 0));
-			dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, _record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
-			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, totalDamage, totalDamage, Number.NaN, int.MIN_VALUE, int.MIN_VALUE));
+			if (comboCount > 0) dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, _record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
+			if( totalDamage > 0) dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, totalDamage, totalDamage, totalDamage, Number.NaN, int.MIN_VALUE, int.MIN_VALUE));
 			comboCount = 0;
 			totalDamage = 0;
-			if (!obstacleSettled && obstacleManager.notice > 0)
+			if (!completedObstacle && obstacleManager.notice > 0)
 			{
-				setObstacleBlocks();
+				var oc:int = setObstacleBlocks();
 				fallSpeed = setting.fastFallSpeed;
-				obstacleSettled = true;
-				dispatchEvent(new GameEvent(GameEvent.obstacleFall, _record.gameTime, 0));
+				completedObstacle = true;
+				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+				dispatchEvent(new ObstacleEvent(ObstacleEvent.obstacleFall, _record.gameTime, 0, oc));
 				return;
 			}
 			if (setting.isGameClear(_record.level))
@@ -209,6 +288,8 @@ package model
 				return;
 			}
 			setNextOmino(false);
+			dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
+			dispatchEvent(new GameEvent(GameEvent.updateNext, _record.gameTime, 0));
 			dispatchEvent(new ControlEvent(ControlEvent.setOmino, _record.gameTime, 0, _cox, _coy));
 			if (_controlOmino.blocksHitChack(_mainField, _cox, _coy, true) > 0)
 			{
@@ -220,7 +301,7 @@ package model
 			playRest = setting.playTime;
 			playLimit = 0;
 			firstShock = true;
-			obstacleSettled = false;
+			completedObstacle = false;
 			controlPhase = true;
 		}
 		
@@ -232,6 +313,8 @@ package model
 			if(playRest <= 0 || playRest <= playLimit)
 			{
 				_mainField.fix(_controlOmino, _cox, _coy);
+				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+				dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 				dispatchEvent(new ControlEvent(ControlEvent.fixOmino, _record.gameTime, 0, _cox, _coy));
 				_record.fixOmino++;
 				controlPhase = false;
@@ -257,7 +340,7 @@ package model
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, comboCount, y, colors));
 			if (setting.gameMode == GameSetting.battle)
 			{
-				var obs:int = comboCount > 1 ? fieldWidth * 2 : fieldWidth;
+				var obs:int = (comboCount + 0) * fieldWidth / 2;
 				var cb:int = Math.min(obs, obstacleManager.notice + obstacleManager.getNoticeSaveCount());
 				if (cb > 0)
 				{
@@ -281,7 +364,7 @@ package model
 		
 		override protected function onBlockDamage(x:int, y:int, damage:Number, coefficient:Number):void 
 		{
-			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, _record.gameTime, 0, damage, coefficient, x, y));
+			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, _record.gameTime, 0, damage, Number.NaN, coefficient, x, y));
 		}
 		
 		override protected function onSectionDamage(damage:Number, coefficient:Number):void
@@ -290,7 +373,7 @@ package model
 			var plus:int = totalDamage % 1 + damage;
 			_record.gameScore += plus;
 			totalDamage += damage;
-			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.sectionDamage, _record.gameTime, plus, damage, coefficient, int.MIN_VALUE, int.MIN_VALUE));
+			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.sectionDamage, _record.gameTime, plus, damage, totalDamage, coefficient, int.MIN_VALUE, int.MIN_VALUE));
 		}
 		
 		private function rotationOmino(rotation:int):void
@@ -373,12 +456,13 @@ package model
 			{
 				return false;
 			}
+			_controlOmino = cacheOmino;
+			dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 			dispatchEvent(new ControlEvent(ControlEvent.rotationOK, _record.gameTime, 0, _cox, _coy));
 			if (cacheOmino.blocksHitChack(_mainField, _cox + sx + dx, Math.ceil(_coy) + sy + dy, true) > 0)
 			{
 				_coy = Math.floor(_coy);
 			}
-			_controlOmino = cacheOmino;
 			_cox += sx + dx;
 			_coy += sy + dy;
 			playLimit = 0;
@@ -448,11 +532,13 @@ package model
 			if (!noDamage && _shockSave)
 			{
 				_shockSave = false;
+				dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 				dispatchEvent(new ControlEvent(ControlEvent.shockSaveOFF, _record.gameTime, 0, _cox, _coy));
 			}
 			else if (noDamage && !_shockSave)
 			{
 				_shockSave = true;
+				dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 				dispatchEvent(new ControlEvent(ControlEvent.shockSaveON, _record.gameTime, 0, _cox, _coy));
 			}
 			var coefficient:Number;
@@ -481,6 +567,8 @@ package model
 						coefficient = 1;
 						damage = shockDamage(_controlOmino, _cox, _coy + i, coefficient);
 						onSectionDamage(damage, coefficient);
+						dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+						dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 						dispatchEvent(new ControlEvent(ControlEvent.fallShock, _record.gameTime, 0, _cox, _coy));
 					}
 					firstShock = false;
@@ -496,6 +584,8 @@ package model
 						coefficient = getNaturalShockDamage(Math.ceil(_coy - startFall) + i);
 						damage = shockDamage(_controlOmino, _cox, _coy + i, coefficient);
 						onSectionDamage(damage, coefficient);
+						dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+						dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 						dispatchEvent(new ControlEvent(ControlEvent.fallShock, _record.gameTime, 0, _cox, _coy));
 					}
 				}
@@ -525,6 +615,7 @@ package model
 				var upLevel:int = setting.levelUpCount(_record.level, _record.breakLine);
 				var clearTime:int = _record.gameTime - levelStartTime;
 				var timeBonus:int = setting.timeBonus(clearTime, upLevel);
+				levelStartTime = _record.gameTime;
 				_record.level += upLevel;
 				_record.gameScore += timeBonus;
 				setting.setLevelParameter(_record.level);
@@ -608,9 +699,10 @@ package model
 			return OminoField.readOmino(q, o, ominoSize);
 		}
 		
-		private function setObstacleBlocks():void
+		private function setObstacleBlocks():int
 		{
-			var rest:int = Math.min(100, obstacleManager.notice);
+			var ret:int = Math.min(100, obstacleManager.notice);
+			var rest:int = ret;
 			obstacleManager.notice -= rest;
 			for (var y:int = fieldHeight / 2 - 1; y >= 0 && rest > 0; y--)
 			{
@@ -625,6 +717,7 @@ package model
 					rest -= obstacleLineMax;
 				}
 			}
+			return ret;
 		}
 	}
 

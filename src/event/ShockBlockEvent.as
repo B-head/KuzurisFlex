@@ -8,7 +8,10 @@ package event
 	 */
 	public class ShockBlockEvent extends GameEvent
 	{
+		[Bindable] 
 		public var damage:Number;
+		[Bindable] 
+		public var total:Number;
 		public var coefficient:Number;
 		public var x:int;
 		public var y:int;
@@ -17,10 +20,11 @@ package event
 		public static const sectionDamage:String = "sectionDamage";
 		public static const totalDamage:String = "totalDamage";
 		
-		public function ShockBlockEvent(type:String, gameTime:int, plusScore:int, damage:Number, coefficient:Number, x:int, y:int) 
+		public function ShockBlockEvent(type:String, gameTime:int, plusScore:int, damage:Number, total:Number, coefficient:Number, x:int, y:int) 
 		{
 			super(type, gameTime, plusScore);
 			this.damage = damage;
+			this.total = total;
 			this.coefficient = coefficient;
 			this.x = x;
 			this.y = y;
@@ -28,7 +32,7 @@ package event
 		
 		public override function clone():Event 
 		{ 
-			return new ShockBlockEvent(type, gameTime, plusScore, damage, coefficient, x, y);
+			return new ShockBlockEvent(type, gameTime, plusScore, damage, total, coefficient, x, y);
 		} 
 	}
 	

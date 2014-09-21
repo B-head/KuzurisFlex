@@ -6,12 +6,16 @@ package model
 	 * ...
 	 * @author B_head
 	 */
+	[Event(name="gameStart", type="event.GameManagerEvent")]
+	[Event(name="gameEnd", type="event.GameManagerEvent")]
+	[Event(name="changePlayer", type="event.GameManagerEvent")]
 	public class GameManager extends EventDispatcher
 	{
 		private var maxPlayer:int;
 		private var control:Vector.<GameControl>;
 		private var replay:Vector.<GameReplay>;
 		private var gameModel:Vector.<GameModel>;
+		private var execution:Boolean;
 		
 		public function GameManager(maxPlayer:int) 
 		{
@@ -19,6 +23,7 @@ package model
 			control = new Vector.<GameControl>(maxPlayer);
 			replay = new Vector.<GameReplay>(maxPlayer);
 			gameModel = new Vector.<GameModel>(maxPlayer);
+			initialize();
 		}
 		
 		public function isBattle():Boolean
@@ -26,9 +31,28 @@ package model
 			return maxPlayer > 1;
 		}
 		
+		public function isExecution():Boolean
+		{
+			return execution;
+		}
+		
 		public function setPlayer(index:int, control:GameControl):void
 		{
 			this.control[index] = control;
+			dispatchEvent(new GameManagerEvent(GameManagerEvent.changePlayer));
+		}
+		
+		[Bindable(event="changePlayer")]
+		public function isHumanPlayer(index:int):Boolean
+		{
+			return control[index] is UserInput;
+		}
+		
+		public function setAILevel(index:int, level:int):void
+		{
+			var ai:GameAIManager = control[index] as GameAIManager;
+			if (ai == null) return;
+			ai.setAILevel(level);
 		}
 		
 		public function getGameModel(index:int):GameModel
@@ -36,19 +60,11 @@ package model
 			return gameModel[index];
 		}
 		
-		public function initializeGame(setting:GameSetting):void
+		public function initialize():void
 		{
-			var seed:XorShift128 = new XorShift128();
-			seed.RandomSeed();
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				if (control[i] == null)
-				{
-					continue;
-				}
-				replay[i] = new GameReplay();
-				gameModel[i] = new GameModel(setting, seed);
-				control[i].updateModel(gameModel[i].getLightModel());
+				gameModel[i] = new GameModel();
 				gameModel[i].addEventListener(GameEvent.gameOver, GameEndListener);
 				gameModel[i].addEventListener(GameEvent.gameClear, GameEndListener);
 				gameModel[i].addEventListener(ControlEvent.setOmino, createUpdateModelListener(i), false);
@@ -59,14 +75,54 @@ package model
 			}
 		}
 		
-		public function forwardGame():void
+		public function startGame(setting:GameSetting):void
+		{
+			var seed:XorShift128 = new XorShift128();
+			seed.RandomSeed();
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				replay[i] = new GameReplay();
+				gameModel[i].startGame(setting, seed);
+				control[i].reset();
+				control[i].enable = true;
+				//control[i].updateModel(gameModel[i].getLightModel());
+			}
+			execution = true;
+			dispatchEvent(new GameManagerEvent(GameManagerEvent.gameStart));
+		}
+		
+		public function endGame():void
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				if (control[i] == null)
-				{
-					continue;
-				}
+				control[i].enable = false;
+			}
+			execution = false;
+		}
+		
+		public function phaseGame():void
+		{
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				control[i].enable = false;
+			}
+			execution = false;
+		}
+		
+		public function resumeGame():void
+		{
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				control[i].enable = true;
+			}
+			execution = true;
+		}
+		
+		public function forwardGame():void
+		{
+			if (execution == false) return;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
 				var command:GameCommand = control[i].issueGameCommand();
 				replay[i].recordCommand(command);
 				gameModel[i].forwardGame(command);
@@ -82,7 +138,8 @@ package model
 			}
 			if (count >= maxPlayer - 1)
 			{
-				dispatchEvent(new GameEvent(e.type, e.gameTime, 0));
+				endGame();
+				dispatchEvent(new GameManagerEvent(GameManagerEvent.gameEnd));
 			}
 		}
 		
@@ -98,7 +155,10 @@ package model
 		{
 			return function(e:GameEvent):void
 			{
-				control[self].updateModel(gameModel[self].getLightModel());
+				var ai:GameAIManager = control[self] as GameAIManager;
+				if (ai == null) return;
+				ai.updateModel(gameModel[self].getLightModel());
+				ai.updateNotice(gameModel[self].obstacleNotice + gameModel[self].obstacleNoticeSave);
 			}
 		}
 		
@@ -108,7 +168,11 @@ package model
 			{
 				for (var i:int = 0; i < maxPlayer; i++)
 				{
-					if (i != self) gameModel[i].addObstacle(self, e.count);
+					if (i == self) continue;
+					gameModel[i].addObstacle(self, e.count);
+					var ai:GameAIManager = control[i] as GameAIManager;
+					if (ai == null) return;
+					ai.updateNotice(gameModel[self].obstacleNotice + gameModel[self].obstacleNoticeSave);
 				}
 			}
 		}

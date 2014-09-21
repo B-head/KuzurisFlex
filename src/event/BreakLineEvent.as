@@ -7,6 +7,7 @@ package event
 	 */
 	public class BreakLineEvent extends GameEvent
 	{
+		[Bindable]
 		public var combo:int;
 		public var position:int;
 		public var colors:Vector.<uint>;

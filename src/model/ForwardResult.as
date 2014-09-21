@@ -7,7 +7,9 @@ package model
 	public class ForwardResult 
 	{
 		public var breakLine:int;
-		public var counterbalance:int;
+		public var lossTime:int;
+		public var verge:Boolean;
+		public var rightDir:Boolean;
 	}
 
 }

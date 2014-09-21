@@ -6,8 +6,10 @@ package model
 	 */
 	public interface GameControl
 	{
+		function get enable():Boolean;
+		function set enable(value:Boolean):void;
+		function reset():void;
 		function changePhase(controlPhase:Boolean):void;
-		function updateModel(gameModel:GameLightModel):void;
 		function issueGameCommand():GameCommand;
 	}
 	

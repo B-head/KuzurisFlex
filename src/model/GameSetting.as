@@ -60,7 +60,7 @@ package model
 		public function timeBonus(clearTime:int, upCount:int):int
 		{
 			var basis:int = 400 * levelClearLine;
-			var bonus:int = basis * (1 - clearTime / 3000);
+			var bonus:int = basis * (1 - clearTime / 6000);
 			return (bonus > 0 ? bonus : 0) + (upCount - 1) * basis;
 		}
 		

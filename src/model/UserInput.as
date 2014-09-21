@@ -7,9 +7,8 @@ package model
 	 * ...
 	 * @author B_head
 	 */
-	public class UserInput extends EventDispatcher implements GameControl 
+	public class UserInput implements GameControl 
 	{
-		public static const pauseEvent:String = "pause";
 		private const primaryMoveDelay:int = 8;
 		private const secondaryMoveDelay:int = 4;
 		
@@ -20,11 +19,10 @@ package model
 		public var fastFalling:Vector.<uint>;
 		public var earthFalling:Vector.<uint>;
 		public var noDamage:Vector.<uint>;
-		public var pause:Vector.<uint>;
 		public var oneFrameMove:Boolean;
 		public var replaceFixCommand:Boolean;
-		public var enable:Boolean;
 		
+		private var _enable:Boolean;
 		private var downKeyCodes:Vector.<uint>;
 		private var lastControl:GameCommand;
 		private var moveDelay:int;
@@ -42,7 +40,6 @@ package model
 			fastFalling = new <uint>[Keyboard.DOWN, Keyboard.S];
 			earthFalling = new <uint>[Keyboard.UP, Keyboard.W];
 			noDamage = new <uint>[Keyboard.SHIFT, Keyboard.SPACE, Keyboard.L, Keyboard.SEMICOLON];
-			pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE];
 			
 			downKeyCodes = new Vector.<uint>();
 			lastControl = new GameCommand();
@@ -58,11 +55,7 @@ package model
 				}
 			}
 			downKeyCodes[downKeyCodes.length] = keyCode;
-			if (pause.indexOf(keyCode) != -1)
-			{
-				dispatchEvent(new Event(pauseEvent));
-			}
-			if (!enable) return;
+			if (!_enable) return;
 			if (rightRotation.indexOf(keyCode) != -1)
 			{
 				remainderRotation++;
@@ -97,6 +90,19 @@ package model
 			}
 		}
 		
+	 	public function get enable():Boolean { return _enable; }
+		public function set enable(value:Boolean):void { _enable = value; };
+		
+		public function reset():void
+		{
+			lastControl = new GameCommand();
+			moveDelay = 0;
+			remainderMove = 0;
+			remainderRotation = 0;
+			remainderEarthFalling = 0;
+			controlPhase = false;
+		}
+		
 		public function changePhase(controlPhase:Boolean):void
 		{
 			this.controlPhase = controlPhase;
@@ -104,11 +110,6 @@ package model
 			{
 				moveDelay = primaryMoveDelay;
 			}
-		}
-		
-		public function updateModel(gameModel:GameLightModel):void
-		{
-			return;
 		}
 		
 		public function issueGameCommand():GameCommand 

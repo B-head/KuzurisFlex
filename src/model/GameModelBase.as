@@ -18,6 +18,7 @@ package model
 		private const indirectShockDamageCoefficient:Number = 1;
 		private const naturalShockDamageCoefficient:Number = 0.5;
 		private const distanceDamageCoefficient:Vector.<Number> = generateDistanceDamageCoefficient();
+		private const fallingLossTime:Vector.<int> = generateFallingLossTime();
 		
 		protected var _mainField:MainField;
 		protected var _fallField:MainField;
@@ -58,7 +59,7 @@ package model
 		protected function breakLines():int
 		{
 			var count:int = 0;
-			for (var y:int = 0; y < fieldHeight; y++)
+			for (var y:int = fieldHeight - 1; y >= 0; y--)
 			{
 				if (_mainField.isFillLine(y))
 				{
@@ -83,10 +84,11 @@ package model
 			}
 		}
 		
-		protected function fallingField(from:int, to:int):void
+		protected function fallingField(from:int, to:int):int
 		{
 			var tempField:MainField = new MainField(fieldWidth, fieldHeight);
-			var blockscCount:int = _fallField.countBlock(); 
+			var blockscCount:int = _fallField.countBlock();
+			if (blockscCount <= 0) return fallingLossTime[0];
 			for (var i:int = from; i <= to; i++)
 			{
 				blockscCount -= collideFallingBlocks(i, tempField);
@@ -96,6 +98,7 @@ package model
 				_mainField.fix(tempField, 0, i);
 				if (blockscCount <= 0) break;
 			}
+			return fallingLossTime[i];
 		}
 		
 		protected function collideFallingBlocks(dy:int, to:MainField):int
@@ -181,6 +184,23 @@ package model
 					vec[i] = 1;
 				}
 			}
+			return vec;
+		}
+		
+		private function generateFallingLossTime():Vector.<int>
+		{
+			var vec:Vector.<int> = new Vector.<int>(41, true);
+			var g:Number = 10 / 400;
+			var fs:Number = 0;
+			var time:int = 0;
+			for (var i:Number = 0; i < GameModelBase.fieldHeight; i += fs)
+			{
+				vec[int(i) + 1] = time;
+				if (vec[int(i)] == 0) vec[int(i)] = time;
+				fs += g;
+				time++;
+			}
+			vec[0] = 0;
 			return vec;
 		}
 		
