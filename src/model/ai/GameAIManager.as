@@ -1,7 +1,6 @@
-package model 
-{
-	import model.ai.GameAI;
-	import model.ai.GreedyAI;
+package model.ai {
+	import model.*;
+	import model.ai.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -20,7 +19,7 @@ package model
 		
 		private var _enable:Boolean;
 		private var controlPhase:Boolean;
-		private var currentModel:GameLightModel;
+		private var currentModel:FragmentGameModel;
 		private var notice:int;
 		private var currentWay:ControlWay;
 		private var targetWay:ControlWay;
@@ -48,29 +47,27 @@ package model
 		public function setAILevel(level:int):void
 		{
 			ai.level = level;
-			appendDelay = (20 - level) * secondaryMoveDelay;
-			appendDelay += Math.max(0, 10 - level) * secondaryMoveDelay;
-			appendDelay += Math.max(0, 5 - level) * primaryMoveDelay;
+			appendDelay = 480 / level - 24;
 			choiceDelay = level != 20;
-			if (appendDelay >= 80)
+			if (appendDelay >= 60)
 			{
 				fallDelay = true;
-				appendDelay -= 24;
+				appendDelay -= 25;
 			}
 			else
 			{
 				fallDelay = false;
 			}
-			if (appendDelay >= 40)
+			if (appendDelay >= 20)
 			{
 				separateDelay = true;
-				appendDelay -= 8;
+				appendDelay -= 6;
 			}
-			if (appendDelay >= 16)
+			if (appendDelay >= 8)
 			{
-				var a:int = appendDelay / 16;
+				var a:int = appendDelay / 8;
 				moveDelay = 7 + a;
-				appendDelay -= a * 4;
+				appendDelay -= a * 3;
 			}
 			else
 			{
@@ -116,7 +113,7 @@ package model
 			}
 		}
 		
-		public function updateModel(currentModel:GameLightModel):void
+		public function updateModel(currentModel:FragmentGameModel):void
 		{
 			this.currentModel = currentModel;
 			currentWay = ControlWay.getCurrent(currentModel);

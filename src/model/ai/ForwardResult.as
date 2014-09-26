@@ -1,5 +1,4 @@
-package model 
-{
+package model.ai {
 	/**
 	 * ...
 	 * @author B_head

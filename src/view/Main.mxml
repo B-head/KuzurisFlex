@@ -9,31 +9,11 @@
 			import model.*;
 			
 			public static const pauseEvent:String = "pause";
-			public var shared:SharedObject;
-			public var input:UserInput;
-			public var inputVersus1:UserInput;
-			public var inputVersus2:UserInput;
 			public var pause:Vector.<uint>;
 			
 			private function applicationCompleteListener():void
 			{
-				registerClassAlias("UserInput", UserInput);
-				shared = SharedObject.getLocal("main");
-				if (!(shared.data.input is UserInput))
-				{
-					shared.data.input = new UserInput();
-				}
-				if (!(shared.data.inputVersus1 is UserInput))
-				{
-					shared.data.inputVersus1 = new UserInput();
-				}
-				if (!(shared.data.inputVersus2 is UserInput))
-				{
-					shared.data.inputVersus2 = new UserInput();
-				}
-				input = shared.data.input;
-				inputVersus1 = shared.data.inputVersus1;
-				inputVersus2 = shared.data.inputVersus2;
+				SharedObjectHelper.init();
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE]
@@ -41,9 +21,9 @@
 			
 			private function onKeyDown(e:KeyboardEvent):void
 			{
-				input.keyDown(e.keyCode);
-				inputVersus1.keyDown(e.keyCode);
-				inputVersus2.keyDown(e.keyCode);
+				SharedObjectHelper.input.keyDown(e.keyCode);
+				SharedObjectHelper.inputVersus1.keyDown(e.keyCode);
+				SharedObjectHelper.inputVersus2.keyDown(e.keyCode);
 				if (pause.indexOf(e.keyCode) != -1)
 				{
 					dispatchEvent(new Event(pauseEvent));
@@ -52,9 +32,9 @@
 			
 			private function onKeyUp(e:KeyboardEvent):void
 			{
-				input.keyUp(e.keyCode);
-				inputVersus1.keyUp(e.keyCode);
-				inputVersus2.keyUp(e.keyCode);
+				SharedObjectHelper.input.keyUp(e.keyCode);
+				SharedObjectHelper.inputVersus1.keyUp(e.keyCode);
+				SharedObjectHelper.inputVersus2.keyUp(e.keyCode);
 			}
 			
 			private function decideTlial(mode:String):void
@@ -88,7 +68,7 @@
 	<s:Group includeIn="title">
 		<s:BorderContainer width="300" x="100" y="200">
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" />
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
 			</s:layout>
 			<s:Label styleName="sub-title" text="壊リスの偽物" />
 			<s:Label styleName="main-title" text="崩リス" />

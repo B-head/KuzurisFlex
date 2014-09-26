@@ -1,11 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/halo">
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
+			   width="400">
+	<fx:Script>
+		<![CDATA[
+			import model.UserInput;
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var input:UserInput;
+		]]>
+	</fx:Script>
 	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
+	<fx:Metadata>
+		[Event(name="back", type="flash.events.Event")]
+	</fx:Metadata>
 	
+	<s:layout>
+		<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
+	</s:layout>
 	
+	<v:KeySelector labelText="左回転" keys="{input.leftRotation}"/>
+	<v:KeySelector labelText="右回転" keys="{input.rightRotation}"/>
+	<v:KeySelector labelText="左移動" keys="{input.leftMove}"/>
+	<v:KeySelector labelText="右移動" keys="{input.rightMove}"/>
+	<v:KeySelector labelText="高速落下" keys="{input.fastFalling}"/>
+	<v:KeySelector labelText="接地" keys="{input.earthFalling}"/>
+	<v:KeySelector labelText="ブロック保護" keys="{input.noDamage}"/>
+	<mx:Spacer height="8" />
+	<s:Group>
+		<s:Label text="高速移動フレーム"/>
+		<s:ButtonBar id="fastMoveFrame" width="200" right="0" requireSelection="true" selectedIndex="{input.indexOfOneFrameMove}" changing="input.indexOfOneFrameMove = event.newIndex">  
+			<mx:ArrayCollection source="['１フレーム', '４フレーム']"/>
+		</s:ButtonBar>
+	</s:Group>
+	<s:Group>
+		<s:Label text="ミノ固定キー"/>
+		<s:ButtonBar id="ominoFixKey" width="200" right="0" requireSelection="true" selectedIndex="{input.indexOfReplaceFixCommand}" changing="input.indexOfReplaceFixCommand = event.newIndex">  
+			<mx:ArrayCollection source="['接地キー', '落下キー']"/>
+		</s:ButtonBar>
+	</s:Group>
+	<mx:Spacer height="8" />
+	<s:HGroup horizontalAlign="center" verticalAlign="middle">
+		<s:Button width="100" label="リセット" buttonDown="input.setDefaultKeys()"/>
+		<s:Button width="100" label="決定" buttonDown="dispatchEvent(new Event('back'))" />
+	</s:HGroup>
 </s:BorderContainer>

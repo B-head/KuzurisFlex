@@ -1,6 +1,7 @@
 package model 
 {
 	import event.*;
+	import model.ai.FragmentGameModel;
 	/**
 	 * ...
 	 * @author B_head
@@ -73,7 +74,6 @@ package model
 		private var _coy:Number = 0;
 		private var _ffy:Number = 0;
 		
-		private const lineScore:int = 100;
 		private const obstacleLineMax:int = 5;
 		private const obstacleColor1:uint = Color.lightgray;
 		private const obstacleColor2:uint = Color.gray;
@@ -160,9 +160,9 @@ package model
 			return obstacleManager.getNextObstacleTime(_record.gameTime, setting);
 		}
 		
-		public function getLightModel():GameLightModel
+		public function getLightModel():FragmentGameModel
 		{
-			var result:GameLightModel = new GameLightModel();
+			var result:FragmentGameModel = new FragmentGameModel();
 			result.mainField = _mainField.clone();
 			result.fallField = _fallField.clone();
 			result.controlOmino = _controlOmino.clone();
@@ -205,10 +205,10 @@ package model
 		
 		public function startGame(setting:GameSetting, seed:XorShift128):void
 		{
-			this.setting = setting;
+			this.setting = setting.clone();
 			_record = new GameRecord();
 			_record.level = setting.startLevel;
-			setting.setLevelParameter(_record.level);
+			this.setting.setLevelParameter(_record.level);
 			nextPRNG = seed.clone();
 			bigNextPRNG = seed.clone();
 			obstaclePRNG = seed.clone();
@@ -240,6 +240,7 @@ package model
 			}
 			if (controlPhase)
 			{
+				_record.controlTime++;
 				forwardControl(command);
 			}
 			dispatchEvent(new GameEvent(GameEvent.forwardGame, _record.gameTime, 0));
@@ -265,20 +266,23 @@ package model
 				return;
 			}
 			_mainField.clearSpecialUnion();
-			var totalLineScore:int = comboCount * comboCount * lineScore;
+			var totalLineScore:int = setting.totalBreakLineScore(comboCount);
 			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 			dispatchEvent(new GameEvent(GameEvent.breakConbo, _record.gameTime, 0));
 			if (comboCount > 0) dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, _record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
-			if( totalDamage > 0) dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, totalDamage, totalDamage, totalDamage, Number.NaN, int.MIN_VALUE, int.MIN_VALUE));
+			if (totalDamage > 0) dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, totalDamage, totalDamage, totalDamage, Number.NaN, int.MIN_VALUE, int.MIN_VALUE));
+			_record.comboLines[comboCount]++;
+			_record.blockDamage += totalDamage;
 			comboCount = 0;
 			totalDamage = 0;
 			if (!completedObstacle && obstacleManager.notice > 0)
 			{
-				var oc:int = setObstacleBlocks();
+				var oc:int = appendObstacleBlocks();
 				fallSpeed = setting.fastFallSpeed;
 				completedObstacle = true;
 				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 				dispatchEvent(new ObstacleEvent(ObstacleEvent.obstacleFall, _record.gameTime, 0, oc));
+				_record.receivedObstacle += oc;
 				return;
 			}
 			if (setting.isGameClear(_record.level))
@@ -335,17 +339,19 @@ package model
 		{
 			_record.breakLine++;
 			comboCount++;
-			var plus:int = (2 * comboCount - 1) * lineScore;
+			var plus:int = setting.breakLineScore(comboCount);
 			_record.gameScore += plus;
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, comboCount, y, colors));
 			if (setting.gameMode == GameSetting.battle)
 			{
-				var obs:int = (comboCount + 0) * fieldWidth / 2;
+				var obs:int = setting.occurObstacle(comboCount);
+				_record.occurObstacle += obs;
 				var cb:int = Math.min(obs, obstacleManager.notice + obstacleManager.getNoticeSaveCount());
 				if (cb > 0)
 				{
 					obs -= cb;
 					obstacleManager.counterbalance(cb);
+					_record.counterbalance += cb;
 					dispatchEvent(new ObstacleEvent(ObstacleEvent.counterbalanceObstacle, _record.gameTime, 0, cb));
 				}
 				if (obs > 0) dispatchEvent(new ObstacleEvent(ObstacleEvent.occurObstacle, _record.gameTime, 0, obs));
@@ -356,8 +362,8 @@ package model
 		{
 			if (count == 0) return;
 			var a:int = comboCount - count;
-			var b:int = a * a * lineScore;
-			var c:int = comboCount * comboCount * lineScore;
+			var b:int = setting.totalBreakLineScore(a);
+			var c:int = setting.totalBreakLineScore(comboCount);
 			var plus:int = c - b;
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.sectionBreakLine, _record.gameTime, plus, comboCount, int.MIN_VALUE, null));
 		}
@@ -699,7 +705,7 @@ package model
 			return OminoField.readOmino(q, o, ominoSize);
 		}
 		
-		private function setObstacleBlocks():int
+		private function appendObstacleBlocks():int
 		{
 			var ret:int = Math.min(100, obstacleManager.notice);
 			var rest:int = ret;
@@ -718,6 +724,11 @@ package model
 				}
 			}
 			return ret;
+		}
+		
+		private function appendTowerBlocks():void
+		{
+			
 		}
 	}
 

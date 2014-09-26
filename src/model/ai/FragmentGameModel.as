@@ -1,12 +1,12 @@
-package model 
-{
+package model.ai {
+	import model.*;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class GameLightModel extends GameModelBase 
+	public class FragmentGameModel extends GameModelBase 
 	{
-		public function GameLightModel() 
+		public function FragmentGameModel() 
 		{
 			super(false);
 		}
@@ -47,9 +47,9 @@ package model
 			_nextOmino = value;
 		}
 			
-		public function clone():GameLightModel
+		public function clone():FragmentGameModel
 		{
-			var result:GameLightModel = new GameLightModel();
+			var result:FragmentGameModel = new FragmentGameModel();
 			result.mainField = _mainField.clone();
 			result.fallField = _fallField.clone();
 			result.controlOmino = _controlOmino.clone();

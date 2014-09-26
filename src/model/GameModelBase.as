@@ -14,11 +14,11 @@ package model
 		public static const ominoSize:int = 10;
 		public static const nextLength:int = 6;
 		
-		private const shockDamageCoefficient:Number = 2.5;
-		private const indirectShockDamageCoefficient:Number = 1;
-		private const naturalShockDamageCoefficient:Number = 0.5;
-		private const distanceDamageCoefficient:Vector.<Number> = generateDistanceDamageCoefficient();
-		private const fallingLossTime:Vector.<int> = generateFallingLossTime();
+		public static const shockDamageCoefficient:Number = 2.5;
+		public static const indirectShockDamageCoefficient:Number = 1;
+		public static const naturalShockDamageCoefficient:Number = 0.5;
+		public const distanceDamageCoefficient:Vector.<Number> = generateDistanceDamageCoefficient();
+		public const fallingLossTime:Vector.<int> = generateFallingLossTime();
 		
 		protected var _mainField:MainField;
 		protected var _fallField:MainField;
@@ -169,7 +169,7 @@ package model
 			return naturalShockDamageCoefficient * distanceDamageCoefficient[n];
 		}
 		
-		private function generateDistanceDamageCoefficient():Vector.<Number>
+		private static function generateDistanceDamageCoefficient():Vector.<Number>
 		{
 			var vec:Vector.<Number> = new Vector.<Number>(41, true);
 			var g:Number = 1 / 40;
@@ -187,7 +187,7 @@ package model
 			return vec;
 		}
 		
-		private function generateFallingLossTime():Vector.<int>
+		private static function generateFallingLossTime():Vector.<int>
 		{
 			var vec:Vector.<int> = new Vector.<int>(41, true);
 			var g:Number = 10 / 400;

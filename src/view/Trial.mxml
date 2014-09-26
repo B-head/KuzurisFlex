@@ -12,6 +12,12 @@
 		private var mode:String;
 		private var manager:GameManager;
 		[Bindable]
+		private var input:GameControl;
+		[Bindable]
+		private var record:GameRecord;
+		[Bindable]
+		private var ranking:GameRanking;
+		[Bindable]
 		private var pause:Boolean;
 		
 		public function init(mode:String):void
@@ -19,7 +25,7 @@
 			this.mode = mode;
 			parentApplication.addEventListener(Main.pauseEvent, pauseListener);
 			manager = new GameManager(1);
-			manager.setPlayer(0, parentApplication.input);
+			input = SharedObjectHelper.input;
 			manager.addEventListener(GameManagerEvent.gameEnd, endListener);
 			main.blockGraphics = new BlockGraphics();
 			prepare();
@@ -42,7 +48,21 @@
 			setting.startLevel = level.value;
 			setting.endless = endless.selected;
 			setting.levelClearLine = 10;
+			manager.initialize();
+			manager.setPlayer(0, input);
+			main.gameModel = manager.getGameModel(0);
 			manager.startGame(setting);
+			parentApplication.bgm.play(false);
+			currentState = "hidden";
+			setFocus();
+			pause = false;
+		}
+		
+		private function replayStart():void
+		{
+			manager.initialize();
+			main.gameModel = manager.getGameModel(0);
+			manager.startReplay();
 			parentApplication.bgm.play(false);
 			currentState = "hidden";
 			setFocus();
@@ -89,6 +109,9 @@
 		{
 			parentApplication.bgm.stop();
 			manager.endGame();
+			record = manager.getRecord(0);
+			ranking = SharedObjectHelper.getRanking(mode, endless.selected);
+			ranking.entry(record);
 			currentState = "end";
 			pause = false;
 		}
@@ -98,10 +121,6 @@
 	<fx:Metadata>
 		[Event(name="back", type="flash.events.Event")]
 	</fx:Metadata>
-	
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
 
 	<s:states>
 		<s:State name="hidden" />
@@ -112,8 +131,8 @@
 		<s:State name="keyConfig" />
 	</s:states>
 
-	<v:GameView id="main" x="227" y="24" pause="{pause}"/>
-	<s:VGroup includeIn="prepare" x="352" y="224" width="150" horizontalAlign="center">
+	<v:GameView id="main" x="227" y="24" battle="false" pause="{pause}"/>
+	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()"/>
 		<s:Label styleName="menu-label" text="開始レベル{level.value}" />
 		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
@@ -122,13 +141,16 @@
 		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
 		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
 	</s:VGroup>
-	<s:VGroup includeIn="pause" x="352" y="224" width="150" horizontalAlign="center">
-		<s:Button width="100" label="つづける" buttonDown="resume()" />
-		<s:Button width="100" label="やりなおす" buttonDown="start()" />
+	<s:VGroup includeIn="pause" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button width="150" label="つづける" buttonDown="resume()" />
+		<s:Button width="150" label="やりなおす" buttonDown="start()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
-	<s:VGroup includeIn="end" x="352" y="224" width="150" horizontalAlign="center">
+	<s:VGroup includeIn="end" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button width="150" label="リプレイ" buttonDown="replayStart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
-	<v:KeyConfig includeIn="keyConfig"/>
+	<v:DetailedRecordView includeIn="end" x="0" y="0" width="223" height="480" battle="false" record="{record}" />
+	<v:ResultRankingView includeIn="end" x="631" y="0" width="223" height="480"/>
+	<v:KeyConfig includeIn="keyConfig" x="227" y="88" input="{input as UserInput}" back="currentState = 'prepare'"/>
 </s:Group>

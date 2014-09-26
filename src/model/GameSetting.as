@@ -1,11 +1,14 @@
 package model 
 {
+	import view.GameSoundEffect;
 	/**
 	 * ...
 	 * @author B_head
 	 */
 	public final class GameSetting 
 	{
+		public static const alpha1:uint = 1;
+		
 		public static const axelSpeed:String = "axelSpeed";
 		public static const overSpeed:String = "overSpeed";
 		public static const obstacleAttack:String = "obstacleAttack";
@@ -15,6 +18,12 @@ package model
 		public static const free:String = "free";
 		public static const battle:String = "battle";
 		
+		private const levelUpCoefficient:int = 4000;
+		private const levelTimeCoefficient:int = 6000;
+		private const breakLineCoefficient:int = 1000;
+		private const occurObstacleCoefficient:int = 5;
+		
+		public var version:uint = alpha1;
 		public var gameMode:String = battle;
 		public var startLevel:int = 1;
 		public var endless:Boolean = true;
@@ -34,6 +43,17 @@ package model
 		public var obstacleSaveTime:int;
 		public var obstacleInterval:int;
 		public var obstacleAdditionCount:Number;
+		
+		public function clone():GameSetting
+		{
+			var ret:GameSetting = new GameSetting();
+			ret.gameMode = gameMode;
+			ret.startLevel = startLevel;
+			ret.endless = endless;
+			ret.levelClearLine = levelClearLine;
+			ret.gameClearLevel = gameClearLevel;
+			return ret;
+		}
 		
 		public function isObstacleAddition():Boolean
 		{
@@ -59,9 +79,24 @@ package model
 		
 		public function timeBonus(clearTime:int, upCount:int):int
 		{
-			var basis:int = 400 * levelClearLine;
-			var bonus:int = basis * (1 - clearTime / 6000);
+			var basis:int = levelUpCoefficient * levelClearLine;
+			var bonus:int = basis * (1 - clearTime / levelTimeCoefficient);
 			return (bonus > 0 ? bonus : 0) + (upCount - 1) * basis;
+		}
+		
+		public function breakLineScore(comboCount:int):int
+		{
+			return (2 * comboCount - 1) * breakLineCoefficient;
+		}
+		
+		public function totalBreakLineScore(comboCount:int):int
+		{
+			return comboCount * comboCount * breakLineCoefficient;
+		}
+		
+		public function occurObstacle(comboCount:int):int
+		{
+			return (comboCount + 1) * occurObstacleCoefficient;
 		}
 		
 		public function setLevelParameter(level:int):void
@@ -115,7 +150,7 @@ package model
 				naturalFallSpeed = 20;
 				fastFallSpeed = 20;
 				fallAcceleration = 10 / exponentLeveling(level, 400, 1, 100);
-				playTime = linerLeveling(level, 60, 20);
+				playTime = linerLeveling(level, 60, 25);
 			}
 			else
 			{

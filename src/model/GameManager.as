@@ -2,6 +2,7 @@ package model
 {
 	import event.*;
 	import flash.events.*;
+	import model.ai.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -16,6 +17,7 @@ package model
 		private var replay:Vector.<GameReplay>;
 		private var gameModel:Vector.<GameModel>;
 		private var execution:Boolean;
+		private var isReplayMode:Boolean;
 		
 		public function GameManager(maxPlayer:int) 
 		{
@@ -42,12 +44,6 @@ package model
 			dispatchEvent(new GameManagerEvent(GameManagerEvent.changePlayer));
 		}
 		
-		[Bindable(event="changePlayer")]
-		public function isHumanPlayer(index:int):Boolean
-		{
-			return control[index] is UserInput;
-		}
-		
 		public function setAILevel(index:int, level:int):void
 		{
 			var ai:GameAIManager = control[index] as GameAIManager;
@@ -58,6 +54,13 @@ package model
 		public function getGameModel(index:int):GameModel
 		{
 			return gameModel[index];
+		}
+		
+		public function getRecord(index:int):GameRecord
+		{
+			var ret:GameRecord = gameModel[index].record;
+			ret.replay = replay[index];
+			return ret;
 		}
 		
 		public function initialize():void
@@ -81,12 +84,28 @@ package model
 			seed.RandomSeed();
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				replay[i] = new GameReplay();
+				replay[i] = new GameReplay(setting, seed);
 				gameModel[i].startGame(setting, seed);
 				control[i].reset();
 				control[i].enable = true;
-				//control[i].updateModel(gameModel[i].getLightModel());
 			}
+			isReplayMode = false;
+			execution = true;
+			dispatchEvent(new GameManagerEvent(GameManagerEvent.gameStart));
+		}
+		
+		public function startReplay():void
+		{
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				var r:GameReplay = isReplayMode ? control[i] as GameReplay : replay[i];
+				replay[i] = null;
+				gameModel[i].startGame(r.setting, r.seed);
+				control[i] = r;
+				control[i].reset();
+				control[i].enable = true;
+			}
+			isReplayMode = true;
 			execution = true;
 			dispatchEvent(new GameManagerEvent(GameManagerEvent.gameStart));
 		}
@@ -95,6 +114,7 @@ package model
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
+				if (control[i] == null) continue;
 				control[i].enable = false;
 			}
 			execution = false;
@@ -124,7 +144,10 @@ package model
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
 				var command:GameCommand = control[i].issueGameCommand();
-				replay[i].recordCommand(command);
+				if (replay[i] != null)
+				{
+					replay[i].recordCommand(command);
+				}
 				gameModel[i].forwardGame(command);
 			}
 		}

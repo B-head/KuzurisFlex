@@ -57,6 +57,15 @@ package model
 			return value[x][y] != null;
 		}
 		
+		public function isUnionSideBlock(x:int, y:int):Boolean
+		{
+			var px:int = x + 1;
+			if (px < _width && value[px][y] != null && value[px][y].hitPoint > 0) return true;
+			var mx:int = x - 1;
+			if (mx >= 0 && value[mx][y] != null && value[mx][y].hitPoint > 0) return true;
+			return false;
+		}
+		
 		public function copyTo(to:BlockField):void
 		{
 			for (var x:int = 0; x < _width; x++)

@@ -1,5 +1,5 @@
-package model 
-{
+package model.ai {
+	import model.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -22,7 +22,7 @@ package model
 			return (lx << 2) | dir;
 		}
 		
-		public static function getCurrent(currentModel:GameLightModel):ControlWay
+		public static function getCurrent(currentModel:FragmentGameModel):ControlWay
 		{
 			var rect:Rect = currentModel.controlOmino.getRect();
 			var cox:int = currentModel.init_cox(rect);
@@ -32,7 +32,7 @@ package model
 			return ret;
 		}
 		
-		public static function getRotate(cw:ControlWay, currentModel:GameLightModel, rotation:int):ControlWay
+		public static function getRotate(cw:ControlWay, currentModel:FragmentGameModel, rotation:int):ControlWay
 		{
 			var ret:ControlWay = new ControlWay();
 			var control:OminoField = currentModel.controlOmino;

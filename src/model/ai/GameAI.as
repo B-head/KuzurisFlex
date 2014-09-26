@@ -8,10 +8,10 @@ package model.ai {
 	public class GameAI 
 	{
 		public var level:int;
-		protected var rootModel:GameLightModel;
+		protected var rootModel:FragmentGameModel;
 		protected var treeRoot:AppraiseTree;
 		
-		public function setCurrentModel(currentModel:GameLightModel):void
+		public function setCurrentModel(currentModel:FragmentGameModel):void
 		{
 			this.rootModel = currentModel;
 			treeRoot = new AppraiseTree(null);
@@ -37,7 +37,7 @@ package model.ai {
 			considerTree(treeRoot, rootModel);
 		}
 		
-		protected function considerTree(tree:AppraiseTree, current:GameLightModel):void
+		protected function considerTree(tree:AppraiseTree, current:FragmentGameModel):void
 		{
 			var ps:Boolean = current.controlOmino.isPointSymmetry();
 			var p90s:Boolean = current.controlOmino.isPoint90Symmetry();
@@ -48,7 +48,7 @@ package model.ai {
 					if (ps == true && (dir == 2 || dir == 3)) continue;
 					if (p90s == true && dir == 1) continue;
 					var way:ControlWay = new ControlWay(lx, dir, false);
-					var nm:GameLightModel = current.clone();
+					var nm:FragmentGameModel = current.clone();
 					var fr:ForwardResult = nm.forwardNext(way);
 					if (fr == null) continue;
 					if (ps && way.dir == 1 && fr.rightDir) way.dir = 3;
@@ -70,12 +70,12 @@ package model.ai {
 			}
 		}
 		
-		protected function appraise(current:GameLightModel, prev:GameLightModel, fr:ForwardResult):Number
+		protected function appraise(current:FragmentGameModel, prev:FragmentGameModel, fr:ForwardResult):Number
 		{
 			return 0;
 		}
 		
-		protected function postAppraise(current:GameLightModel, fr:ForwardResult, notice:int):Number
+		protected function postAppraise(current:FragmentGameModel, fr:ForwardResult, notice:int):Number
 		{
 			return 0;
 		}

@@ -1,10 +1,9 @@
-package view 
-{
+package model {
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class Common 
+	public class Utility 
 	{
 		
 	}

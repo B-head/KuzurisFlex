@@ -1,11 +1,14 @@
 package model 
 {
 	import flash.utils.ByteArray;
+	import flash.utils.IDataInput;
+	import flash.utils.IDataOutput;
+	import flash.utils.IExternalizable;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class XorShift128 
+	public class XorShift128 implements IExternalizable
 	{
 		private var a:uint = 1;
 		private var b:uint = 0;
@@ -34,26 +37,6 @@ package model
 			return ret;
 		}
 		
-		public function fromByteArray(value:ByteArray):void
-		{
-			value.position = 0;
-			value.length = 16;
-			a = value.readUnsignedInt();
-			b = value.readUnsignedInt();
-			c = value.readUnsignedInt();
-			d = value.readUnsignedInt();
-		}
-		
-		public function toByteArray():ByteArray
-		{
-			var ret:ByteArray = new ByteArray();
-			ret.writeUnsignedInt(a);
-			ret.writeUnsignedInt(b);
-			ret.writeUnsignedInt(c);
-			ret.writeUnsignedInt(d);
-			return ret;
-		}
-		
 		public function genUint():uint
 		{
 			next();
@@ -71,6 +54,22 @@ package model
 			var tmp:uint = a ^ (a << 15);
 			a = b; b = c; c = d;
 			d = d ^ (d >>> 21) ^ tmp ^ (tmp >>> 4);
+		}
+		
+		public function writeExternal(output:IDataOutput):void 
+		{
+			output.writeUnsignedInt(a);
+			output.writeUnsignedInt(b);
+			output.writeUnsignedInt(c);
+			output.writeUnsignedInt(d);
+		}
+		
+		public function readExternal(input:IDataInput):void 
+		{
+			a = input.readUnsignedInt();
+			b = input.readUnsignedInt();
+			c = input.readUnsignedInt();
+			d = input.readUnsignedInt();
 		}
 	}
 

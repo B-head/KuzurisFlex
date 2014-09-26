@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*">
+	<fx:Script>
+		<![CDATA[
+			import model.*;
+			
+			[Bindable]
+			public var record:GameRecord;
+			[Bindable]
+			public var battle:Boolean;
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:NumberFormatter id="nf" fractionalDigits="2"/>
+		<v:FrameTimeFormatter id="ft" frameRate="60"/>
+	</fx:Declarations>
+	
+	<s:layout>
+		<s:VerticalLayout verticalAlign="middle" horizontalAlign="center"/>
+	</s:layout>
+	
+	<s:VGroup horizontalCenter="true" verticalCenter="true">
+		<s:Label text="レベル {record.level}" includeInLayout="{!battle}" visible="{!battle}"/>
+		<s:Label text="ライン {record.breakLine}"/>
+		<s:Label text="ダメージ {record.blockDamage}"/>
+		<s:Label text="ミノ {record.fixOmino}"/>
+		<s:Label text="総発生おじゃま {record.occurObstacle}" includeInLayout="{battle}" visible="{battle}"/>
+		<s:Label text="総被おじゃま {record.receivedObstacle}" includeInLayout="{battle}" visible="{battle}"/>
+		<s:Label text="総相殺おじゃま {record.counterbalance}" includeInLayout="{battle}" visible="{battle}"/>
+		<s:Label text="スコア {record.gameScore}"/>
+		<mx:Spacer/>
+		<s:Label text="タイム {ft.format(record.gameTime)}"/>
+		<s:Label text="操作タイム {ft.format(record.controlTime)}"/>
+		<s:Label text="MPM {nf.format(record.ominoPerMinute())}"/>
+		<s:Label text="MPCM {nf.format(record.ominoPerControlMinute())}"/>
+		<s:Label text="OPM {nf.format(record.occurPerMinute())}" includeInLayout="{battle}" visible="{battle}" />
+		<s:Label text="OPCM {nf.format(record.occurPerControlMinute())}" includeInLayout="{battle}" visible="{battle}" />
+		<mx:Spacer/>
+		<s:Label text="1ライン {record.comboLines.getItemAt(1)}" includeInLayout="{record.comboLines.getItemAt(1) > 0}" visible="{record.comboLines.getItemAt(1) > 0}"/>
+		<s:Label text="2ライン {record.comboLines.getItemAt(2)}" includeInLayout="{record.comboLines.getItemAt(2) > 0}" visible="{record.comboLines.getItemAt(2) > 0}"/>
+		<s:Label text="3ライン {record.comboLines.getItemAt(3)}" includeInLayout="{record.comboLines.getItemAt(3) > 0}" visible="{record.comboLines.getItemAt(3) > 0}"/>
+		<s:Label text="4ライン {record.comboLines.getItemAt(4)}" includeInLayout="{record.comboLines.getItemAt(4) > 0}" visible="{record.comboLines.getItemAt(4) > 0}"/>
+		<s:Label text="5ライン {record.comboLines.getItemAt(5)}" includeInLayout="{record.comboLines.getItemAt(5) > 0}" visible="{record.comboLines.getItemAt(5) > 0}"/>
+		<s:Label text="6ライン {record.comboLines.getItemAt(6)}" includeInLayout="{record.comboLines.getItemAt(6) > 0}" visible="{record.comboLines.getItemAt(6) > 0}"/>
+		<s:Label text="7ライン {record.comboLines.getItemAt(7)}" includeInLayout="{record.comboLines.getItemAt(7) > 0}" visible="{record.comboLines.getItemAt(7) > 0}"/>
+		<s:Label text="8ライン {record.comboLines.getItemAt(8)}" includeInLayout="{record.comboLines.getItemAt(8) > 0}" visible="{record.comboLines.getItemAt(8) > 0}"/>
+		<s:Label text="9ライン {record.comboLines.getItemAt(9)}" includeInLayout="{record.comboLines.getItemAt(9) > 0}" visible="{record.comboLines.getItemAt(9) > 0}"/>
+		<s:Label text="10ライン {record.comboLines.getItemAt(10)}" includeInLayout="{record.comboLines.getItemAt(10) > 0}" visible="{record.comboLines.getItemAt(10) > 0}"/>
+		<s:Label text="11ライン {record.comboLines.getItemAt(11)}" includeInLayout="{record.comboLines.getItemAt(11) > 0}" visible="{record.comboLines.getItemAt(11) > 0}"/>
+		<s:Label text="12ライン {record.comboLines.getItemAt(12)}" includeInLayout="{record.comboLines.getItemAt(12) > 0}" visible="{record.comboLines.getItemAt(12) > 0}"/>
+		<s:Label text="13ライン {record.comboLines.getItemAt(13)}" includeInLayout="{record.comboLines.getItemAt(13) > 0}" visible="{record.comboLines.getItemAt(13) > 0}"/>
+		<s:Label text="14ライン {record.comboLines.getItemAt(14)}" includeInLayout="{record.comboLines.getItemAt(14) > 0}" visible="{record.comboLines.getItemAt(14) > 0}"/>
+		<s:Label text="15ライン {record.comboLines.getItemAt(15)}" includeInLayout="{record.comboLines.getItemAt(15) > 0}" visible="{record.comboLines.getItemAt(15) > 0}"/>
+		<s:Label text="16ライン {record.comboLines.getItemAt(16)}" includeInLayout="{record.comboLines.getItemAt(16) > 0}" visible="{record.comboLines.getItemAt(16) > 0}"/>
+		<s:Label text="17ライン {record.comboLines.getItemAt(17)}" includeInLayout="{record.comboLines.getItemAt(17) > 0}" visible="{record.comboLines.getItemAt(17) > 0}"/>
+		<s:Label text="18ライン {record.comboLines.getItemAt(18)}" includeInLayout="{record.comboLines.getItemAt(18) > 0}" visible="{record.comboLines.getItemAt(18) > 0}"/>
+		<s:Label text="19ライン {record.comboLines.getItemAt(19)}" includeInLayout="{record.comboLines.getItemAt(19) > 0}" visible="{record.comboLines.getItemAt(19) > 0}"/>
+		<s:Label text="20ライン {record.comboLines.getItemAt(20)}" includeInLayout="{record.comboLines.getItemAt(20) > 0}" visible="{record.comboLines.getItemAt(20) > 0}"/>
+	</s:VGroup>
+</s:SkinnableContainer>

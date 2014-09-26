@@ -14,6 +14,8 @@
 		private var _gameModel:GameModel;
 		[Bindable] 
 		public var blockGraphics:BlockGraphics;
+		[Bindable]
+		public var battle:Boolean;
 		[Bindable] 
 		public var reverse:Boolean;
 		[Bindable] 
@@ -129,12 +131,12 @@
 		</s:Parallel>
 	</fx:Declarations>
 	
-	<s:VGroup x="{reverse ? 304 : 0}" y="64">
-		<s:BorderContainer width="100">
+	<s:VGroup x="{reverse ? 304 : 0}" y="64" width="96" horizontalAlign="justify">
+		<s:BorderContainer>
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify"/>
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
 			</s:layout>
-			<s:Group>
+			<s:Group includeInLayout="{!battle}" visible="{!battle}">
 				<s:Label text="レベル"/>
 				<s:Label text="{_gameModel.record.level}" right="0" />
 			</s:Group>
@@ -147,27 +149,27 @@
 				<s:Label text="{_gameModel.record.fixOmino}" right="0"/>
 			</s:Group>
 		</s:BorderContainer>
-		<s:BorderContainer width="100">
+		<s:BorderContainer>
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify"/>
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
 			</s:layout>
 			<s:Label text="スコア"/>
 			<s:Label text="{_gameModel.record.gameScore}" textAlign="right" />
 			<s:Label text="タイム"/>
 			<s:Label text="{frameTime.format(_gameModel.record.gameTime)}" textAlign="right" />
 		</s:BorderContainer>
-		<s:BorderContainer width="100" visible="{_gameModel.isObstacleAddition}">
+		<s:BorderContainer visible="{_gameModel.isObstacleAddition}">
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify"/>
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
 			</s:layout>
 			<s:Label text="次のおじゃま"/>
 			<s:Label text="{frameTime.format(_gameModel.nextObstacleTime)}" textAlign="right"/>
 		</s:BorderContainer>
-		<s:BorderContainer id="sectionTime" width="100" visible="false">
+		<s:BorderContainer id="sectionTime" visible="false">
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify"/>
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
 			</s:layout>
-			<s:Label text="セクションタイム"/>
+			<s:Label text="レベルタイム"/>
 			<s:Label text="{frameTime.format(levelClear.clearTime)}" textAlign="right" />
 			<s:Label text="+{levelClear.plusScore}pt" textAlign="right" />
 		</s:BorderContainer>

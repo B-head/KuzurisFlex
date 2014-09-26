@@ -7,25 +7,38 @@ package model
 	 * ...
 	 * @author B_head
 	 */
-	public class UserInput implements GameControl 
+	public class UserInput extends EventDispatcher implements GameControl 
 	{
+		private static const defaultKeyOnePlayer:String = "defaultKeyOnePlayer";
+		private static const defaultVersusPlayer1:String = "defaultVersusPlayer1";
+		private static const defaultVersusPlayer2:String = "defaultVersusPlayer2";
+		
 		private const primaryMoveDelay:int = 8;
 		private const secondaryMoveDelay:int = 4;
 		
+		[Bindable]
 		public var rightRotation:Vector.<uint>;
+		[Bindable]
 		public var leftRotation:Vector.<uint>;
+		[Bindable]
 		public var rightMove:Vector.<uint>;
+		[Bindable]
 		public var leftMove:Vector.<uint>;
+		[Bindable]
 		public var fastFalling:Vector.<uint>;
+		[Bindable]
 		public var earthFalling:Vector.<uint>;
+		[Bindable]
 		public var noDamage:Vector.<uint>;
 		public var oneFrameMove:Boolean;
 		public var replaceFixCommand:Boolean;
+		public var defaultKeyTag:String;
 		
 		private var _enable:Boolean;
 		private var downKeyCodes:Vector.<uint>;
 		private var lastControl:GameCommand;
 		private var moveDelay:int;
+		private var restrainFall:Boolean;
 		private var remainderMove:int;
 		private var remainderRotation:int;
 		private var remainderEarthFalling:int;
@@ -33,17 +46,110 @@ package model
 		
 		public function UserInput() 
 		{
-			rightRotation = new <uint>[Keyboard.X, Keyboard.C, Keyboard.K];
-			leftRotation = new <uint>[Keyboard.Z, Keyboard.H, Keyboard.J];
-			rightMove = new <uint>[Keyboard.RIGHT, Keyboard.D];
-			leftMove = new <uint>[Keyboard.LEFT, Keyboard.A];
-			fastFalling = new <uint>[Keyboard.DOWN, Keyboard.S];
-			earthFalling = new <uint>[Keyboard.UP, Keyboard.W];
-			noDamage = new <uint>[Keyboard.SHIFT, Keyboard.SPACE, Keyboard.L, Keyboard.SEMICOLON];
-			
 			downKeyCodes = new Vector.<uint>();
 			lastControl = new GameCommand();
 		}
+		
+		public static function createOnePlayer():UserInput
+		{
+			var ret:UserInput = new UserInput();
+			ret.setOnePlayerDefaultKeys();
+			return ret;
+		}
+		
+		public static function createVersusPlayer1():UserInput
+		{
+			var ret:UserInput = new UserInput();
+			ret.setVersusPlayer1DefaultKeys();
+			return ret;
+		}
+		
+		public static function createVersusPlayer2():UserInput
+		{
+			var ret:UserInput = new UserInput();
+			ret.setVersusPlayer2DefaultKeys();
+			return ret;
+		}
+		
+		public function setOnePlayerDefaultKeys():void
+		{
+			rightRotation = Vector.<uint>([Keyboard.X, Keyboard.C, Keyboard.K]);
+			leftRotation = Vector.<uint>([Keyboard.Z, Keyboard.H, Keyboard.J]);
+			rightMove = Vector.<uint>([Keyboard.RIGHT, Keyboard.D]);
+			leftMove = Vector.<uint>([Keyboard.LEFT, Keyboard.A]);
+			fastFalling = Vector.<uint>([Keyboard.DOWN, Keyboard.S]);
+			earthFalling = Vector.<uint>([Keyboard.UP, Keyboard.W]);
+			noDamage = Vector.<uint>([Keyboard.SHIFT, Keyboard.SPACE, Keyboard.L, Keyboard.SEMICOLON]);
+			oneFrameMove = true;
+			replaceFixCommand = false;
+			defaultKeyTag = defaultKeyOnePlayer;
+			dispatchEvent(new Event("changeOneFrameMove"));
+			dispatchEvent(new Event("changeReplaceFixCommand"));
+		}
+		
+		public function setVersusPlayer1DefaultKeys():void
+		{
+			rightRotation = Vector.<uint>([Keyboard.C]);
+			leftRotation = Vector.<uint>([Keyboard.Z, Keyboard.X]);
+			rightMove = Vector.<uint>([Keyboard.D]);
+			leftMove = Vector.<uint>([Keyboard.A]);
+			fastFalling = Vector.<uint>([Keyboard.S]);
+			earthFalling = Vector.<uint>([Keyboard.W]);
+			noDamage = Vector.<uint>([Keyboard.V]);
+			oneFrameMove = true;
+			replaceFixCommand = false;
+			defaultKeyTag = defaultVersusPlayer1;
+			dispatchEvent(new Event("changeOneFrameMove"));
+			dispatchEvent(new Event("changeReplaceFixCommand"));
+		}
+		
+		public function setVersusPlayer2DefaultKeys():void
+		{
+			rightRotation = Vector.<uint>([Keyboard.PERIOD]);
+			leftRotation = Vector.<uint>([Keyboard.M, Keyboard.COMMA]);
+			rightMove = Vector.<uint>([Keyboard.L]);
+			leftMove = Vector.<uint>([Keyboard.J]);
+			fastFalling = Vector.<uint>([Keyboard.K]);
+			earthFalling = Vector.<uint>([Keyboard.I]);
+			noDamage = Vector.<uint>([Keyboard.SLASH]);
+			oneFrameMove = true;
+			replaceFixCommand = false;
+			defaultKeyTag = defaultVersusPlayer2;
+			dispatchEvent(new Event("changeOneFrameMove"));
+			dispatchEvent(new Event("changeReplaceFixCommand"));
+		}
+		
+		public function setDefaultKeys():void
+		{
+			switch(defaultKeyTag)
+			{
+				case defaultKeyOnePlayer: setOnePlayerDefaultKeys(); break;
+				case defaultVersusPlayer1: setVersusPlayer1DefaultKeys(); break;
+				case defaultVersusPlayer2: setVersusPlayer2DefaultKeys(); break;
+				default: throw new Error();
+			}
+		}
+		
+	 	public function get enable():Boolean { return _enable; };
+		public function set enable(value:Boolean):void { _enable = value; };
+
+		[Bindable(event="changeOneFrameMove")]
+		public function get indexOfOneFrameMove():int { return oneFrameMove ? 0 : 1; };
+		[Bindable(event="changeOneFrameMove")]
+		public function set indexOfOneFrameMove(value:int):void 
+		{ 
+			oneFrameMove = value == 0; 
+			dispatchEvent(new Event("changeOneFrameMove"));
+		};
+
+		[Bindable(event="changeReplaceFixCommand")]
+		public function get indexOfReplaceFixCommand():int { return replaceFixCommand ? 1 : 0; };
+		[Bindable(event="changeReplaceFixCommand")]
+		public function set indexOfReplaceFixCommand(value:int):void 
+		{ 
+			replaceFixCommand = value == 1; 
+			dispatchEvent(new Event("changeReplaceFixCommand"));
+		};
 		
 		public function keyDown(keyCode:int):void
 		{
@@ -90,9 +196,6 @@ package model
 			}
 		}
 		
-	 	public function get enable():Boolean { return _enable; }
-		public function set enable(value:Boolean):void { _enable = value; };
-		
 		public function reset():void
 		{
 			lastControl = new GameCommand();
@@ -109,6 +212,7 @@ package model
 			if (!controlPhase)
 			{
 				moveDelay = primaryMoveDelay;
+				restrainFall = true;
 			}
 		}
 		
@@ -177,6 +281,15 @@ package model
 			{
 				remainderEarthFalling--;
 				value.falling = GameCommand.earth;
+			}
+			
+			if (value.falling == GameCommand.fast && restrainFall)
+			{
+				value.falling = GameCommand.nothing;
+			}
+			else
+			{
+				restrainFall = false;
 			}
 			
 			if (replaceFixCommand && value.falling == GameCommand.fast)
