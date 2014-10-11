@@ -11,6 +11,7 @@ package view
 	 * ...
 	 * @author B_head
 	 */
+	//TODO 桁の変わる更新があった時に表示がズレるバグを修正する。
 	public class ObstacleView extends BorderContainer 
 	{
 		private var parts:Vector.<ObstacleViewParts>;

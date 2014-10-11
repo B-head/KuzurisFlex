@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:v="view.*"
-		 enterFrame="onEnterFrame()">
+		 frameConstructed ="manager.frameConstructedListener()">
 
 	<fx:Script>
 		<![CDATA[
-		import event.*;
+		import events.*;
 		import flash.events.*;
 		import model.*;
 		
-		private var mode:String;
+		[Bindable]
 		private var manager:GameManager;
 		[Bindable]
+		private var mode:String;
+		[Bindable]
 		private var input:GameControl;
-		[Bindable]
-		private var record:GameRecord;
-		[Bindable]
-		private var ranking:GameRanking;
-		[Bindable]
-		private var pause:Boolean;
 		
 		public function init(mode:String):void
 		{
 			this.mode = mode;
-			parentApplication.addEventListener(Main.pauseEvent, pauseListener);
+			parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener);
 			manager = new GameManager(1);
 			input = SharedObjectHelper.input;
-			manager.addEventListener(GameManagerEvent.gameEnd, endListener);
-			main.blockGraphics = new BlockGraphics();
+			manager.addEventListener(KuzurisEvent.gameStart, startListener);
+			manager.addEventListener(KuzurisEvent.gameEnd, endListener);
 			prepare();
 		}
 		
@@ -36,45 +32,44 @@
 			parentApplication.bgm.stop();
 			manager.endGame();
 			manager.initialize();
-			main.gameModel = manager.getGameModel(0);
 			currentState = "prepare";
-			pause = false;
 		}
 		
 		private function start():void
 		{
-			var setting:GameSetting = new GameSetting();
-			setting.gameMode = mode;
-			setting.startLevel = level.value;
-			setting.endless = endless.selected;
-			setting.levelClearLine = 10;
 			manager.initialize();
 			manager.setPlayer(0, input);
-			main.gameModel = manager.getGameModel(0);
-			manager.startGame(setting);
-			parentApplication.bgm.play(false);
+			manager.startGame(GameSetting.createTrialSetting(mode, level.value, endless.selected));
 			currentState = "hidden";
 			setFocus();
-			pause = false;
 		}
 		
 		private function replayStart():void
 		{
 			manager.initialize();
-			main.gameModel = manager.getGameModel(0);
 			manager.startReplay();
-			parentApplication.bgm.play(false);
 			currentState = "hidden";
 			setFocus();
-			pause = false;
+		}
+		
+		private function restart():void
+		{
+			if (manager.isReplayMode())
+			{
+				replayStart();
+			}
+			else
+			{
+				start();
+			}
 		}
 		
 		private function pauseing():void
 		{
+			if (!manager.isExecution()) return;
 			parentApplication.bgm.stop();
 			manager.phaseGame();
-			currentState = "pause";
-			pause = true;
+			currentState = "pause"
 		}
 		
 		private function resume():void
@@ -83,74 +78,81 @@
 			manager.resumeGame();
 			currentState = "hidden";
 			setFocus();
-			pause = false;
-		}
-		
-		private function onEnterFrame():void
-		{
-			if (!manager.isExecution()) return;
-			manager.forwardGame();
 		}
 		
 		private function pauseListener(e:Event):void
 		{
-			if (pause)
+			if (currentState == "pause")
 			{
 				resume();
 			}
 			else
 			{
-				if (!manager.isExecution()) return;
 				pauseing();
 			}
 		}
 		
-		private function endListener(e:GameManagerEvent):void
+		private function startListener(e:KuzurisEvent):void
 		{
+			parentApplication.bgm.play(false);
+		}
+		
+		private function endListener(e:KuzurisEvent):void
+		{
+			currentState = "result";
 			parentApplication.bgm.stop();
 			manager.endGame();
-			record = manager.getRecord(0);
-			ranking = SharedObjectHelper.getRanking(mode, endless.selected);
-			ranking.entry(record);
-			currentState = "end";
-			pause = false;
+			var ranking:GameRanking = SharedObjectHelper.getRanking(mode, endless.selected);
+			var record:GameRecord = manager.getRecord(0);
+			recordView.record = record;
+			if (!manager.isReplayMode()) ranking.entry(record);
+			SharedObjectHelper.shared.flush();
+		}
+		
+		private function requestReplayListener(e:RequestReplayEvent):void
+		{
+			manager.setPlayer(0, e.data);
+			replayStart();
 		}
 		]]>
 	</fx:Script>
 
 	<fx:Metadata>
-		[Event(name="back", type="flash.events.Event")]
+		[Event(name="navigateBack", type="events.KuzurisEvent")]
 	</fx:Metadata>
 
 	<s:states>
 		<s:State name="hidden" />
 		<s:State name="prepare" />
-		<s:State name="end" />
+		<s:State name="result" />
 		<s:State name="pause" />
 		<s:State name="ranking" />
 		<s:State name="keyConfig" />
 	</s:states>
 
-	<v:GameView id="main" x="227" y="24" battle="false" pause="{pause}"/>
+	<v:GameView id="main" x="227" y="24" battle="false" playerIndex="0" gameManager="{manager}" />
 	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Label text="{GameSetting.modeToText(mode)}" />
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()"/>
 		<s:Label styleName="menu-label" text="開始レベル{level.value}" />
 		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
 		<s:CheckBox id="endless" label="エンドレス" />
-		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'" enabled="false" />
+		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'"/>
 		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
-		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new Event('back'))" />
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" />
 	</s:VGroup>
 	<s:VGroup includeIn="pause" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
-		<s:Button width="150" label="つづける" buttonDown="resume()" />
-		<s:Button width="150" label="やりなおす" buttonDown="start()" />
+		<s:Button width="100" label="つづける" buttonDown="resume()" />
+		<s:Button styleName="restart" width="100" label="はじめから" buttonDown="restart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
-	<s:VGroup includeIn="end" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
-		<s:Button width="150" label="リプレイ" buttonDown="replayStart()" />
+	<s:VGroup includeIn="result" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button styleName="restart" width="100" label="もういちど" buttonDown="restart()" />
+		<s:Button width="100" label="リプレイ" buttonDown="replayStart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
-	<v:DetailedRecordView includeIn="end" x="0" y="0" width="223" height="480" battle="false" record="{record}" />
-	<v:ResultRankingView includeIn="end" x="631" y="0" width="223" height="480"/>
-	<v:KeyConfig includeIn="keyConfig" x="227" y="88" input="{input as UserInput}" back="currentState = 'prepare'"/>
+	<v:DetailedRecordView id="recordView" includeIn="result" x="0" y="0" width="223" height="480" battle="false" />
+	<v:ResultRankingView includeIn="result" x="631" y="0" width="223" height="480" gameMode="{mode}" endless="{endless.selected}" />
+	<v:RankingViewer includeIn="ranking" x="24" y="24" gameMode="{mode}" endless="{endless.selected}" navigateBack="currentState = 'prepare'" requestReplay="requestReplayListener(event)" />
+	<v:KeyConfig includeIn="keyConfig" x="227" y="88" input="{input as UserInput}" navigateBack="currentState = 'prepare'"/>
 </s:Group>

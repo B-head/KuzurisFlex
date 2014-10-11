@@ -1,6 +1,6 @@
 package model 
 {
-	import event.ObstacleEvent;
+	import events.ObstacleEvent;
 	import flash.events.EventDispatcher;
 	/**
 	 * ...
@@ -13,11 +13,17 @@ package model
 	{
 		public var notice:int;
 		private var noticeSave:Vector.<Object>;
-		private var lastAddition:int;
+		private var additionSequence:Vector.<uint>;
+		private var materializationSequence:Vector.<uint>;
+		private var trialLastAddition:int;
+		
+		private const trialKey:String = "trial";
 		
 		public function ObstacleManager()
 		{
 			noticeSave = new Vector.<Object>();
+			additionSequence = new Vector.<uint>(9);
+			materializationSequence = new Vector.<uint>(9);
 		}
 		
 		public function getNoticeSaveCount():int
@@ -34,7 +40,13 @@ package model
 		
 		public function getNextObstacleTime(gameTime:int, setting:GameSetting):int
 		{
-			return (lastAddition + setting.obstacleInterval) - gameTime;
+			return (trialLastAddition + setting.obstacleInterval) - gameTime;
+		}
+		
+		public function addObstacleAt(gameTime:int, index:int , count:int):void
+		{
+			var seqKey:String = String(index) + "@" + String(additionSequence[index]);
+			addObstacle(gameTime, seqKey, count);
 		}
 		
 		public function addObstacle(gameTime:int, key:String, count:int):void
@@ -52,11 +64,22 @@ package model
 			dispatchEvent(new ObstacleEvent(ObstacleEvent.addObstacle, gameTime, 0, count));
 		}
 		
+		public function breakConboNotice(gameTime:int, index:int):void
+		{
+			additionSequence[index]++;
+			dispatchEvent(new ObstacleEvent(ObstacleEvent.breakConboNotice, gameTime, 0, 0));
+		}
+		
+		public function preMaterializationNoticeAt(gameTime:int, index:int):void
+		{
+			var seqKey:String = String(index) + "@" + String(materializationSequence[index]++);
+			preMaterializationNotice(gameTime, seqKey);
+		}
+		
 		public function preMaterializationNotice(gameTime:int, key:String):void
 		{
 			var ns:Object = findKey(key);
 			if (ns == null) return;
-			ns.key += "@" + String(gameTime);
 			ns.lastAddition = gameTime;
 			ns.preMaterialization = true;
 			dispatchEvent(new ObstacleEvent(ObstacleEvent.preMaterializationNotice, gameTime, 0, ns.count));
@@ -97,17 +120,17 @@ package model
 		
 		public function trialAddition(gameTime:int, setting:GameSetting):void
 		{
-			if (lastAddition == 0)
+			if (trialLastAddition == 0)
 			{
-				addObstacle(gameTime, "trial", setting.obstacleAdditionCount);
-				materializationNotice(gameTime, "trial");
-				lastAddition = gameTime;
+				addObstacle(gameTime, trialKey, setting.obstacleAdditionCount);
+				materializationNotice(gameTime, trialKey);
+				trialLastAddition = gameTime;
 			}
-			if (gameTime >= lastAddition + setting.obstacleInterval)
+			if (gameTime >= trialLastAddition + setting.obstacleInterval)
 			{
-				addObstacle(gameTime, "trial", setting.obstacleAdditionCount);
-				preMaterializationNotice(gameTime, "trial");
-				lastAddition = gameTime;
+				addObstacle(gameTime, trialKey, setting.obstacleAdditionCount);
+				preMaterializationNotice(gameTime, trialKey);
+				trialLastAddition = gameTime;
 			}
 			for (var i:int = 0; i < noticeSave.length; i++)
 			{

@@ -1,6 +1,6 @@
 package view 
 {
-	import event.*;
+	import events.*;
 	import model.*;
 	import flash.media.Sound;
 	import flash.media.SoundTransform;

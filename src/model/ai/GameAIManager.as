@@ -1,4 +1,5 @@
 package model.ai {
+	import events.*;
 	import model.*;
 	import model.ai.*;
 	/**
@@ -18,8 +19,10 @@ package model.ai {
 		private var moveDelay:int;
 		
 		private var _enable:Boolean;
-		private var controlPhase:Boolean;
+		private var materialization:Vector.<Boolean>;
+		private var gameModel:GameModel;
 		private var currentModel:FragmentGameModel;
+		private var controlPhase:Boolean;
 		private var notice:int;
 		private var currentWay:ControlWay;
 		private var targetWay:ControlWay;
@@ -34,6 +37,7 @@ package model.ai {
 		public function GameAIManager(ai:GameAI):void
 		{
 			this.ai = ai;
+			setAILevel(20);
 		}
 		
 		public static function createDefaultAIManager():GameAIManager
@@ -88,8 +92,14 @@ package model.ai {
 			return completedSeparate;
 		}
 		
-		public function reset():void
+		public function initialize(gameModel:GameModel):void
 		{
+			this.gameModel = gameModel;
+			gameModel.addEventListener(ControlEvent.setOmino, setOminoListener);
+			gameModel.addEventListener(ControlEvent.fixOmino, fixOminoListener);
+			gameModel.addEventListener(ControlEvent.setOmino, updateModelListener);
+			gameModel.addEventListener(ObstacleEvent.occurObstacle, updateNoticeListener);
+			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
 			currentModel = null;
 			notice = 0;
 			currentWay = null;
@@ -101,35 +111,44 @@ package model.ai {
 			pressFall = false;
 		}
 		
-		public function changePhase(controlPhase:Boolean):void 
+		private function setOminoListener(e:ControlEvent):void
 		{
-			this.controlPhase = controlPhase;
+			controlPhase = true;
 			primaryMove = true;
 			pressFall = false;
-			if (controlPhase)
-			{
-				restDelay = primaryMoveDelay + appendDelay;
-				//if (choiceDelay) restDelay += choices.length - 1;
-			}
+			restDelay = primaryMoveDelay + appendDelay;
+			//if (choiceDelay) restDelay += choices.length - 1;
 		}
 		
-		public function updateModel(currentModel:FragmentGameModel):void
+		private function fixOminoListener(e:ControlEvent):void
 		{
-			this.currentModel = currentModel;
+			controlPhase = false;
+		}
+		
+		private function updateModelListener(e:ControlEvent):void
+		{
+			currentModel = gameModel.getLightModel();
+			notice = gameModel.obstacleNotice + gameModel.obstacleNoticeSave;
 			currentWay = ControlWay.getCurrent(currentModel);
 			currentWay.shift = pressShift;
 			targetWay = null;
 			ai.setCurrentModel(currentModel);
 		}
 		
-		public function updateNotice(notice:int):void
+		private function updateNoticeListener(e:ObstacleEvent):void
 		{
-			this.notice = notice;
+			notice = gameModel.obstacleNotice + gameModel.obstacleNoticeSave;
+		}
+		
+		public function setMaterialization(index:int):void
+		{
+			materialization[index] = true;
 		}
 		
 		public function issueGameCommand():GameCommand 
 		{
-			var ret:GameCommand = new GameCommand();
+			var ret:GameCommand = new GameCommand(materialization);
+			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
 			ret.noDamege = pressShift;
 			if (pressFall) ret.falling = GameCommand.fast;
 			restDelay--;

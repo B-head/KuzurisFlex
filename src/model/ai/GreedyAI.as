@@ -25,18 +25,17 @@ package model.ai
 			var coveredSemiBreak:int = coveredSemiBreakLines(current, horizontal);
 			var chasm:Vector.<int> = appraiseChasm(current, horizontal);
 			var sumChasm:int = vectorSum(chasm);
-			//var prevChasm:Vector.<int> = appraiseChasm(prev);
-			//var sumPrevChasm:int = vectorSum(prevChasm);
 			var ret:int = 0;
 			ret += Math.pow(fr.breakLine, 2) * 100;
-			ret -= fr.lossTime * 5;
+			ret -= fr.lossTime;
 			ret -= countOverTops * 2000;
-			ret += minVertical * 250;
-			ret -= roughness * 20;
+			ret += minVertical * 200;
+			ret -= roughness * 5;
 			ret += semiBreak * 4;
 			ret += Math.pow(coveredSemiBreak, 2) * 25;
 			ret -= sumChasm * 50;
-			if (vertical[9] != 0) ret -= 50;
+			if (vertical[0] == minVertical) ret += 100;
+			if (vertical[9] == minVertical) ret += 200;
 			return ret;
 		}
 		
@@ -45,7 +44,7 @@ package model.ai
 			var blockCountLimit:int = GameModelBase.fieldHeight * GameModelBase.fieldWidth * (level / 20) / 3;
 			var blockCount:int = current.mainField.countBlock();
 			var over:int = Math.max(0, (blockCount + notice * 2) - blockCountLimit);
-			return Math.min(over, fr.breakLine * 10) * 200;
+			return Math.min(over, fr.breakLine * 10) * 400;
 		}
 		
 		private function getTops(gameModel:FragmentGameModel):Vector.<int>

@@ -23,11 +23,11 @@ package view
 					var grf:Graphics = shape.graphics;
 					var matrix:Matrix = new Matrix();
 					var w:int = 160 * (15 - j) / 15;
-					matrix.createGradientBox(80, 16, 0, w - 120, 0);
+					matrix.createGradientBox(160, 16, 0, w - 160, 0);
 					grf.beginGradientFill(GradientType.LINEAR, [color, color, color], [0, 1, 0], [0, 127, 255], matrix);
 					grf.drawRect(0, 0, 160, 16);
 					grf.endFill();
-					matrix.createGradientBox(80, 16, 0, 200 - w, 0);
+					matrix.createGradientBox(160, 16, 0, 160 - w, 0);
 					grf.beginGradientFill(GradientType.LINEAR, [color, color, color], [0, 1, 0], [0, 127, 255], matrix);
 					grf.drawRect(0, 0, 160, 16);
 					grf.endFill();

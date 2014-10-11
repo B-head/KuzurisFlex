@@ -1,6 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:SkinnableContainer  xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/mx">
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
+			   creationComplete="creationCompleteListaener()">
+	<fx:Script>
+		<![CDATA[
+			import model.*;
+			import mx.collections.*;
+			import mx.core.*;
+			import spark.components.gridClasses.*;
+			import spark.skins.spark.*;
+			
+			[Bindable]
+			public var gameMode:String;
+			[Bindable]
+			public var endless:Boolean;
+			[Bindable]
+			public var currentRecord:GameRecord;
+			
+			private function creationCompleteListaener():void
+			{
+				var ranking:GameRanking = SharedObjectHelper.getRanking(gameMode, endless);
+				ranking.sortScore();
+				scoreList.dataProvider = new ArrayCollection(ranking.records.slice());
+				var si:int = scoreList.dataProvider.getItemIndex(currentRecord);
+				if (si != -1) scoreList.ensureCellIsVisible(si, 0);
+				ranking.sortTime();
+				timeList.dataProvider = new ArrayCollection(ranking.records.slice());
+				var ti:int = timeList.dataProvider.getItemIndex(currentRecord);
+				if (ti != -1) timeList.ensureCellIsVisible(ti, 0);
+			}
+			
+			private function scoreRankLabel(item:Object, column:GridColumn):String
+			{
+				var i:int = scoreList.dataProvider.getItemIndex(item);
+				return String(i + 1) + "位";
+			}
+			
+			private function timeRankLabel(item:Object, column:GridColumn):String
+			{
+				var i:int = timeList.dataProvider.getItemIndex(item);
+				return String(i + 1) + "位";
+			}
+			
+			private function timeLabel(item:Object, column:GridColumn):String
+			{
+				if (item.gameClear)
+				{
+					return ft.format(item.gameTime);
+				}
+				else
+				{
+					return String(item.breakLine) + "ライン";
+				}
+			}
+			
+			private function itemRenderer(item:Object, column:GridColumn):IFactory
+			{
+				var ret:ClassFactory = new ClassFactory(DefaultGridItemRenderer);
+				if (item == currentRecord)
+				{
+					ret.properties = { styleName:"current-record" };
+				}
+				return ret;
+			}
+		]]>
+	</fx:Script>
 	
+	<fx:Declarations>
+		<v:FrameTimeFormatter id="ft" frameRate="60"/>
+	</fx:Declarations>
+	
+	<s:layout>
+		<s:VerticalLayout verticalAlign="middle" horizontalAlign="center"/>
+	</s:layout>
+	
+	<s:HGroup horizontalAlign="center" verticalAlign="middle">
+		<s:Label text="{GameSetting.modeToText(gameMode)}" />
+		<s:Label text="（エンドレス）" includeInLayout="{endless}" visible="{endless}" />
+	</s:HGroup>
+	<mx:Spacer/>
+	<s:Label text="スコアランキング"/>
+	<s:DataGrid id="scoreList" width="200" height="180" selectionMode="none" sortableColumns="false">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn headerText="順位" labelFunction="{scoreRankLabel}" itemRendererFunction="{itemRenderer}"/>
+				<s:GridColumn dataField="gameScore" headerText="スコア" itemRendererFunction="{itemRenderer}"/>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
+	<mx:Spacer/>
+	<s:Label text="タイムランキング"/>
+	<s:DataGrid id="timeList" width="200" height="180" selectionMode="none" sortableColumns="false">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn headerText="順位" labelFunction="{timeRankLabel}" itemRendererFunction="{itemRenderer}"/>
+				<s:GridColumn headerText="タイム（ライン）" labelFunction="{timeLabel}" itemRendererFunction="{itemRenderer}"/>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
 </s:SkinnableContainer>

@@ -1,46 +1,46 @@
 package model 
 {
-	import event.*;
+	import events.*;
 	import model.ai.FragmentGameModel;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	[Event(name="forwardGame", type="event.GameEvent")]
-	[Event(name="updateField", type="event.GameEvent")]
-	[Event(name="updateControl", type="event.GameEvent")]
-	[Event(name="updateNext", type="event.GameEvent")]
-	[Event(name="firstUpdateNext", type="event.GameEvent")]
-	[Event(name="gameOver", type="event.GameEvent")]
-	[Event(name="gameClear", type="event.GameEvent")]
-	[Event(name="breakConbo", type="event.GameEvent")]
-	[Event(name="extractFall", type="event.GameEvent")]
-	[Event(name="fixOmino", type="event.ControlEvent")]
-	[Event(name="setOmino", type="event.ControlEvent")]
-	[Event(name="moveOK", type="event.ControlEvent")]
-	[Event(name="moveNG", type="event.ControlEvent")]
-	[Event(name="rotationOK", type="event.ControlEvent")]
-	[Event(name="rotationNG", type="event.ControlEvent")]
-	[Event(name="startFall", type="event.ControlEvent")]
-	[Event(name="endFall", type="event.ControlEvent")]
-	[Event(name="fallShock", type="event.ControlEvent")]
-	[Event(name="fallShockSave", type="event.ControlEvent")]
-	[Event(name="shockSaveON", type="event.ControlEvent")]
-	[Event(name="shockSaveOFF", type="event.ControlEvent")]
-	[Event(name="levelClear", type="event.LevelClearEvent")]
-	[Event(name="stageClear", type="event.LevelClearEvent")]
-	[Event(name="shockDamage", type="event.ShockBlockEvent")]
-	[Event(name="sectionDamage", type="event.ShockBlockEvent")]
-	[Event(name="totalDamage", type="event.ShockBlockEvent")]
-	[Event(name="breakLine", type="event.BreakLineEvent")]
-	[Event(name="sectionBreakLine", type="event.BreakLineEvent")]
-	[Event(name="totalBreakLine", type="event.BreakLineEvent")]
-	[Event(name="addObstacle", type="event.ObstacleEvent")]
-	[Event(name="materializationNotice", type="event.ObstacleEvent")]
-	[Event(name="preMaterializationNotice", type="event.ObstacleEvent")]
-	[Event(name="occurObstacle", type="event.ObstacleEvent")]
-	[Event(name="counterbalanceObstacle", type="event.ObstacleEvent")]
-	[Event(name="obstacleFall", type="event.ObstacleEvent")]
+	[Event(name="forwardGame", type="events.GameEvent")]
+	[Event(name="updateField", type="events.GameEvent")]
+	[Event(name="updateControl", type="events.GameEvent")]
+	[Event(name="updateNext", type="events.GameEvent")]
+	[Event(name="firstUpdateNext", type="events.GameEvent")]
+	[Event(name="gameOver", type="events.GameEvent")]
+	[Event(name="gameClear", type="events.GameEvent")]
+	[Event(name="breakConbo", type="events.GameEvent")]
+	[Event(name="extractFall", type="events.GameEvent")]
+	[Event(name="fixOmino", type="events.ControlEvent")]
+	[Event(name="setOmino", type="events.ControlEvent")]
+	[Event(name="moveOK", type="events.ControlEvent")]
+	[Event(name="moveNG", type="events.ControlEvent")]
+	[Event(name="rotationOK", type="events.ControlEvent")]
+	[Event(name="rotationNG", type="events.ControlEvent")]
+	[Event(name="startFall", type="events.ControlEvent")]
+	[Event(name="endFall", type="events.ControlEvent")]
+	[Event(name="fallShock", type="events.ControlEvent")]
+	[Event(name="fallShockSave", type="events.ControlEvent")]
+	[Event(name="shockSaveON", type="events.ControlEvent")]
+	[Event(name="shockSaveOFF", type="events.ControlEvent")]
+	[Event(name="levelClear", type="events.LevelClearEvent")]
+	[Event(name="stageClear", type="events.LevelClearEvent")]
+	[Event(name="shockDamage", type="events.ShockBlockEvent")]
+	[Event(name="sectionDamage", type="events.ShockBlockEvent")]
+	[Event(name="totalDamage", type="events.ShockBlockEvent")]
+	[Event(name="breakLine", type="events.BreakLineEvent")]
+	[Event(name="sectionBreakLine", type="events.BreakLineEvent")]
+	[Event(name="totalBreakLine", type="events.BreakLineEvent")]
+	[Event(name="addObstacle", type="events.ObstacleEvent")]
+	[Event(name="materializationNotice", type="events.ObstacleEvent")]
+	[Event(name="preMaterializationNotice", type="events.ObstacleEvent")]
+	[Event(name="occurObstacle", type="events.ObstacleEvent")]
+	[Event(name="counterbalanceObstacle", type="events.ObstacleEvent")]
+	[Event(name="obstacleFall", type="events.ObstacleEvent")]
 	public class GameModel extends GameModelBase 
 	{
 		private var setting:GameSetting;
@@ -83,6 +83,7 @@ package model
 			super(true);
 			_record = new GameRecord();
 			setting = new GameSetting();
+			_isGameOver = true;
 			obstacleManager = new ObstacleManager();
 			obstacleManager.addEventListener(ObstacleEvent.addObstacle, function(e:ObstacleEvent):void { dispatchEvent(e); });
 			obstacleManager.addEventListener(ObstacleEvent.preMaterializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
@@ -116,6 +117,13 @@ package model
 		public function get ffy():Number 
 		{
 			return _ffy;
+		}
+		
+		[Bindable(event="forwardGame")]
+		public function get rfvy():Number
+		{
+			var rect:Rect = _mainField.getRect();
+			return rect.top;
 		}
 		
 		[Bindable(event="forwardGame")]
@@ -209,6 +217,7 @@ package model
 			_record = new GameRecord();
 			_record.level = setting.startLevel;
 			this.setting.setLevelParameter(_record.level);
+			_isGameOver = false;
 			nextPRNG = seed.clone();
 			bigNextPRNG = seed.clone();
 			obstaclePRNG = seed.clone();
@@ -234,6 +243,7 @@ package model
 			if (_isGameOver || setting == null) return;
 			_record.gameTime++;
 			obstacleManager.trialAddition(_record.gameTime, setting);
+			materializationNotice(command.materialization);
 			if (!controlPhase)
 			{
 				forwardNonControl();
@@ -271,6 +281,7 @@ package model
 			dispatchEvent(new GameEvent(GameEvent.breakConbo, _record.gameTime, 0));
 			if (comboCount > 0) dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, _record.gameTime, totalLineScore, comboCount, int.MIN_VALUE, null));
 			if (totalDamage > 0) dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, totalDamage, totalDamage, totalDamage, Number.NaN, int.MIN_VALUE, int.MIN_VALUE));
+			if (comboCount > 0) completedObstacle = true;
 			_record.comboLines[comboCount]++;
 			_record.blockDamage += totalDamage;
 			comboCount = 0;
@@ -288,6 +299,7 @@ package model
 			if (setting.isGameClear(_record.level))
 			{
 				_isGameOver = true;
+				_record.gameClear = true;
 				dispatchEvent(new GameEvent(GameEvent.gameClear, _record.gameTime, 0));
 				return;
 			}
@@ -327,12 +339,21 @@ package model
 		
 		public function addObstacle(player:int, count:int):void
 		{
-			obstacleManager.addObstacle(_record.gameTime, String(player), count);
+			obstacleManager.addObstacleAt(_record.gameTime, player, count);
 		}
 		
-		public function materializationNotice(player:int):void
+		public function breakConboNotice(player:int):void
 		{
-			obstacleManager.preMaterializationNotice(_record.gameTime, String(player));
+			obstacleManager.breakConboNotice(_record.gameTime, player);
+		}
+		
+		private function materializationNotice(materialization:Vector.<Boolean>):void
+		{
+			for (var i:int = 0; i < materialization.length; i++)
+			{
+				if (!materialization[i]) continue;
+				obstacleManager.preMaterializationNoticeAt(_record.gameTime, i);
+			}
 		}
 		
 		override protected function onBreakLine(y:int, colors:Vector.<uint>):void 

@@ -1,8 +1,8 @@
 package model 
 {
-	import flash.events.Event;
-	import flash.events.EventDispatcher;
-	import flash.ui.Keyboard;
+	import events.*;
+	import flash.events.*;
+	import flash.ui.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -35,6 +35,8 @@ package model
 		public var defaultKeyTag:String;
 		
 		private var _enable:Boolean;
+		private var materialization:Vector.<Boolean>;
+		private var gameModel:GameModel;
 		private var downKeyCodes:Vector.<uint>;
 		private var lastControl:GameCommand;
 		private var moveDelay:int;
@@ -130,6 +132,26 @@ package model
 			}
 		}
 		
+		public function removeKeyCode(keyCode:uint):void
+		{
+			var i:int;
+			i = rightRotation.indexOf(keyCode);
+			if (i != -1) rightRotation.splice(i, 1);
+			i = leftRotation.indexOf(keyCode);
+			if (i != -1) leftRotation.splice(i, 1);
+			i = rightMove.indexOf(keyCode);
+			if (i != -1) rightMove.splice(i, 1);
+			i = leftMove.indexOf(keyCode);
+			if (i != -1) leftMove.splice(i, 1);
+			i = fastFalling.indexOf(keyCode);
+			if (i != -1) fastFalling.splice(i, 1);
+			i = earthFalling.indexOf(keyCode);
+			if (i != -1) earthFalling.splice(i, 1);
+			i = noDamage.indexOf(keyCode);
+			if (i != -1) noDamage.splice(i, 1);
+			
+		}
+		
 	 	public function get enable():Boolean { return _enable; };
 		public function set enable(value:Boolean):void { _enable = value; };
 
@@ -196,8 +218,12 @@ package model
 			}
 		}
 		
-		public function reset():void
+		public function initialize(gameModel:GameModel):void
 		{
+			this.gameModel = gameModel;
+			gameModel.addEventListener(ControlEvent.setOmino, setOminoListener);
+			gameModel.addEventListener(ControlEvent.fixOmino, fixOminoListener);
+			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
 			lastControl = new GameCommand();
 			moveDelay = 0;
 			remainderMove = 0;
@@ -206,19 +232,27 @@ package model
 			controlPhase = false;
 		}
 		
-		public function changePhase(controlPhase:Boolean):void
+		private function setOminoListener(e:ControlEvent):void
 		{
-			this.controlPhase = controlPhase;
-			if (!controlPhase)
-			{
-				moveDelay = primaryMoveDelay;
-				restrainFall = true;
-			}
+			controlPhase = true;
+		}
+		
+		private function fixOminoListener(e:ControlEvent):void
+		{
+			controlPhase = false;
+			moveDelay = primaryMoveDelay;
+			restrainFall = true;
+		}
+		
+		public function setMaterialization(index:int):void
+		{
+			materialization[index] = true;
 		}
 		
 		public function issueGameCommand():GameCommand 
 		{
-			var value:GameCommand = new GameCommand();
+			var value:GameCommand = new GameCommand(materialization);
+			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
 			for each(var key:uint in downKeyCodes)
 			{
 				if (rightMove.indexOf(key) != -1)

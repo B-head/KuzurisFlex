@@ -1,5 +1,4 @@
-package event 
-{
+package events {
 	import flash.events.Event;
 	/**
 	 * ...

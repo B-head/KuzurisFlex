@@ -2,24 +2,24 @@
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
          xmlns:s="library://ns.adobe.com/flex/spark" 
          xmlns:mx="library://ns.adobe.com/flex/mx"
-		 xmlns:v="view.*">
+		 xmlns:v="view.*"
+		 initialize="init()">
 		 
 	<fx:Script>
 		<![CDATA[
-		import event.*;
+		import events.*;
 		import model.*;
 		import mx.events.EffectEvent;
 		
-		[Bindable]
-		private var _gameModel:GameModel;
 		[Bindable] 
 		public var blockGraphics:BlockGraphics;
+		[Bindable] 
+		public var breakLineGraphics:BreakLineGraphics;
 		[Bindable]
-		public var battle:Boolean;
-		[Bindable] 
-		public var reverse:Boolean;
-		[Bindable] 
-		public var pause:Boolean;
+		public var playerInfo:PlayerInformation;
+		private var _gameManager:GameManager;
+		[Bindable]
+		private var _gameModel:GameModel;
 		[Bindable]
 		private var line:BreakLineEvent;
 		[Bindable]
@@ -27,30 +27,48 @@
 		[Bindable]
 		private var levelClear:LevelClearEvent;
 		
-		public function get gameModel():GameModel
+		public function get gameManager():GameManager
 		{
-			return _gameModel;
+			return _gameManager;
 		}
-		public function set gameModel(value:GameModel):void
+		public function set gameManager(value:GameManager):void
 		{
-			_gameModel = value;
+			_gameManager = value;
+			_gameManager.addEventListener(KuzurisEvent.gameReady, function():void { currentState = "ready" } );
+			_gameManager.addEventListener(KuzurisEvent.gameStart, function():void { currentState = "normal" } );
+			_gameManager.addEventListener(KuzurisEvent.gamePause, function():void { currentState = "pause" } );
+			_gameManager.addEventListener(KuzurisEvent.gameResume, function():void { currentState = "normal" } );
+			_gameManager.addEventListener(KuzurisEvent.initializeGameModel, setGameModel);
+		}
+		
+		public function setGameModel(e:KuzurisEvent):void
+		{
+			_gameModel = _gameManager.getGameModel(playerIndex);;
 			main.update(_gameModel.getMainField(), _gameModel.shockSave);
 			fall.update(_gameModel.getFallField(), _gameModel.shockSave);
 			ghost.update(_gameModel.getControlOmino(), _gameModel.shockSave);
 			control.update(_gameModel.getControlOmino(), _gameModel.shockSave);
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, true);
-			obstacle.update(gameModel.obstacleNotice, gameModel.obstacleNoticeSave);
-			value.addEventListener(GameEvent.updateField, updateFieldListener);
-			value.addEventListener(GameEvent.updateControl, updateControlListener);
-			value.addEventListener(GameEvent.updateNext, updateNextListener);
-			value.addEventListener(GameEvent.firstUpdateNext, updateNextListener);
-			value.addEventListener(BreakLineEvent.breakLine, breakLineListener);
-			value.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
-			value.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
-			value.addEventListener(LevelClearEvent.levelClear, levelClearListener);
-			value.addEventListener(ObstacleEvent.addObstacle, updateObstacleLestener);
-			value.addEventListener(ObstacleEvent.counterbalanceObstacle, updateObstacleLestener);
-			value.addEventListener(ObstacleEvent.obstacleFall, updateObstacleLestener);
+			obstacle.update(_gameModel.obstacleNotice, _gameModel.obstacleNoticeSave);
+			_gameModel.addEventListener(GameEvent.updateField, updateFieldListener);
+			_gameModel.addEventListener(GameEvent.updateControl, updateControlListener);
+			_gameModel.addEventListener(GameEvent.updateNext, updateNextListener);
+			_gameModel.addEventListener(GameEvent.firstUpdateNext, updateNextListener);
+			_gameModel.addEventListener(BreakLineEvent.breakLine, breakLineListener);
+			_gameModel.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
+			_gameModel.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
+			_gameModel.addEventListener(LevelClearEvent.levelClear, levelClearListener);
+			_gameModel.addEventListener(ObstacleEvent.addObstacle, updateObstacleLestener);
+			_gameModel.addEventListener(ObstacleEvent.counterbalanceObstacle, updateObstacleLestener);
+			_gameModel.addEventListener(ObstacleEvent.obstacleFall, updateObstacleLestener);
+			_gameModel.addEventListener(GameEvent.gameOver, function():void { currentState = "gameOver" } );
+			_gameModel.addEventListener(GameEvent.gameClear, function():void { currentState = "gameClear"  } );
+		}
+		
+		private function init():void
+		{
+			blockGraphics = new BlockGraphics();
+			breakLineGraphics = new BreakLineGraphics();
 		}
 		
 		private function updateFieldListener(e:GameEvent):void
@@ -80,17 +98,26 @@
 				var ble:BreakLineEffect = new BreakLineEffect();
 				ble.lineEvent = e;
 				ble.blockGraphics = blockGraphics;
+				ble.breakLineGraphics = breakLineGraphics;
 				ble.y = e.position * blockGraphics.blockHeight - 256
 				breakLineContainer.addElement(ble);
 				ble.addEventListener(EffectEvent.EFFECT_END, function(e:EffectEvent):void { breakLineContainer.removeElement(ble); } );
 			}
 			else if (e.type == BreakLineEvent.sectionBreakLine)
 			{
+				lineScore.visible = false;
+				//var frvy:Number = Math.max(20, _gameModel.rfvy);
+				//recordFieldView.y = frvy * blockGraphics.blockWidth - 320;
 				for (var i:int = 0; i < breakLineContainer.numElements; i++)
 				{
 					var a:BreakLineEffect = BreakLineEffect(breakLineContainer.getElementAt(i));
 					a.combo = e.combo;
 				}
+			}
+			else if (e.type == BreakLineEvent.totalBreakLine)
+			{
+				lineScoreEffect.stop();
+				lineScoreEffect.play();
 			}
 		}
 		
@@ -103,17 +130,32 @@
 		
 		private function updateObstacleLestener(e:ObstacleEvent):void
 		{
-			obstacle.update(gameModel.obstacleNotice, gameModel.obstacleNoticeSave);
+			obstacle.update(_gameModel.obstacleNotice, _gameModel.obstacleNoticeSave);
 		}
 		]]>
 	</fx:Script>
+
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="ready" />
+		<s:State name="pause" />
+		<s:State name="gameOver" />
+		<s:State name="gameClear" />
+	</s:states>
 	
 	<fx:Declarations>
+		<fx:Boolean id="battle"/>
+		<fx:Boolean id="reverse"/>
+		<fx:int id="playerIndex"/>
 		<v:GameSoundEffect gameModel="{_gameModel}"/>
 		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
 		<s:Sequence id="lineEffect">
 			<s:SetAction property="visible" value="true" target="{lineRecord}"/>
 			<s:SetAction property="visible" value="false" target="{lineRecord}" startDelay="2000" />
+		</s:Sequence>
+		<s:Sequence id="lineScoreEffect">
+			<s:SetAction property="visible" value="true" target="{lineScore}"/>
+			<s:SetAction property="visible" value="false" target="{lineScore}" startDelay="2000" />
 		</s:Sequence>
 		<s:Parallel id="levelUpEffect">
 			<s:Sequence>
@@ -121,8 +163,8 @@
 				<s:SetAction property="visible" value="false" target="{sectionTime}" startDelay="8000" />
 			</s:Sequence>
 			<s:Sequence>
-				<s:Move xFrom="200" xTo="120" duration="500" target="{levelUpRecord}"/>
-				<s:Move xFrom="120" xTo="40" duration="500" startDelay="1000" target="{levelUpRecord}"/>
+				<s:Move xFrom="80" xTo="0" duration="500" target="{levelUpRecord}"/>
+				<s:Move xFrom="0" xTo="-80" duration="500" startDelay="1000" target="{levelUpRecord}"/>
 			</s:Sequence>
 			<s:Sequence>
 				<s:Fade alphaFrom="0" alphaTo="1" duration="500" target="{levelUpRecord}"/>
@@ -134,7 +176,7 @@
 	<s:VGroup x="{reverse ? 304 : 0}" y="64" width="96" horizontalAlign="justify">
 		<s:BorderContainer>
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Group includeInLayout="{!battle}" visible="{!battle}">
 				<s:Label text="レベル"/>
@@ -151,7 +193,7 @@
 		</s:BorderContainer>
 		<s:BorderContainer>
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label text="スコア"/>
 			<s:Label text="{_gameModel.record.gameScore}" textAlign="right" />
@@ -160,21 +202,20 @@
 		</s:BorderContainer>
 		<s:BorderContainer visible="{_gameModel.isObstacleAddition}">
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label text="次のおじゃま"/>
 			<s:Label text="{frameTime.format(_gameModel.nextObstacleTime)}" textAlign="right"/>
 		</s:BorderContainer>
 		<s:BorderContainer id="sectionTime" visible="false">
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
-			<s:Label text="レベルタイム"/>
-			<s:Label text="{frameTime.format(levelClear.clearTime)}" textAlign="right" />
-			<s:Label text="+{levelClear.plusScore}pt" textAlign="right" />
+			<s:Label styleName="level-up" text="レベルタイム"/>
+			<s:Label styleName="level-up" text="{frameTime.format(levelClear.clearTime)}" textAlign="right" />
+			<s:Label styleName="level-up" text="+{levelClear.plusScore}pt" textAlign="right" />
 		</s:BorderContainer>
 	</s:VGroup>
-	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" blockGraphics="{blockGraphics}" pause="{pause}"/>
 	<s:Rect x="119" y="64" width="161" height="320" alpha="0.8">
 		<s:fill>
 			<s:SolidColor color="#000000"/>
@@ -184,14 +225,25 @@
 		</s:stroke>
 	</s:Rect>
 	<s:Image x="104" y="64" source="@Embed('../graphic/frame.png')"/>
-	<s:Label id="levelUpRecord" x="120" y="32" width="160" textAlign="center" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ" fontSize="24" visible="false"/>
-	<s:Label id="lineRecord" x="120" y="80" width="160" textAlign="center" text="{line.combo}ライン" fontSize="24" visible="false"/>
-	<s:VGroup id="recordFieldView" x="120" y="64" width="160" horizontalAlign="justify" textAlign="center">
-	</s:VGroup>
-	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}" x="{_gameModel.cox * blockGraphics.blockWidth + 120}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
-	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}" x="{_gameModel.cox * blockGraphics.blockWidth + 120}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
-	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible="{!pause}" x="120" y="-256" showSpecial="true"/>
-	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible="{!pause}" x="120" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+	<s:Group id="recordFieldView" x="104" y="64">
+		<s:Label id="levelUpRecord" styleName="field-record level-up" y="0" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
+		<s:Label id="lineRecord" styleName="field-record break-line" y="24" width="192" text="{line.combo}ライン" visible="false"/>
+		<s:Label id="lineScore" styleName="break-line" y="48" width="192" text="+{line.plusScore}pt" visible="false"/>
+	</s:Group>
+	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
+	<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 120}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
+	<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 120}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+	<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" x="120" y="-256" showSpecial="true"/>
+	<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" x="120" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
 	<s:Group x="120" y="0" id="breakLineContainer"/>
 	<v:ObstacleView id="obstacle" x="120" y="0" width="160" height="32" visible="false" blockGraphics="{blockGraphics}"/>
+	<s:BorderContainer x="120" y="400" width="160" height="32" visible="{playerInfo != null}">
+		<s:layout>
+			<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
+		</s:layout>
+		<s:Label text="{playerInfo.name}" textAlign="center" />
+	</s:BorderContainer>
+	<s:Label styleName="ready" x="104" y="212" width="192" text="レディ" visible="false" visible.ready="true" />
+	<s:Label id="gameOver" styleName="game-over" x="104" y="96" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
+	<s:Label id="gameClear" styleName="game-clear" x="104" y="96" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
 </s:Group>

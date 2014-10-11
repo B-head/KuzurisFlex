@@ -15,7 +15,7 @@
 	</fx:Script>
 	
 	<fx:Declarations>
-		<s:NumberFormatter id="nf" fractionalDigits="2"/>
+		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
 		<v:FrameTimeFormatter id="ft" frameRate="60"/>
 	</fx:Declarations>
 	
@@ -28,9 +28,9 @@
 		<s:Label text="ライン {record.breakLine}"/>
 		<s:Label text="ダメージ {record.blockDamage}"/>
 		<s:Label text="ミノ {record.fixOmino}"/>
-		<s:Label text="総発生おじゃま {record.occurObstacle}" includeInLayout="{battle}" visible="{battle}"/>
-		<s:Label text="総被おじゃま {record.receivedObstacle}" includeInLayout="{battle}" visible="{battle}"/>
-		<s:Label text="総相殺おじゃま {record.counterbalance}" includeInLayout="{battle}" visible="{battle}"/>
+		<s:Label text="発生おじゃま {record.occurObstacle}" includeInLayout="{battle}" visible="{battle}"/>
+		<s:Label text="被おじゃま {record.receivedObstacle}" includeInLayout="{battle}" visible="{battle}"/>
+		<s:Label text="相殺おじゃま {record.counterbalance}" includeInLayout="{battle}" visible="{battle}"/>
 		<s:Label text="スコア {record.gameScore}"/>
 		<mx:Spacer/>
 		<s:Label text="タイム {ft.format(record.gameTime)}"/>

@@ -1,11 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/halo">
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
+			   creationComplete="creationCompleteListaener()"
+			   width="806" height="432">
+	<fx:Script>
+		<![CDATA[
+			import events.RequestReplayEvent;
+			import model.*;
+			import flash.events.*; 
+			import events.*;
+			import mx.collections.*;
+			import mx.core.ClassFactory;
+			
+			[Bindable]
+			public var gameMode:String;
+			[Bindable]
+			public var endless:Boolean;
+			private var ranking:GameRanking;
+			[Bindable]
+			private var collection:ArrayCollection;
+			
+			private function updateRanking():void
+			{
+				ranking = SharedObjectHelper.getRanking(gameMode, endless);
+				collection = new ArrayCollection(ranking.records);
+			}
+			
+			private function creationCompleteListaener():void
+			{
+				var factory:ClassFactory = new ClassFactory(ExecuteReplayRenderer);
+				factory.properties = { receiver:requestReplayReceiver };
+				replayColumn.itemRenderer = factory;
+				updateRanking();
+				ranking.sortScore();
+				collection.refresh();
+			}
+			
+			private function endlessChangeListener():void
+			{
+				endless = endlessChackBox.selected;
+				updateRanking();
+			}
+			
+			private function rankingTypeChangeListener():void
+			{
+				if (rankingType.selectedIndex == 0)
+				{
+					ranking.sortScore();
+				}
+				else
+				{
+					ranking.sortTime();
+				}
+				collection.refresh();
+			}
+			
+			private function rankLabel(item:Object, column:GridColumn):String
+			{
+				var i:int = collection.getItemIndex(item);
+				return String(i + 1) + "位";
+			}
+			
+			private function requestReplayReceiver(data:GameReplay):void
+			{
+				dispatchEvent(new RequestReplayEvent(RequestReplayEvent.requestReplay, data));
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Metadata>
+		[Event(name="navigateBack", type="events.KuzurisEvent")]
+		[Event(name="requestReplay", type="events.RequestReplayEvent")]
+	</fx:Metadata>
 	
 	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<v:FrameTimeFormatter id="ft" frameRate="60"/>
 	</fx:Declarations>
 	
+	<s:layout>
+		<s:VerticalLayout verticalAlign="middle" horizontalAlign="center"/>
+	</s:layout>
 	
-</s:Group>
+	<s:HGroup horizontalAlign="center" verticalAlign="middle">
+		<s:Label text="{GameSetting.modeToText(gameMode)}"/>
+		<s:ButtonBar id="rankingType" width="300" requireSelection="true" selectedIndex="0" change="rankingTypeChangeListener()">  
+			<mx:ArrayCollection source="['スコアランキング', 'タイムランキング']"/>
+		</s:ButtonBar>
+		<s:CheckBox id="endlessChackBox" label="エンドレス" selected="{endless}" change="endlessChangeListener()" />
+	</s:HGroup>
+	<s:DataGrid dataProvider="{collection}" width="798" height="350" selectionMode="none" sortableColumns="false">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn headerText="順位" labelFunction="{rankLabel}" />
+				<s:GridColumn dataField="level" headerText="レベル" />
+				<s:GridColumn dataField="breakLine" headerText="ライン" />
+				<s:GridColumn dataField="gameScore" headerText="スコア" />
+				<s:GridColumn dataField="gameTime" headerText="タイム" formatter="{ft}" />
+				<s:GridColumn id="replayColumn" headerText="" width="100" />
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
+	<s:HGroup horizontalAlign="center" verticalAlign="middle">
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" />
+	</s:HGroup>
+</s:BorderContainer>

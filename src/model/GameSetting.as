@@ -44,6 +44,32 @@ package model
 		public var obstacleInterval:int;
 		public var obstacleAdditionCount:Number;
 		
+		public static function modeToText(mode:String):String
+		{
+			switch(mode)
+			{
+				case axelSpeed: return "アクセルスピード";
+				case overSpeed: return "オーバースピード";
+				case obstacleAttack: return "おじゃまアタック";
+				case obstacleFight: return "おじゃまファイト";
+				case polyOmino: return "ポリオミノ";
+				case bigOmino: return "ビッグミノ";
+				case free: return "レベルフリー";
+				case battle: return "対戦";
+				default: return null;
+			}
+		}
+		
+		public static function createTrialSetting(gameMode:String, startLevel:int, endless:Boolean):GameSetting
+		{
+			var ret:GameSetting = new GameSetting();
+			ret.gameMode = gameMode;
+			ret.startLevel = startLevel;
+			ret.endless = endless;
+			ret.levelClearLine = 10;
+			return ret;
+		}
+		
 		public function clone():GameSetting
 		{
 			var ret:GameSetting = new GameSetting();
@@ -150,7 +176,7 @@ package model
 				naturalFallSpeed = 20;
 				fastFallSpeed = 20;
 				fallAcceleration = 10 / exponentLeveling(level, 400, 1, 100);
-				playTime = linerLeveling(level, 60, 25);
+				playTime = linerLeveling(level, 60, 20);
 			}
 			else
 			{

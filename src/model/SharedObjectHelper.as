@@ -13,8 +13,8 @@ package model
 		public static var input:UserInput;
 		public static var inputVersus1:UserInput;
 		public static var inputVersus2:UserInput;
-		public static var normalRanking:Dictionary;
-		public static var endlessRanking:Dictionary;
+		public static var normalRanking:Object;
+		public static var endlessRanking:Object;
 		
 		public static function init():void
 		{
@@ -25,23 +25,28 @@ package model
 			registerClassAlias("GameCommand", GameCommand);
 			registerClassAlias("GameSetting", GameSetting);
 			registerClassAlias("XorShift128", XorShift128);
-			shared = SharedObject.getLocal("main");
+			registerClassAlias("MessageObject", MessageObject);
+			registerClassAlias("RoomInformation", RoomInformation);
+			registerClassAlias("PlayerInformation", PlayerInformation);
+			registerClassAlias("Utterance", Utterance);
+			shared = SharedObject.getLocal("kuzuris");
 			initInput();
 			initRanking();
 			initBattleReplays();
+			shared.flush(100000000);
 		}
 		
 		private static function initInput():void
 		{
-			if (!(shared.data.input is UserInput))
+			if (shared.data.input == null)
 			{
 				shared.data.input = UserInput.createOnePlayer();
 			}
-			if (!(shared.data.inputVersus1 is UserInput))
+			if (shared.data.inputVersus1 == null)
 			{
 				shared.data.inputVersus1 = UserInput.createVersusPlayer1();
 			}
-			if (!(shared.data.inputVersus2 is UserInput))
+			if (shared.data.inputVersus2 == null)
 			{
 				shared.data.inputVersus2 = UserInput.createVersusPlayer2();
 			}
@@ -52,13 +57,13 @@ package model
 		
 		private static function initRanking():void
 		{
-			if (!(shared.data.normalRanking is Dictionary))
+			if (shared.data.normalRanking == null)
 			{
-				shared.data.normalRanking = new Dictionary();
+				shared.data.normalRanking = new Object();
 			}
-			if (!(shared.data.endlessRanking is Dictionary))
+			if (shared.data.endlessRanking == null)
 			{
-				shared.data.endlessRanking = new Dictionary();
+				shared.data.endlessRanking = new Object();
 			}
 			normalRanking = shared.data.normalRanking;
 			endlessRanking = shared.data.endlessRanking;
@@ -71,7 +76,7 @@ package model
 		
 		public static function getRanking(gameMode:String, endless:Boolean):GameRanking
 		{
-			var dic:Dictionary = endless ? endlessRanking : normalRanking;
+			var dic:Object = endless ? endlessRanking : normalRanking;
 			if (dic[gameMode] == null)
 			{
 				dic[gameMode] = new GameRanking(gameMode, endless);

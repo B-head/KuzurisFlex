@@ -1,32 +1,35 @@
 package model 
 {
+	import flash.events.Event;
+	import mx.collections.ArrayCollection;
+	import mx.collections.IList;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class GameRanking 
+	public class GameRanking
 	{
 		public static const recordsLength:int = 100;
 		
 		public var gameMode:String;
 		public var endless:Boolean;
-		public var records:Vector.<GameRecord>;
+		public var records:Array;
 		
 		public function GameRanking(gameMode:String = null, endless:Boolean = false) 
 		{
 			this.gameMode = gameMode;
 			this.endless = endless;
-			records = new Vector.<GameRecord>();
+			records = new Array();
 		}
 		
 		public function entry(record:GameRecord):void
 		{
 			records.push(record);
 			sortScore();
-			var a:Vector.<GameRecord> = records.slice(recordsLength);
+			var a:Array = records.slice(recordsLength);
 			sortTime();
-			var b:Vector.<GameRecord> = records.slice(recordsLength);
-			var c:Vector.<GameRecord> = product(a, b);
+			var b:Array = records.slice(recordsLength);
+			var c:Array = product(a, b);
 			removeRange(records, c);
 		}
 		
@@ -37,12 +40,24 @@ package model
 		
 		public function sortTime():void
 		{
-			records.sort(function(a:GameRecord, b:GameRecord):Number { return a.gameTime - b.gameTime; } );
+			records.sort(compTime);
 		}
 		
-		private function product(a:Vector.<GameRecord>, b:Vector.<GameRecord>):Vector.<GameRecord>
+		private function compTime(a:GameRecord, b:GameRecord):Number
 		{
-			var ret:Vector.<GameRecord> = new Vector.<GameRecord>();
+			if (a.gameClear && b.gameClear)
+			{
+				return a.gameTime - b.gameTime;
+			}
+			else
+			{
+				return b.breakLine - a.breakLine;
+			}
+		}
+		
+		private function product(a:Array, b:Array):Array
+		{
+			var ret:Array = new Array();
 			for (var i:int = 0; i < a.length; i++)
 			{
 				var k:int = b.indexOf(a[i]);
@@ -52,7 +67,7 @@ package model
 			return ret;
 		}
 		
-		private function removeRange(self:Vector.<GameRecord>, values:Vector.<GameRecord>):void
+		private function removeRange(self:Array, values:Array):void
 		{
 			for (var i:int = 0; i < values.length; i++)
 			{

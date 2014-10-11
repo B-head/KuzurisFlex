@@ -1,5 +1,4 @@
-package event 
-{
+package events {
 	import flash.events.Event;
 	
 	/**
@@ -11,6 +10,7 @@ package event
 		public var count:int;
 		
 		public static const addObstacle:String = "addObstacle";
+		public static const breakConboNotice:String = "breakConboNotice";
 		public static const materializationNotice:String = "materializationNotice";
 		public static const preMaterializationNotice:String = "preMaterializationNotice";
 		public static const occurObstacle:String = "occurObstacle";

@@ -18,8 +18,8 @@ package model
 		public function GameReplay(setting:GameSetting = null, seed:XorShift128 = null) 
 		{
 			commands = new Vector.<GameCommand>();
-			this.setting = setting.clone();
-			this.seed = seed.clone();
+			if (setting != null) this.setting = setting.clone();
+			if (seed != null) this.seed = seed.clone();
 		}
 		
 		public function recordCommand(command:GameCommand):void
@@ -30,18 +30,19 @@ package model
 		public function get enable():Boolean { return _enable; }
 		public function set enable(value:Boolean):void { _enable = value; };
 		
-		public function reset():void
+		public function initialize(gameModel:GameModel):void
 		{
 			time = 0;
 		}
 		
-		public function changePhase(controlPhase:Boolean):void 
+		public function setMaterialization(index:int):void
 		{
 			return;
 		}
 		
 		public function issueGameCommand():GameCommand 
 		{
+			if (time >= commands.length) return null;
 			return commands[time++];
 		}
 		

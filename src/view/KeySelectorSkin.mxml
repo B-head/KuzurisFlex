@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   minWidth="200" alpha.disabled="0.5">
+	<fx:Script>
+		<![CDATA[
+            static private const exclusions:Array = ["labelDisplay", "keysDisplay"];
+            override public function get colorizeExclusions():Array { return exclusions; }
+			
+            override protected function initializationComplete():void
+            {
+				if (styleManager.isValidStyleValue('corner-radius'))
+				{
+					setStyle('corner-radius', 4);
+				}
+                useChromeColor = true;
+                super.initializationComplete();
+            }  
+		]]>
+	</fx:Script>
+	
+    <fx:Metadata>
+        [HostComponent("view.KeySelector")]
+    </fx:Metadata>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="over" />
+		<s:State name="selected" />
+		<s:State name="disabled" />
+	</s:states>
+	
+	<s:Rect left="120" right="1" top="1" bottom="1" topRightRadiusX="{getStyle('corner-radius')}" bottomRightRadiusX="{getStyle('corner-radius')}" >
+		<s:stroke>            
+			<s:SolidColorStroke color="0x808080" 
+				color.over="0xC0C0C0" 
+				color.selected="0xB0B0B0" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor alpha="0"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect left="1" top="1" bottom="1" width="120" topLeftRadiusX="{getStyle('corner-radius')}" bottomLeftRadiusX="{getStyle('corner-radius')}" >
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry color="0xFFFFFF" 
+					color.over="0xBBBDBD" 
+					color.selected="0xAAAAAA"/>
+				<s:GradientEntry color="0xD8D8D8" 
+					color.over="0x9FA0A1" 
+					color.selected="0x929496"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Label id="labelDisplay" left="10" width="100" verticalCenter="0" text="{hostComponent.labelText}"
+		textAlign="center" verticalAlign="middle" lineBreak="toFit" maxDisplayedLines="1"/>
+	<s:DataGroup id="keysDisplay" left="130" right="10" top="2" bottom="2" dataProvider="{hostComponent.keysText()}">
+        <s:layout>
+            <s:HorizontalLayout gap="4"/>
+        </s:layout>
+		<s:itemRenderer>
+			<fx:Component>
+				<s:ItemRenderer autoDrawBackground="false">
+					<s:Rect left="1" right="1" top="1" bottom="1" radiusX="{outerDocument.getStyle('corner-radius')}">
+						<s:stroke>            
+							<s:SolidColorStroke color="0x808080"/>
+						</s:stroke>
+					</s:Rect>
+					<s:Label left="4" right="4" top="4" bottom="4" text="{label}"
+						textAlign="center" verticalAlign="middle" lineBreak="toFit" maxDisplayedLines="1"/>
+				</s:ItemRenderer>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:DataGroup>
+</s:SparkSkin>

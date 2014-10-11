@@ -8,8 +8,8 @@ package model
 	{
 		function get enable():Boolean;
 		function set enable(value:Boolean):void;
-		function reset():void;
-		function changePhase(controlPhase:Boolean):void;
+		function initialize(gameModel:GameModel):void;
+		function setMaterialization(index:int):void;
 		function issueGameCommand():GameCommand;
 	}
 	

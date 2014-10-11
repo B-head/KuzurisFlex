@@ -1,15 +1,19 @@
 package model 
 {
-	import event.*;
+	import events.*;
 	import flash.events.*;
+	import flash.utils.getTimer;
 	import model.ai.*;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	[Event(name="gameStart", type="event.GameManagerEvent")]
-	[Event(name="gameEnd", type="event.GameManagerEvent")]
-	[Event(name="changePlayer", type="event.GameManagerEvent")]
+	[Event(name="gameReady", type="events.KuzurisEvent")]
+	[Event(name="gameStart", type="events.KuzurisEvent")]
+	[Event(name="gameEnd", type="events.KuzurisEvent")]
+	[Event(name="gamePause", type="events.KuzurisEvent")]
+	[Event(name="gameResume", type="events.KuzurisEvent")]
+	[Event(name="initializeGameModel", type="events.KuzurisEvent")]
 	public class GameManager extends EventDispatcher
 	{
 		private var maxPlayer:int;
@@ -17,7 +21,9 @@ package model
 		private var replay:Vector.<GameReplay>;
 		private var gameModel:Vector.<GameModel>;
 		private var execution:Boolean;
-		private var isReplayMode:Boolean;
+		private var replayMode:Boolean;
+		private var readyDelay:int;
+		private var prevFrameCount:int;
 		
 		public function GameManager(maxPlayer:int) 
 		{
@@ -38,10 +44,14 @@ package model
 			return execution;
 		}
 		
+		public function isReplayMode():Boolean
+		{
+			return replayMode;
+		}
+		
 		public function setPlayer(index:int, control:GameControl):void
 		{
 			this.control[index] = control;
-			dispatchEvent(new GameManagerEvent(GameManagerEvent.changePlayer));
 		}
 		
 		public function setAILevel(index:int, level:int):void
@@ -70,44 +80,54 @@ package model
 				gameModel[i] = new GameModel();
 				gameModel[i].addEventListener(GameEvent.gameOver, GameEndListener);
 				gameModel[i].addEventListener(GameEvent.gameClear, GameEndListener);
-				gameModel[i].addEventListener(ControlEvent.setOmino, createUpdateModelListener(i), false);
-				gameModel[i].addEventListener(ControlEvent.setOmino, createChangePhaseListener(i, true));
-				gameModel[i].addEventListener(ControlEvent.fixOmino, createChangePhaseListener(i, false));
 				gameModel[i].addEventListener(ObstacleEvent.occurObstacle, createOccurObstacleListener(i));
 				gameModel[i].addEventListener(GameEvent.breakConbo, createBreakComboListener(i));
 			}
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.initializeGameModel));
 		}
 		
-		public function startGame(setting:GameSetting):void
+		public function startGame(setting:GameSetting = null, seed:XorShift128 = null, delay:int = 120):void
 		{
-			var seed:XorShift128 = new XorShift128();
-			seed.RandomSeed();
+			if (setting == null)
+			{
+				setting = new GameSetting();
+			}
+			if (seed == null)
+			{
+				seed = new XorShift128();
+				seed.RandomSeed();
+			}
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
+				if (control[i] == null) continue;
 				replay[i] = new GameReplay(setting, seed);
 				gameModel[i].startGame(setting, seed);
-				control[i].reset();
+				control[i].initialize(gameModel[i]);
 				control[i].enable = true;
 			}
-			isReplayMode = false;
+			replayMode = false;
+			readyDelay = delay;
 			execution = true;
-			dispatchEvent(new GameManagerEvent(GameManagerEvent.gameStart));
+			resetFrameCount();
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameReady));
 		}
 		
 		public function startReplay():void
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				var r:GameReplay = isReplayMode ? control[i] as GameReplay : replay[i];
+				if (control[i] == null) continue;
+				var r:GameReplay = control[i] as GameReplay;
+				if (r == null) r = replay[i];
 				replay[i] = null;
 				gameModel[i].startGame(r.setting, r.seed);
 				control[i] = r;
-				control[i].reset();
+				control[i].initialize(gameModel[i]);
 				control[i].enable = true;
 			}
-			isReplayMode = true;
+			replayMode = true;
 			execution = true;
-			dispatchEvent(new GameManagerEvent(GameManagerEvent.gameStart));
+			resetFrameCount();
 		}
 		
 		public function endGame():void
@@ -124,31 +144,75 @@ package model
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
+				if (control[i] == null) continue;
 				control[i].enable = false;
 			}
 			execution = false;
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.gamePause));
 		}
 		
 		public function resumeGame():void
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
+				if (control[i] == null) continue;
 				control[i].enable = true;
 			}
 			execution = true;
+			resetFrameCount();
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameResume));
 		}
 		
-		public function forwardGame():void
+		private function forwardGame():void
 		{
-			if (execution == false) return;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				var command:GameCommand = control[i].issueGameCommand();
-				if (replay[i] != null)
+				if (control[i] == null) continue;
+				forwordGamePert(i);
+				if (control[i] is RemoteGameControl)
 				{
-					replay[i].recordCommand(command);
+					forwordGamePert(i);
 				}
-				gameModel[i].forwardGame(command);
+			}
+		}
+		
+		private function forwordGamePert(index:int):void
+		{
+			var command:GameCommand = control[index].issueGameCommand();
+			if (command == null) return;
+			if (replay[index] != null)
+			{
+				replay[index].recordCommand(command);
+			}
+			gameModel[index].forwardGame(command);
+		}
+		
+		private function resetFrameCount(delay:Boolean = false):void
+		{
+			prevFrameCount = getTimer() * 60 / 1000;
+			if (delay) prevFrameCount -= 60;
+		}
+		
+		public function frameConstructedListener():void
+		{
+			if (execution == false) return;
+			if (prevFrameCount < getTimer() * 60 / 1000 - 60)
+			{
+				resetFrameCount(true);
+			}
+			var time:int = getTimer();
+			while (time >= prevFrameCount * 1000 / 60)
+			{
+				prevFrameCount++;
+				if (readyDelay == 0)
+				{
+					dispatchEvent(new KuzurisEvent(KuzurisEvent.gameStart));
+				}
+				if (readyDelay <= 0)
+				{
+					forwardGame();
+				}
+				readyDelay--;
 			}
 		}
 		
@@ -162,26 +226,7 @@ package model
 			if (count >= maxPlayer - 1)
 			{
 				endGame();
-				dispatchEvent(new GameManagerEvent(GameManagerEvent.gameEnd));
-			}
-		}
-		
-		private function createChangePhaseListener(self:int, phase:Boolean):Function
-		{
-			return function(e:ControlEvent):void
-			{
-				control[self].changePhase(phase);
-			}
-		}
-		
-		private function createUpdateModelListener(self:int):Function
-		{
-			return function(e:GameEvent):void
-			{
-				var ai:GameAIManager = control[self] as GameAIManager;
-				if (ai == null) return;
-				ai.updateModel(gameModel[self].getLightModel());
-				ai.updateNotice(gameModel[self].obstacleNotice + gameModel[self].obstacleNoticeSave);
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
 			}
 		}
 		
@@ -192,10 +237,8 @@ package model
 				for (var i:int = 0; i < maxPlayer; i++)
 				{
 					if (i == self) continue;
+					if (gameModel[i].isGameOver) continue;
 					gameModel[i].addObstacle(self, e.count);
-					var ai:GameAIManager = control[i] as GameAIManager;
-					if (ai == null) return;
-					ai.updateNotice(gameModel[self].obstacleNotice + gameModel[self].obstacleNoticeSave);
 				}
 			}
 		}
@@ -206,7 +249,10 @@ package model
 			{
 				for (var i:int = 0; i < maxPlayer; i++)
 				{
-					if (i != self) gameModel[i].materializationNotice(self);
+					if (control[i] == null) continue;
+					if (i == self) continue;
+					control[i].setMaterialization(self);
+					gameModel[i].breakConboNotice(self);
 				}
 			}
 		}

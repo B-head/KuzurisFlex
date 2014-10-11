@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
+			   creationComplete="init()">
+	<fx:Script>
+		<![CDATA[
+			import events.*;
+			import flash.events.*;
+			import flash.utils.*;
+			import model.*;
+			import mx.events.*;
+			
+			[Bindable]
+			public var roomManager:RoomManager;
+			[Bindable]
+			private var manager:GameManager;
+			[Bindable]
+			private var input:GameControl;
+			
+			private function init():void
+			{
+				input = SharedObjectHelper.input;
+			}
+		
+		]]>
+	</fx:Script>
+	
+	<fx:Metadata>
+		[Event(name="navigateBack", type="events.KuzurisEvent")]
+	</fx:Metadata>
+	
+	<s:states>
+		<s:State name="hidden" />
+		<s:State name="prepare" />
+		<s:State name="pause" />
+		<s:State name="keyConfig" />
+	</s:states>
+	
+	
+</s:Group>

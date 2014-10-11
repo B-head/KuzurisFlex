@@ -13,6 +13,7 @@ package model
 		public static const bitShift:int = 2;
 		public static const booleanMask:int = 0x1;
 		public static const booleanShift:int = 1;
+		public static const materializationLength:int = 8;
 		
 		public static const nothing:int = 0;
 		public static const right:int = 1;
@@ -25,6 +26,12 @@ package model
 		public var falling:int;
 		public var fix:Boolean;
 		public var noDamege:Boolean;
+		public var materialization:Vector.<Boolean>;
+		
+		public function GameCommand(materialization:Vector.<Boolean> = null)
+		{
+			this.materialization = materialization;
+		}
 		
 		public function writeExternal(output:IDataOutput):void 
 		{
@@ -38,14 +45,23 @@ package model
 			value |= uint(fix) & booleanMask;
 			value <<= booleanShift;
 			value |= uint(noDamege) & booleanMask;
-			value <<= 8;
+			for (var i:int = 0; i < materializationLength; i++)
+			{
+				value <<= booleanShift;
+				value |= uint(materialization[i]) & booleanMask;
+			}
 			output.writeShort(value);
 		}
 		
 		public function readExternal(input:IDataInput):void 
 		{
 			var value:uint = input.readUnsignedShort();
-			value >>>= 8;
+			materialization = new Vector.<Boolean>(materializationLength);
+			for (var i:int = materializationLength - 1; i >= 0; i--)
+			{
+				materialization[i] = Boolean(value & booleanMask);
+				value >>>= booleanShift;
+			}
 			noDamege = Boolean(value & booleanMask);
 			value >>>= booleanShift;
 			fix = Boolean(value & booleanMask);

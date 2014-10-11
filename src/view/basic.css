@@ -3,11 +3,18 @@
 
 * {
 	font-family: sans-serif;
-	color: rgb(255, 255, 255);
 	chrome-color: rgb(53, 161, 107);
 }
 
+s|Label {
+	color: rgb(255, 255, 255);
+}
+
 s|Button {
+	corner-radius: 4;
+}
+
+s|ButtonBar {
 	corner-radius: 4;
 }
 
@@ -39,11 +46,20 @@ s|VGroup {
 	
 }
 
+s|DataGrid {
+	content-background-color: rgb(0, 0, 0);
+	content-background-alpha: 0.8;
+}
+
+.current-record {
+	color: rgb(255, 153, 0);
+}
+
 .main-title {
+	color: rgb(53, 161, 107);
 	font-size: 60px;
 	font-weight: bold;
 	text-align: center;
-	color: rgb(53, 161, 107);
 }
 
 .sub-title {
@@ -69,7 +85,55 @@ s|VGroup {
 	chrome-color: rgb(255, 153, 0);
 }
 
+.restart {
+	chrome-color: rgb(255, 153, 0);
+}
+
 .menu-label {
+	background-color: rgb(0, 0, 0);
+	background-alpha: 0.8;
+}
+
+.field-record {
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.level-up {
+	color: rgb(102, 204, 255);
+}
+
+.break-line {
+	color: rgb(250, 245, 0);
+	text-align: center;
+}
+
+.break-line-score {
+	color: rgb(200, 200, 203);
+	font-weight: bold;
+}
+
+.ready {
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.game-over {
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+	color: rgb(255, 40, 0);
+	background-color: rgb(0, 0, 0);
+	background-alpha: 0.8;
+}
+
+.game-clear {
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+	color: rgb(250, 245, 0);
 	background-color: rgb(0, 0, 0);
 	background-alpha: 0.8;
 }

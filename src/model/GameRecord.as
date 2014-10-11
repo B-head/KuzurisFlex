@@ -34,6 +34,7 @@ package model
 		public var playerName:String;
 		[Bindable] 
 		public var replay:GameReplay;
+		public var gameClear:Boolean;
 		
 		private const minuteFrame:int = 3600;
 		

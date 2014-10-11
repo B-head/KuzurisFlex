@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import events.*;
+			
+			public function enterBattle(index:int):void
+			{
+				dispatchEvent(new EnterBattleEvent(EnterBattleEvent.enterBattle, index));
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Metadata>
+		[Event(name="enterBattle", type="events.EnterBattleEvent")]
+	</fx:Metadata>
+	
+	<fx:Declarations>
+		<fx:Component id="playerOrEnterButtonRenderer">
+			<s:ItemRenderer autoDrawBackground="false">
+				<s:Button label="参加" width="100%" height="100%" visible="{data == null}" buttonDown="outerDocument.enterBattle(itemIndex)" />
+				<s:BorderContainer width="100%" height="100%" visible="{data != null}">
+					<s:Label verticalCenter="0" horizontalCenter="0" text="{data.name}" />
+				</s:BorderContainer>
+			</s:ItemRenderer>
+		</fx:Component>
+	</fx:Declarations>
+	
+	<s:BorderContainer width="100%" height="100%">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center"/>
+		</s:layout>
+		<s:Label text="{data.name}"/>
+		<s:DataGroup width="100%" dataProvider="{data.entrant}" itemRenderer="{playerOrEnterButtonRenderer}">
+			<s:layout>
+				<s:TileLayout requestedColumnCount="2" columnAlign="justifyUsingWidth" />
+			</s:layout>
+		</s:DataGroup>
+	</s:BorderContainer>
+</s:ItemRenderer>
