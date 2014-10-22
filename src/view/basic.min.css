@@ -23,3 +23,4 @@ s|DataGrid{content-background-color:rgb(0,0,0);content-background-alpha:0.8;}
 .ready{font-size:24px;font-weight:bold;text-align:center;}
 .game-over{font-size:24px;font-weight:bold;text-align:center;color:rgb(255,40,0);background-color:rgb(0,0,0);background-alpha:0.8;}
 .game-clear{font-size:24px;font-weight:bold;text-align:center;color:rgb(250,245,0);background-color:rgb(0,0,0);background-alpha:0.8;}
+.chat-text{color:rgb(255,255,255);focused-text-selection-color:rgb(255,255,255);inactive-text-selection-color:rgb(255,255,255);unfocused-text-selection-color:rgb(255,255,255);}

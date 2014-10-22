@@ -6,7 +6,7 @@ package model
 	 */
 	public class MainField extends BlockField 
 	{
-		public function MainField(w:int, h:int) 
+		public function MainField(w:int = 0, h:int = 0) 
 		{
 			super(w, h);
 		}
@@ -47,12 +47,13 @@ package model
 			{
 				for (var y:int = 0; y < _height; y++)
 				{
-					var v:BlockState = value[x][y];
-					if (v == null)
+					if (value[x][y] == null)
 					{
 						continue;
 					}
-					value[x][y] = new BlockState(v.hitPoint, v.color, false);
+					var v:BlockState = value[x][y].clone();
+					v.specialUnion = false;
+					value[x][y] = v;
 				}
 			}
 		}
@@ -98,14 +99,7 @@ package model
 			var sb:Vector.<BlockState> = new Vector.<BlockState>(width);
 			for (var i:int = 0; i < blockCount; i++)
 			{
-				var block:BlockState = new BlockState();
-				with (block)
-				{
-					kind = BlockState.normal;
-					hitPoint = hitPointMax;
-					color = blockColor;
-					specialUnion = false;
-				}
+				var block:BlockState = new BlockState(BlockState.normal, blockColor, hitPointMax, false);
 				sb[i] = block;
 			}
 			for (i = 0; i < width; i++)
@@ -119,6 +113,34 @@ package model
 			{
 				value[i][line] = sb[i];
 			}
+		}
+		
+		public function shiftUp(line:int):void
+		{
+			for (var y:int = 1; y <= line; y++)
+			{
+				for (var x:int = 0; x < _width; x++)
+				{
+					value[x][y - 1] = value[x][y];
+				}
+			}
+			for (x = 0; x < _width; x++)
+			{
+				value[x][line] = null;
+			}
+		}
+		
+		public function getColorHeight(color:uint):int
+		{
+			for (var y:int = 0; y < _height; y++)
+			{
+				for (var x:int = 0; x < _width; x++)
+				{
+					if (value[x][y] == null) continue;
+					if (value[x][y].color == color) return y;
+				}
+			}
+			return _height;
 		}
 	}
 

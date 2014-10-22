@@ -8,9 +8,11 @@ package events {
 	public class KuzurisErrorEvent extends ErrorEvent
 	{
 		public static const ioError:String = "ioError";
+		public static const asyncError:String = "asyncError";
+		public static const connectFailed:String = "connectFailed";
 		public static const loungeConnectFailed:String = "loungeConnectFailed";
 		public static const roomConnectFailed:String = "roomConnectFailed";
-		public static const streamError:String = "streamError";
+		public static const streamDrop:String = "streamDrop";
 		public static const differPassword:String = "differPassword";
 		
 		public function KuzurisErrorEvent(type:String, text:String = "") 

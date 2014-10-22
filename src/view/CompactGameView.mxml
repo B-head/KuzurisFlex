@@ -40,10 +40,9 @@
 			_gameManager.addEventListener(KuzurisEvent.gamePause, function():void { currentState = "pause" } );
 			_gameManager.addEventListener(KuzurisEvent.gameResume, function():void { currentState = "normal" } );
 			_gameManager.addEventListener(KuzurisEvent.initializeGameModel, setGameModel);
-			var ngm:NetworkGameManager = _gameManager as NetworkGameManager;
+			var ngm:NetworkGameManager = value as NetworkGameManager;
 			if (ngm != null)
 			{
-				ngm.addEventListener(KuzurisEvent.playerUpdate, updatePlayerListener);
 				playerInfo = ngm.getPlayerInfo(_playerIndex);
 			}
 			else
@@ -96,12 +95,6 @@
 			breakLineGraphics = Main.breakLineGraphics;
 		}
 		
-		private function updatePlayerListener(e:KuzurisEvent):void
-		{
-			var ngm:NetworkGameManager = _gameManager as NetworkGameManager;
-			playerInfo = ngm.getPlayerInfo(_playerIndex);
-		}
-		
 		private function updateFieldListener(e:GameEvent):void
 		{
 			main.update(_gameModel.getMainField(), _gameModel.shockSave);
@@ -117,11 +110,6 @@
 		private function updateNextListener(e:GameEvent):void
 		{
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, e.type == GameEvent.firstUpdateNext);
-		}
-		
-		private function updateObstacleLestener(e:ObstacleEvent):void
-		{
-			obstacle.update(_gameModel.obstacleNotice, _gameModel.obstacleNoticeSave);
 		}
 		
 		private function breakLineListener(e:BreakLineEvent):void
@@ -163,6 +151,11 @@
 			levelUpEffect.stop();
 			levelUpEffect.play();
 		}
+		
+		private function updateObstacleLestener(e:ObstacleEvent):void
+		{
+			obstacle.update(_gameModel.obstacleNotice, _gameModel.obstacleNoticeSave);
+		}
 		]]>
 	</fx:Script>
 
@@ -175,7 +168,6 @@
 	</s:states>
 	
 	<fx:Declarations>
-		<fx:Boolean id="battle"/>
 		<fx:Boolean id="reverse"/>
 		<v:GameSoundEffect gameModel="{_gameModel}"/>
 		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
@@ -189,10 +181,6 @@
 		</s:Sequence>
 		<s:Parallel id="levelUpEffect">
 			<s:Sequence>
-				<s:SetAction property="visible" value="true" target="{sectionTime}"/>
-				<s:SetAction property="visible" value="false" target="{sectionTime}" startDelay="8000" />
-			</s:Sequence>
-			<s:Sequence>
 				<s:Move xFrom="80" xTo="0" duration="500" target="{levelUpRecord}"/>
 				<s:Move xFrom="0" xTo="-80" duration="500" startDelay="1000" target="{levelUpRecord}"/>
 			</s:Sequence>
@@ -203,7 +191,7 @@
 		</s:Parallel>
 	</fx:Declarations>
 	
-	<s:Group x="104" y="0">
+	<s:Group x="{reverse ? 104 : 0}" y="0">
 		<s:Rect x="15" y="64" width="161" height="320" alpha="0.8">
 			<s:fill>
 				<s:SolidColor color="#000000"/>
@@ -234,48 +222,5 @@
 		<s:Label id="gameOver" styleName="game-over" x="0" y="96" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
 		<s:Label id="gameClear" styleName="game-clear" x="0" y="96" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
 	</s:Group>
-	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
-	<s:VGroup x="{reverse ? 304 : 0}" y="64" width="96" horizontalAlign="justify">
-		<s:BorderContainer>
-			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
-			</s:layout>
-			<s:Group includeInLayout="{!battle}" visible="{!battle}">
-				<s:Label text="レベル"/>
-				<s:Label text="{_gameModel.record.level}" right="0" />
-			</s:Group>
-			<s:Group>
-				<s:Label text="ライン"/>
-				<s:Label text="{_gameModel.record.breakLine}" right="0"/>
-			</s:Group>
-			<s:Group>
-				<s:Label text="ミノ"/>
-				<s:Label text="{_gameModel.record.fixOmino}" right="0"/>
-			</s:Group>
-		</s:BorderContainer>
-		<s:BorderContainer>
-			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
-			</s:layout>
-			<s:Label text="スコア"/>
-			<s:Label text="{_gameModel.record.gameScore}" textAlign="right" />
-			<s:Label text="タイム"/>
-			<s:Label text="{frameTime.format(_gameModel.record.gameTime)}" textAlign="right" />
-		</s:BorderContainer>
-		<s:BorderContainer visible="{_gameModel.isObstacleAddition}">
-			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
-			</s:layout>
-			<s:Label text="次のおじゃま"/>
-			<s:Label text="{frameTime.format(_gameModel.nextObstacleTime)}" textAlign="right"/>
-		</s:BorderContainer>
-		<s:BorderContainer id="sectionTime" visible="false">
-			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
-			</s:layout>
-			<s:Label styleName="level-up" text="レベルタイム"/>
-			<s:Label styleName="level-up" text="{frameTime.format(levelClear.clearTime)}" textAlign="right" />
-			<s:Label styleName="level-up" text="+{levelClear.plusScore}pt" textAlign="right" />
-		</s:BorderContainer>
-	</s:VGroup>
+	<v:NextOminoView id="next" x="{reverse ? 0 : 200}" y="64" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
 </s:Group>

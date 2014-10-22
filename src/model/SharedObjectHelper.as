@@ -1,7 +1,7 @@
 package model 
 {
 	import flash.net.*;
-	import flash.utils.Dictionary;
+	import model.network.*;
 	
 	/**
 	 * ...

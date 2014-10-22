@@ -16,6 +16,7 @@ package events {
 		public static const occurObstacle:String = "occurObstacle";
 		public static const counterbalanceObstacle:String = "counterbalanceObstacle";
 		public static const obstacleFall:String = "obstacleFall";
+		public static const appendTower:String = "appendTower";
 		
 		public function ObstacleEvent(type:String, gameTime:int, plusScore:int, count:int) 
 		{ 

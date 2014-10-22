@@ -1,8 +1,9 @@
-package model
-{
+package model.network {
+	import adobe.utils.CustomActions;
 	import events.*;
 	import flash.events.*;
 	import flash.net.*;
+	import model.*;
 	
 	/**
 	 * ...
@@ -13,63 +14,81 @@ package model
 	[Event(name="connectClosed", type="events.KuzurisEvent")]
 	[Event(name="connectIdleTimeout", type="events.KuzurisEvent")]
 	[Event(name="ioError", type="events.KuzurisErrorEvent")]
+	[Event(name="asyncError", type="events.KuzurisErrorEvent")]
 	[Event(name="loungeConnectFailed", type="events.KuzurisErrorEvent")]
 	[Event(name="roomConnectFailed", type="events.KuzurisErrorEvent")]
+	[Event(name="NET_STATUS", type="flash.events..NetStatusEvent")]
 	public class NetworkManager extends EventDispatcher
 	{
-		private const CirrusAddress:String = "rtmfp://p2p.rtmfp.net";
+		private const CirrusAddress:String = "rtmfp://p2p.rtmfp.net/";
 		private const DeveloperKey:String = "89a898b4b7869bbd1232dabe-41cb09d77e52";
+		private var _isConnected:Boolean;
 		private var netConnection:NetConnection;
 		private var _loungeGroup:NetworkGroupManager;
 		private var _roomGroup:NetworkGroupManager;
-		private var selfControlStream:NetStream;
-		private var controlStream:Vector.<RemoteGameControl>;
-		private var _roomGroupSpecifier:String;
+		private var selfControl:NetworkSelfControl;
+		private var controlStream:Vector.<NetworkRemoteControl>;
 		
 		public function NetworkManager()
 		{
-			netConnection = new NetConnection();
-			controlStream = new Vector.<RemoteGameControl>(8);
+			controlStream = new Vector.<NetworkRemoteControl>(8);
 		}
 		
 		public function connect():void
 		{
+			netConnection = new NetConnection();
+			netConnection.maxPeerConnections = 1024;
 			netConnection.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
 			netConnection.addEventListener(IOErrorEvent.IO_ERROR, ioErrorLintener);
-			netConnection.connect(CirrusAddress, DeveloperKey);
+			netConnection.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
+			netConnection.connect(CirrusAddress + DeveloperKey);
 		}
 		
 		public function disconnect():void
 		{
-			netConnection.close();
+			disconnectRoomGroup();
+			if (_loungeGroup != null)
+			{
+				_loungeGroup.dispose();
+				_loungeGroup = null;
+			}
+			if (netConnection != null)
+			{
+				netConnection.close();
+				netConnection = null;
+			}
 		}
 		
 		private function connectLoungeGroup():void
 		{
 			var specifier:GroupSpecifier = new GroupSpecifier("lounge");
+			specifier.ipMulticastMemberUpdatesEnabled = true;
+			specifier.multicastEnabled = true;
 			specifier.postingEnabled = true;
 			specifier.routingEnabled = true;
 			specifier.serverChannelEnabled = true;
-			_loungeGroup = new NetworkGroupManager(netConnection, specifier.toString());
+			specifier.objectReplicationEnabled = true;
+			_loungeGroup = new NetworkGroupManager(this, specifier.toString());
 		}
 		
 		public function createRoomGroup():void
 		{
 			var specifier:GroupSpecifier = new GroupSpecifier("room");
+			specifier.ipMulticastMemberUpdatesEnabled = true;
+			specifier.multicastEnabled = true;
 			specifier.postingEnabled = true;
 			specifier.routingEnabled = true;
 			specifier.serverChannelEnabled = true;
+			specifier.objectReplicationEnabled = true;
 			specifier.makeUnique();
 			connectRoomGroup(specifier.toString());
 		}
 		
 		public function connectRoomGroup(specifier:String):void
 		{
-			_roomGroupSpecifier = specifier;
-			_roomGroup = new NetworkGroupManager(netConnection, _roomGroupSpecifier);
-			selfControlStream = new NetStream(netConnection, NetStream.DIRECT_CONNECTIONS);
-			selfControlStream.dataReliable = false;
-			selfControlStream.publish(selfPeerID, _roomGroupSpecifier);
+			if (_roomGroup != null) return;
+			_roomGroup = new NetworkGroupManager(this, specifier);
+			selfControl = new NetworkSelfControl(this);
 		}
 		
 		public function disconnectRoomGroup():void
@@ -80,49 +99,63 @@ package model
 				controlStream[i].dispose();
 				controlStream[i] = null;
 			}
-			selfControlStream.dispose();
-			selfControlStream = null;
-			_roomGroup.dispose();
-			_roomGroup = null;
+			if (selfControl != null)
+			{
+				selfControl.dispose();
+				selfControl = null;
+			}
+			if (_roomGroup != null)
+			{
+				_roomGroup.dispose();
+				_roomGroup = null;
+			}
 		}
 		
-		public function getRemoteGameControl(index:int, peerID:String):RemoteGameControl
+		public function getSelfGameControl(control:GameControl):NetworkSelfControl
 		{
+			selfControl.setControl(control);
+			return selfControl;
+		}
+		
+		public function getRemoteGameControl(index:int, peerID:String):NetworkRemoteControl
+		{
+			if (_roomGroup == null) return null;
 			if (controlStream[index] == null)
 			{
-				controlStream[index] = new RemoteGameControl(netConnection, peerID);
+				controlStream[index] = new NetworkRemoteControl(this, selfControl, peerID);
 			}
 			else if (controlStream[index].peerID != peerID)
 			{
 				controlStream[index].dispose();
-				controlStream[index] = new RemoteGameControl(netConnection, peerID);
+				controlStream[index] = new NetworkRemoteControl(this, selfControl, peerID);
 			}
 			return controlStream[index];
 		}
 		
-		public function sendSync():void
+		public function createNetGroup(specifier:String):NetGroup
 		{
-			selfControlStream.send(RemoteGameControl.gameSyncHandlerName);
+			return new NetGroup(netConnection, specifier);
 		}
 		
-		public function sendSyncReply():void
+		public function createNetStream(peerID:String):NetStream
 		{
-			selfControlStream.send(RemoteGameControl.gameSyncReplyHandlerName);
+			return new NetStream(netConnection, peerID);
 		}
 		
-		public function sendReady(playerIndex:int, setting:GameSetting, seed:XorShift128, delay:int):void
+		public function get isConnected():Boolean
 		{
-			selfControlStream.send(RemoteGameControl.networkGameReadyHandlerName, playerIndex, setting, seed, delay);
-		}
-		
-		public function sendCommand(command:GameCommand):void
-		{
-			selfControlStream.send(RemoteGameControl.gameCommnadHandlerName, command);
+			return _isConnected;
 		}
 		
 		public function get selfPeerID():String
 		{
+			if (!isConnected) return null;
 			return netConnection.nearID;
+		}
+		
+		public function get unconnectedPeerStreams():Array
+		{
+			return netConnection.unconnectedPeerStreams;
 		}
 		
 		public function get loungeGroup():NetworkGroupManager
@@ -137,11 +170,12 @@ package model
 		
 		public function get roomGroupSpecifier():String
 		{
-			return _roomGroupSpecifier;
+			return _roomGroup.specifier;
 		}
 		
 		private function netConnectionListener(e:NetStatusEvent):void
 		{
+			trace(e.info.code, selfPeerID);
 			switch (e.info.code)
 			{
 				case "NetConnection.Connect.AppShutdown":
@@ -157,74 +191,62 @@ package model
 					dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.loungeConnectFailed, "P2P接続が拒否されました。\nP2P接続を許可して下さい。"));
 					break;
 				case "NetConnection.Connect.Closed":
-					trace("NetConnection.Connect.Closed");
+					_isConnected = false;
 					dispatchEvent(new KuzurisEvent(KuzurisEvent.connectClosed));
 					break;
 				case "NetConnection.Connect.IdleTimeout":
-					trace("NetConnection.Connect.IdleTimeout");
 					dispatchEvent(new KuzurisEvent(KuzurisEvent.connectIdleTimeout));
 					break;
 				case "NetConnection.Connect.NetworkChange":
-					trace("NetConnection.Connect.NetworkChange");
 					break;
 				case "NetConnection.Connect.Success":
+					_isConnected = true;
 					connectLoungeGroup();
 					break;
 				case "NetGroup.Connect.Failed":
-					if (e.info.group == _loungeGroup.getNetGroup())
+					if (_loungeGroup.containGroup(e.info.group))
 					{
 						dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.loungeConnectFailed, "ラウンジに接続できませんでした。\nしばらくしてから再度接続して下さい。"));
 					}
-					else if (e.info.group == _roomGroup.getNetGroup())
+					else if (_roomGroup.containGroup(e.info.group))
 					{
 						dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.roomConnectFailed, "ルームに接続できませんでした。"));
 					}
 					break;
 				case "NetGroup.Connect.Rejected":
-					if (e.info.group == _loungeGroup.getNetGroup())
+					if (_loungeGroup.containGroup(e.info.group))
 					{
 						dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.loungeConnectFailed, "ラウンジへの接続が拒否されました。\nお手数ですが、製作者にお問い合わせ下さい。"));
 					}
-					else if (e.info.group == _roomGroup.getNetGroup())
+					else if (_roomGroup.containGroup(e.info.group))
 					{
 						dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.roomConnectFailed, "ルームへの接続が拒否されました。"));
 					}
 					break;
 				case "NetGroup.Connect.Success":
-					if (e.info.group == _loungeGroup.getNetGroup())
+					if (_loungeGroup.containGroup(e.info.group))
 					{
 						dispatchEvent(new KuzurisEvent(KuzurisEvent.loungeConnectSuccess));
 					}
-					else if (e.info.group == _roomGroup.getNetGroup())
+					else if (_roomGroup.containGroup(e.info.group))
 					{
 						dispatchEvent(new KuzurisEvent(KuzurisEvent.roomConnectSuccess));
 					}
 					break;
-				case "NetStream.Connect.Closed":
-					trace("NetStream.Connect.Closed");
-					if (e.info.stream != selfControlStream) return;
-					if (netConnection != null)
-					{
-						selfControlStream.attach(netConnection);
-						selfControlStream.publish(selfPeerID, _roomGroupSpecifier);
-					}
-					break;
-				case "NetStream.Connect.Failed":
-					trace("NetStream.Connect.Failed");
-					break;
-				case "NetStream.Connect.Rejected":
-					trace("NetStream.Connect.Rejected");
-					break;
-				case "NetStream.Connect.Success":
-					trace("NetStream.Connect.Success");
-					break;
 			}
+			dispatchEvent(e);
+		}
+		
+		private function asyncErrorListener(e:AsyncErrorEvent):void
+		{
+			trace(e.text, e.error, e.errorID);
+			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorLintener(e:IOErrorEvent):void
 		{
+			trace(e.text, e.errorID);
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.ioError, "インターネット接続にエラーがあります。\n接続状況を確認してから再度接続して下さい。\n\n" + e.text));
 		}
-	
 	}
 }

@@ -1,5 +1,4 @@
-package model 
-{
+package model.network {
 	/**
 	 * ...
 	 * @author B_head

@@ -11,7 +11,7 @@ package model
 	[Event(name="preMaterializationNotice", type="event.ObstacleEvent")]
 	public class ObstacleManager extends EventDispatcher
 	{
-		public var notice:int;
+		private var notice:int;
 		private var noticeSave:Vector.<Object>;
 		private var additionSequence:Vector.<uint>;
 		private var materializationSequence:Vector.<uint>;
@@ -24,6 +24,11 @@ package model
 			noticeSave = new Vector.<Object>();
 			additionSequence = new Vector.<uint>(9);
 			materializationSequence = new Vector.<uint>(9);
+		}
+		
+		public function getNoticeCount():int
+		{
+			return notice;
 		}
 		
 		public function getNoticeSaveCount():int
@@ -104,21 +109,44 @@ package model
 			return null;
 		}
 		
-		public function counterbalance(count:int):void
+		public function counterbalance(count:int):int
 		{
-			var ncb:int = Math.min(count, notice);
-			count -= ncb;
+			var ret:int =  Math.min(count, getNoticeCount() + getNoticeSaveCount());
+			var rest:int = ret;
+			var ncb:int = Math.min(rest, notice);
+			rest -= ncb;
 			notice -= ncb;
-			while (count > 0 && noticeSave.length > 0)
+			while (rest > 0 && noticeSave.length > 0)
 			{
-				var nscb:int = Math.min(count, noticeSave[0].count);
-				count -= nscb;
+				var nscb:int = Math.min(rest, noticeSave[0].count);
+				rest -= nscb;
 				noticeSave[0].count -= nscb;
 				if (noticeSave[0].count <= 0) noticeSave.shift();
 			}
+			return ret;
 		}
 		
-		public function trialAddition(gameTime:int, setting:GameSetting):void
+		public function takeNotice(max:int):int
+		{
+			var ret:int = Math.min(max, notice);
+			notice -= ret;
+			return ret;
+		}
+		
+		public function noticeAddition(gameTime:int, setting:GameSetting):void
+		{
+			trialAddition(gameTime, setting);
+			for (var i:int = 0; i < noticeSave.length; i++)
+			{
+				if (noticeSave[i].preMaterialization == false) continue;
+				if (gameTime >= noticeSave[i].lastAddition + setting.obstacleSaveTime)
+				{
+					materializationNotice(gameTime, noticeSave[i].key);
+				}
+			}
+		}
+		
+		private function trialAddition(gameTime:int, setting:GameSetting):void
 		{
 			if (trialLastAddition == 0)
 			{
@@ -131,14 +159,6 @@ package model
 				addObstacle(gameTime, trialKey, setting.obstacleAdditionCount);
 				preMaterializationNotice(gameTime, trialKey);
 				trialLastAddition = gameTime;
-			}
-			for (var i:int = 0; i < noticeSave.length; i++)
-			{
-				if (noticeSave[i].preMaterialization == false) continue;
-				if (gameTime >= noticeSave[i].lastAddition + setting.obstacleSaveTime)
-				{
-					materializationNotice(gameTime, noticeSave[i].key);
-				}
 			}
 		}
 	}

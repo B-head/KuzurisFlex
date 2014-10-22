@@ -1,16 +1,19 @@
 package model 
 {
+	import flash.utils.IDataInput;
+	import flash.utils.IDataOutput;
+	import flash.utils.IExternalizable;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public class BlockField 
+	public class BlockField implements IExternalizable
 	{
 		protected var value:Vector.<Vector.<BlockState>>;
 		protected var _width:int;
 		protected var _height:int;
 		
-		public function BlockField(w:int, h:int)
+		public function BlockField(w:int = 0, h:int = 0)
 		{
 			value = generateValue(w, h);
 			_width = w;
@@ -75,6 +78,31 @@ package model
 					to.value[x][y] = value[x][y];
 				}
 			}
+		}
+		
+		public function hash():uint
+		{
+			var ret:uint = 0;
+			var s:int = 0;
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					var v:BlockState = value[x][y];
+					var t:uint = v == null ? 0 : v.hash();
+					if (s == 0)
+					{
+						ret ^= t;
+					}
+					else
+					{
+						ret ^= t << s;
+						ret ^= t >>> s;
+					}
+					s++;
+				}
+			}
+			return ret;
 		}
 		
 		public function fix(from:BlockField, rx:int, ry:int):void
@@ -150,7 +178,6 @@ package model
 		{
 			var result:Number = 0;
 			var hitPoint:Number = value[x][y].hitPoint;
-			var v:BlockState = value[x][y];
 			if (hitPoint <= damage) 
 			{ 
 				result = hitPoint; 
@@ -161,7 +188,9 @@ package model
 				result = damage;
 				hitPoint -= damage;
 			}
-			value[x][y] = new BlockState(hitPoint, v.color, v.specialUnion);
+			var v:BlockState = value[x][y].clone();
+			v.hitPoint = hitPoint;
+			value[x][y] = v;
 			return result;
 		}
 		
@@ -200,6 +229,49 @@ package model
 				}
 			}
 			return rect;
+		}
+		
+		public function writeExternal(output:IDataOutput):void 
+		{
+			output.writeInt(_width);
+			output.writeInt(_height);
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					if (value[x][y] == null)
+					{
+						output.writeBoolean(false);
+					}
+					else
+					{
+						output.writeBoolean(true);
+						value[x][y].writeExternal(output);
+					}
+				}
+			}
+		}
+		
+		public function readExternal(input:IDataInput):void 
+		{
+			_width = input.readInt();
+			_height = input.readInt();
+			for (var x:int = 0; x < _width; x++)
+			{
+				for (var y:int = 0; y < _height; y++)
+				{
+					var b:Boolean = input.readBoolean();
+					if (b)
+					{
+						value[x][y] = null;
+					}
+					else
+					{
+						value[x][y] = new BlockState();
+						value[x][y].readExternal(input);
+					}
+				}
+			}
 		}
 	}
 }

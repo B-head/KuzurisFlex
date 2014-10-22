@@ -22,7 +22,7 @@
 			<s:ItemRenderer autoDrawBackground="false">
 				<s:Button label="参加" width="100%" height="100%" visible="{data == null}" buttonDown="outerDocument.enterBattle(itemIndex)" />
 				<s:BorderContainer width="100%" height="100%" visible="{data != null}">
-					<s:Label verticalCenter="0" horizontalCenter="0" text="{data.name}" />
+					<s:Label verticalCenter="0" horizontalCenter="0" text="{data.getName()}" />
 				</s:BorderContainer>
 			</s:ItemRenderer>
 		</fx:Component>

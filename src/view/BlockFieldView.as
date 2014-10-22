@@ -60,7 +60,7 @@ package view
 						temp.visible = false;
 						continue;
 					}
-					var graphicIndex:int = Math.ceil(field.getHitPoint(x, y));
+					var graphicIndex:int = Math.min(10, Math.ceil(field.getHitPoint(x, y)));
 					graphicIndex = Math.max(graphicIndex, 0);
 					graphicIndex = Math.min(graphicIndex, blockGraphics.blockLength - 1);
 					var color:uint = field.getColor(x, y);

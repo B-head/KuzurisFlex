@@ -11,23 +11,30 @@
 			import flash.events.*;
 			import flash.utils.*;
 			import model.*;
+			import model.network.*;
 			import mx.events.*;
 			
+			[Bindable]
 			private var networkManager:NetworkManager;
 			[Bindable]
 			private var roomManager:RoomManager;
-			private var playerIndex:int;
 			
 			private function init():void
 			{
 				networkManager = new NetworkManager();
-				networkManager.addEventListener(KuzurisEvent.connectClosed, function(e:KuzurisEvent):void { dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack)); } );
+				networkManager.addEventListener(KuzurisEvent.connectClosed, disconnectedListener);
 				networkManager.addEventListener(KuzurisEvent.connectIdleTimeout, connectIdleTimeoutListener);
 				networkManager.addEventListener(KuzurisEvent.loungeConnectSuccess, loungeConnectSuccessListener);
 				networkManager.addEventListener(KuzurisErrorEvent.ioError, loungeConnectErrorListener);
 				networkManager.addEventListener(KuzurisErrorEvent.loungeConnectFailed, loungeConnectErrorListener);
 				networkManager.connect();
 				currentState = "loungeConnecting";
+			}
+			
+			private function close():void
+			{
+				networkManager.disconnect();
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack));
 			}
 			
 			private function loungeConnectSuccessListener(e:KuzurisEvent):void
@@ -37,6 +44,12 @@
 				roomManager.addEventListener(KuzurisErrorEvent.differPassword, roomConnectErrorListener);
 				roomManager.addEventListener(KuzurisErrorEvent.roomConnectFailed, roomConnectErrorListener);
 				currentState = "selectRoom";
+			}
+			
+			private function disconnectedListener(e:KuzurisEvent):void
+			{
+				stateText.text = "ネットワークから切断されました。";
+				currentState = "closeing";
 			}
 			
 			private function connectIdleTimeoutListener(e:KuzurisEvent):void
@@ -59,24 +72,28 @@
 			
 			private function createRoom():void
 			{
+				currentState = "roomConnecting";
 				var name:String = roomName.text;
 				if (name == "") name = roomName.prompt;
 				var multi:Boolean = multiType.selectedIndex == 0;
-				roomManager.createRoom(name, multi, "");
-				currentState = roomManager.currentRoom.multi ? "multi" : "duel";
+				roomManager.createRoom(name, false, multi);
+			}
+			
+			public function quickEnterRoom(multi:Boolean):void
+			{
+				currentState = "roomConnecting";
+				roomManager.quickEnterRoom(multi);
 			}
 			
 			public function enterRoom(roomIndex:int, playerIndex:int = -1):void
 			{
-				var room:RoomInformation = roomManager.rooms.getItemAt(roomIndex) as RoomInformation;
-				roomManager.selfEnterRoom(room, "");
-				this.playerIndex = playerIndex;
 				currentState = "roomConnecting";
+				var room:RoomInformation = roomManager.rooms.getItemAt(roomIndex) as RoomInformation;
+				roomManager.selfEnterRoom(room, playerIndex);
 			}
 			
 			private function roomConnectSuccessListener(e:KuzurisEvent):void
 			{
-				if (playerIndex >= 0) roomManager.selfEnterBattle(playerIndex);
 				currentState = roomManager.currentRoom.multi ? "multi" : "duel";
 			}
 			
@@ -110,13 +127,13 @@
 			<s:VerticalLayout verticalAlign="middle" horizontalAlign="center" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4"/>
 		</s:layout>
 		<s:HGroup verticalAlign="justify">
-			<s:Button styleName="start" label="おまかせ8人部屋"/>
-			<s:Button styleName="start" label="おまかせ2人部屋"/>
+			<s:Button styleName="start" label="おまかせ6人部屋" buttonDown="quickEnterRoom(true)" />
+			<s:Button styleName="start" label="おまかせ2人部屋" buttonDown="quickEnterRoom(false)"/>
 			<s:TileGroup requestedRowCount="2" requestedColumnCount="2" orientation="columns">
 				<s:Button label="ルーム作成" buttonDown="currentState='createRoom'" />
 				<s:Button label="対戦履歴" buttonDown="currentState='battleLog'" enabled="false" />
 				<s:Button label="キーコンフィグ" buttonDown="currentState='keyConfig'" />
-				<s:Button styleName="back" label="おわる" buttonDown="networkManager.disconnect()" />
+				<s:Button styleName="back" label="おわる" buttonDown="close()" />
 			</s:TileGroup>
 		</s:HGroup>
 		<s:DataGroup width="800" height="350" dataProvider="{roomManager.rooms}">
@@ -137,10 +154,10 @@
 		<s:Label text="ルーム設定"/>
 		<s:HGroup verticalAlign="middle">
 			<s:Label text="ルーム名"/>
-			<s:TextInput id="roomName" widthInChars="20" maxChars="20" prompt="{roomManager.makeDefaultName()}" />
+			<s:TextInput id="roomName" widthInChars="20" maxChars="20" prompt="{roomManager.makeDefaultName(false)}" />
 		</s:HGroup>
-		<s:ButtonBar id="multiType" width="200" requireSelection="true" selectedIndex="1">  
-			<mx:ArrayCollection source="['8人部屋', '2人部屋']"/>
+		<s:ButtonBar id="multiType" width="200" requireSelection="true" selectedIndex="0">  
+			<mx:ArrayCollection source="['6人部屋', '2人部屋']"/>
 		</s:ButtonBar>
 		<s:HGroup>
 			<s:Button label="作成" width="100" buttonDown="createRoom()" />
@@ -148,13 +165,13 @@
 		</s:HGroup>
 	</s:BorderContainer>
 	<v:KeyConfig includeIn="keyConfig" verticalCenter="0" horizontalCenter="0" input="{roomManager.selfInput}" navigateBack="currentState = 'selectRoom'"/>
-	<v:NetworkDuel includeIn="duel" itemDestructionPolicy="auto" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
-	<v:NetworkMulti includeIn="multi" itemDestructionPolicy="auto" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
+	<v:NetworkDuel includeIn="duel" itemDestructionPolicy="auto" networkManager="{networkManager}" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
+	<v:NetworkMulti includeIn="multi" itemDestructionPolicy="auto" networkManager="{networkManager}" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
 	<s:BorderContainer includeIn="state" verticalCenter="0" horizontalCenter="0">
 		<s:layout>
 			<s:VerticalLayout verticalAlign="middle" horizontalAlign="center" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4"/>
 		</s:layout>
 		<s:Label id="stateText" text.loungeConnecting="ラウンジに接続中…" text.roomConnecting="ルームに接続中…" />
-		<s:Button includeIn="ok" label="OK" buttonDown.closeing="networkManager.disconnect()" buttonDown.error="currentState = 'selectRoom'" />
+		<s:Button includeIn="ok" label="OK" buttonDown.closeing="close()" buttonDown.error="currentState = 'selectRoom'" />
 	</s:BorderContainer>
 </s:Group>

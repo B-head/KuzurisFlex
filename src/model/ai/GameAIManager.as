@@ -40,7 +40,7 @@ package model.ai {
 			setAILevel(20);
 		}
 		
-		public static function createDefaultAIManager():GameAIManager
+		public static function createDefaultAI():GameAIManager
 		{
 			return new GameAIManager(new GreedyAI);
 		}
@@ -66,6 +66,10 @@ package model.ai {
 			{
 				separateDelay = true;
 				appendDelay -= 6;
+			}
+			else
+			{
+				separateDelay = false;
 			}
 			if (appendDelay >= 8)
 			{
@@ -158,9 +162,17 @@ package model.ai {
 			{
 				ai.consider();
 				var choices:Vector.<AppraiseTree> = ai.getChoices(notice);
-				var index:int = Math.random() * choices.length;
-				targetWay = choices[index].way;
-				verge = choices[index].fr.verge;
+				if (choices.length > 0)
+				{
+					var index:int = Math.random() * choices.length;
+					targetWay = choices[index].way;
+					verge = choices[index].fr.verge;
+				}
+				else
+				{
+					targetWay = new ControlWay();
+					verge = false;
+				}
 			}
 			if (currentWay.dir == targetWay.dir && currentWay.lx == targetWay.lx && currentWay.shift == targetWay.shift)
 			{

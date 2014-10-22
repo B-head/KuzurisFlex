@@ -5,6 +5,8 @@
 	<fx:Script>
 		<![CDATA[
 			import events.*;
+			import flash.display.*;
+			import flash.media.*;
 			import flash.net.*;
 			import flash.ui.*;
 			import model.*;
@@ -12,14 +14,23 @@
 			import net.hires.debug.*;
 			import spark.core.*;
 			
+			public static var blockGraphics:BlockGraphics;
+			public static var breakLineGraphics:BreakLineGraphics;
+			
 			public var pause:Vector.<uint>;
 			private var stats:SpriteVisualElement;
 			
 			private function applicationCompleteListener():void
 			{
 				SharedObjectHelper.init();
+				stage.quality = StageQuality.BEST;
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
+				var st:SoundTransform = SoundMixer.soundTransform
+				st.volume = 0.5;
+				SoundMixer.soundTransform = st;
+				blockGraphics = new BlockGraphics();
+				breakLineGraphics = new BreakLineGraphics();
 				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE]
 			}
 			
@@ -86,7 +97,8 @@
 	<s:Group includeIn="title">
 		<s:BorderContainer width="300" x="100" y="200">
 			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4"/>
+				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4"
+								  paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label styleName="sub-title" text="壊リスの偽物" />
 			<s:Label styleName="main-title" text="崩リス" />
@@ -112,19 +124,26 @@
 		</s:VGroup>
 		<s:VGroup includeIn="preTrial" height="380" x="454" y="50" verticalAlign="middle"
 				  horizontalAlign="center">
-			<s:Button styleName="title-menu" width="300" label="{GameSetting.modeToText(GameSetting.axelSpeed)}"
+			<s:Button styleName="title-menu" width="300"
+					  label="{GameSetting.modeToText(GameSetting.axelSpeed)}"
 					  buttonDown="decideTlial(GameSetting.axelSpeed)" />
-			<s:Button styleName="title-menu" width="300" label="{GameSetting.modeToText(GameSetting.obstacleAttack)}"
+			<s:Button styleName="title-menu" width="300"
+					  label="{GameSetting.modeToText(GameSetting.obstacleAttack)}"
 					  buttonDown="decideTlial(GameSetting.obstacleAttack)" />
-			<s:Button styleName="title-menu" width="300" label="{GameSetting.modeToText(GameSetting.polyOmino)}"
+			<s:Button styleName="title-menu" width="300"
+					  label="{GameSetting.modeToText(GameSetting.polyOmino)}"
 					  buttonDown="decideTlial(GameSetting.polyOmino)" enabled="false" />
-			<s:Button styleName="title-menu hard-mode" width="300" label="{GameSetting.modeToText(GameSetting.overSpeed)}"
+			<s:Button styleName="title-menu hard-mode" width="300"
+					  label="{GameSetting.modeToText(GameSetting.overSpeed)}"
 					  buttonDown="decideTlial(GameSetting.overSpeed)" />
-			<s:Button styleName="title-menu hard-mode" width="300" label="{GameSetting.modeToText(GameSetting.obstacleFight)}"
+			<s:Button styleName="title-menu hard-mode" width="300"
+					  label="{GameSetting.modeToText(GameSetting.obstacleFight)}"
 					  buttonDown="decideTlial(GameSetting.obstacleFight)" />
-			<s:Button styleName="title-menu hard-mode" width="300" label="{GameSetting.modeToText(GameSetting.bigOmino)}"
+			<s:Button styleName="title-menu hard-mode" width="300"
+					  label="{GameSetting.modeToText(GameSetting.bigOmino)}"
 					  buttonDown="decideTlial(GameSetting.bigOmino)" enabled="false" />
-			<s:Button styleName="title-menu" width="300" label="{GameSetting.modeToText(GameSetting.free)}"
+			<s:Button styleName="title-menu" width="300"
+					  label="{GameSetting.modeToText(GameSetting.free)}"
 					  buttonDown="decideTlial(GameSetting.free)" />
 			<s:Button styleName="title-menu back" width="200" label="もどる"
 					  buttonDown="currentState = 'top'" />
@@ -135,5 +154,5 @@
 	<v:Battle id="battle" includeIn="battle" itemDestructionPolicy="auto"
 			  navigateBack="currentState = 'top'" />
 	<v:NetworkLounge id="network" includeIn="network" itemDestructionPolicy="auto"
-			  navigateBack="currentState = 'top'" />
+					 navigateBack="currentState = 'top'" />
 </s:Application>

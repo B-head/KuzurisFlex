@@ -80,7 +80,7 @@
 			setFocus();
 		}
 		
-		private function pauseListener(e:Event):void
+		private function pauseListener(e:KuzurisEvent):void
 		{
 			if (currentState == "pause")
 			{
@@ -131,6 +131,10 @@
 	</s:states>
 
 	<v:GameView id="main" x="227" y="24" battle="false" playerIndex="0" gameManager="{manager}" />
+	<v:DetailedRecordView id="recordView" includeIn="result" x="0" y="0" width="223" height="480" battle="false" />
+	<v:ResultRankingView includeIn="result" x="631" y="0" width="223" height="480" gameMode="{mode}" endless="{endless.selected}" />
+	<v:RankingViewer includeIn="ranking" x="24" y="24" gameMode="{mode}" endless="{endless.selected}" navigateBack="currentState = 'prepare'" requestReplay="requestReplayListener(event)" />
+	<v:KeyConfig includeIn="keyConfig" x="227" y="88" input="{input as UserInput}" navigateBack="currentState = 'prepare'"/>
 	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Label text="{GameSetting.modeToText(mode)}" />
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()"/>
@@ -151,8 +155,4 @@
 		<s:Button width="100" label="リプレイ" buttonDown="replayStart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
-	<v:DetailedRecordView id="recordView" includeIn="result" x="0" y="0" width="223" height="480" battle="false" />
-	<v:ResultRankingView includeIn="result" x="631" y="0" width="223" height="480" gameMode="{mode}" endless="{endless.selected}" />
-	<v:RankingViewer includeIn="ranking" x="24" y="24" gameMode="{mode}" endless="{endless.selected}" navigateBack="currentState = 'prepare'" requestReplay="requestReplayListener(event)" />
-	<v:KeyConfig includeIn="keyConfig" x="227" y="88" input="{input as UserInput}" navigateBack="currentState = 'prepare'"/>
 </s:Group>

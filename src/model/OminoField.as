@@ -13,7 +13,7 @@ package model
 		public static const ominoQuantity:Vector.<int> = new <int>[0, 1, 1, 2, 7, 18, 60, 196, 704, 2500, 9189];
 		private static var blockSet:ByteArray = new blockSetAsset();
 		
-		public function OminoField(s:int) 
+		public function OminoField(s:int = 0) 
 		{
 			super(s, s);
 		}
@@ -114,14 +114,14 @@ package model
 			return ret;
 		}
 		
-		public function allSetState(hitPoint:Number, color:uint, specialUnion:Boolean):void
+		public function allSetState(type:uint, color:uint, hitPoint:Number, specialUnion:Boolean):void
 		{
 			for (var x:int = 0; x < _width; x++)
 			{
 				for (var y:int = 0; y < _height; y++)
 				{
 					if (value[x][y] == null) continue;
-					value[x][y] = new BlockState(hitPoint, color, specialUnion);
+					value[x][y] = new BlockState(type, color, hitPoint, specialUnion);
 				}
 			}
 		}

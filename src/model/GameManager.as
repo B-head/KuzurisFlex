@@ -2,8 +2,9 @@ package model
 {
 	import events.*;
 	import flash.events.*;
-	import flash.utils.getTimer;
+	import flash.utils.*;
 	import model.ai.*;
+	import model.network.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -49,6 +50,11 @@ package model
 			return replayMode;
 		}
 		
+		public function isGameOver(index:int):Boolean
+		{
+			return gameModel[index].isGameOver;
+		}
+		
 		public function setPlayer(index:int, control:GameControl):void
 		{
 			this.control[index] = control;
@@ -71,6 +77,11 @@ package model
 			var ret:GameRecord = gameModel[index].record;
 			ret.replay = replay[index];
 			return ret;
+		}
+		
+		public function getRank(index:int):int
+		{
+			return 0;
 		}
 		
 		public function initialize():void
@@ -165,19 +176,26 @@ package model
 		
 		private function forwardGame():void
 		{
+			var limitTime:int = getMinGameTime() + 120;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				if (control[i] == null) continue;
-				forwordGamePert(i);
-				if (control[i] is RemoteGameControl)
+				forwordGamePert(i, limitTime);
+				if (control[i] is NetworkRemoteControl)
 				{
-					forwordGamePert(i);
+					forwordGamePert(i, limitTime);
 				}
 			}
 		}
 		
-		private function forwordGamePert(index:int):void
+		private function forwordGamePert(index:int, limitTime:int):void
 		{
+			if (control[index] == null) return;
+			if (gameModel[index].record.gameTime >= limitTime)
+			{
+				control[index].enable = false;
+				return;
+			}
+			control[index].enable = true;
 			var command:GameCommand = control[index].issueGameCommand();
 			if (command == null) return;
 			if (replay[index] != null)
@@ -191,6 +209,32 @@ package model
 		{
 			prevFrameCount = getTimer() * 60 / 1000;
 			if (delay) prevFrameCount -= 60;
+		}
+		
+		private function getMinGameTime():int
+		{
+			var ret:int = int.MAX_VALUE;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				if (control[i] == null) continue;
+				if (gameModel[i].isGameOver) continue;
+				ret = Math.min(ret, gameModel[i].record.gameTime);
+			}
+			return ret;
+		}
+		
+		protected function checkGameEnd():void
+		{
+			var count:int = 0;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				if (control[i] == null || gameModel[i].isGameOver) count++;
+			}
+			if (count >= maxPlayer - 1)
+			{
+				endGame();
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
+			}
 		}
 		
 		public function frameConstructedListener():void
@@ -218,16 +262,7 @@ package model
 		
 		private function GameEndListener(e:GameEvent):void
 		{
-			var count:int = 0;
-			for (var i:int = 0; i < maxPlayer; i++)
-			{
-				if (gameModel[i].isGameOver) count++;
-			}
-			if (count >= maxPlayer - 1)
-			{
-				endGame();
-				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
-			}
+			checkGameEnd();
 		}
 		
 		private function createOccurObstacleListener(self:int):Function

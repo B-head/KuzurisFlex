@@ -28,7 +28,7 @@
     <option locale="ja_JP" />
     <option loadConfig="" />
     <option optimize="True" />
-    <option omitTraces="True" />
+    <option omitTraces="False" />
     <option showActionScriptWarnings="True" />
     <option showBindingWarnings="True" />
     <option showInvalidCSS="True" />

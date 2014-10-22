@@ -86,6 +86,11 @@ package model
 			return gameMode == obstacleAttack || gameMode == obstacleFight;
 		}
 		
+		public function isTowerAddition():Boolean
+		{
+			return gameMode == axelSpeed || gameMode == overSpeed;
+		}
+		
 		public function isGameClear(level:int):Boolean
 		{
 			return !endless && level >= (startLevel + gameClearLevel);
@@ -128,7 +133,6 @@ package model
 		public function setLevelParameter(level:int):void
 		{
 			if (level > 20) level = 20;
-			hitPointMax = 10;
 			setSpeed(level);
 			setObstacleAddition(level);
 			setQuantityOdds(level);
@@ -158,7 +162,6 @@ package model
 			{
 				ret = high + (low - high) * (Math.pow(u, 1 - l) - 1) / (u - 1);
 			}
-			//trace(ret);
 			return ret;
 		}
 		
@@ -205,7 +208,7 @@ package model
 				obstacleInterval = 0;
 				obstacleAdditionCount = 0;
 			}
-			obstacleSaveTime = 60;
+			obstacleSaveTime = 120;
 		}
 		
 		private function setQuantityOdds(level:int):void
@@ -243,6 +246,7 @@ package model
 				bigOminoCountMax = 0;
 				bigOminoCountAddition = 0;
 			}
+			hitPointMax = 10;
 		}
 	}
 }
