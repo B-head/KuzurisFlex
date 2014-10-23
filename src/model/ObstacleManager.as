@@ -1,165 +1,127 @@
 package model 
 {
+	import events.GameEvent;
 	import events.ObstacleEvent;
 	import flash.events.EventDispatcher;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	[Event(name="addObstacle", type="event.ObstacleEvent")]
-	[Event(name="materializationNotice", type="event.ObstacleEvent")]
-	[Event(name="preMaterializationNotice", type="event.ObstacleEvent")]
+	[Event(name="updateObstacle", type="events.GameEvent")]
+	[Event(name="enabledObstacle", type="events.GameEvent")]
 	public class ObstacleManager extends EventDispatcher
 	{
-		private var notice:int;
-		private var noticeSave:Vector.<Object>;
-		private var additionSequence:Vector.<uint>;
-		private var materializationSequence:Vector.<uint>;
+		private var setting:GameSetting;
+		private var records:Vector.<ObstacleRecord>;
+		private var outsideManager:Vector.<ObstacleManager>;
 		private var trialLastAddition:int;
-		
-		private const trialKey:String = "trial";
+		private var trialSequence:int;
+		private var decisionSequence:int;
+		private var outsideEnabledSequence:Vector.<int>;
 		
 		public function ObstacleManager()
 		{
-			noticeSave = new Vector.<Object>();
-			additionSequence = new Vector.<uint>(9);
-			materializationSequence = new Vector.<uint>(9);
+			records = new Vector.<ObstacleRecord>();
+			outsideManager = new Vector.<ObstacleManager>();
+			outsideDecisionSequence = new Vector.<int>();
 		}
 		
-		public function getNoticeCount():int
+		public function get noticeCount():int
 		{
-			return notice;
+			
 		}
 		
-		public function getNoticeSaveCount():int
+		public function get noticeSaveCount():int
 		{
-			var ret:int;
-			for (var i:int = 0; i < noticeSave.length; i++)
-			{
-				var n:Object = noticeSave[i];
-				if (n == null) continue;
-				ret += n.count;
-			}
-			return ret;
+			
 		}
 		
-		public function getNextObstacleTime(gameTime:int, setting:GameSetting):int
+		public function getNextTrialObstacleTime(gameTime:int):int
 		{
 			return (trialLastAddition + setting.obstacleInterval) - gameTime;
 		}
 		
-		public function addObstacleAt(gameTime:int, index:int , count:int):void
+		public function setSetting(setting:GameSetting):void
 		{
-			var seqKey:String = String(index) + "@" + String(additionSequence[index]);
-			addObstacle(gameTime, seqKey, count);
+			this.setting = setting;
 		}
 		
-		public function addObstacle(gameTime:int, key:String, count:int):void
+		public function appendOutsideManager(manager:ObstacleManager):void
 		{
-			var ns:Object = findKey(key);
-			if (ns == null)
+			outsideManager.push(manager);
+		}
+		
+		public function checkEnabledObstacle(enabledObstacle:Vector.<Boolean>):void
+		{
+			for (var i:int = 0; i < enabledObstacle.length; i++)
 			{
-				ns = { key:key, count:count, preMaterialization:false };
-				noticeSave.push(ns);
-			}
-			else
-			{
-				ns.count += count;
-			}
-			dispatchEvent(new ObstacleEvent(ObstacleEvent.addObstacle, gameTime, 0, count));
-		}
-		
-		public function breakConboNotice(gameTime:int, index:int):void
-		{
-			additionSequence[index]++;
-			dispatchEvent(new ObstacleEvent(ObstacleEvent.breakConboNotice, gameTime, 0, 0));
-		}
-		
-		public function preMaterializationNoticeAt(gameTime:int, index:int):void
-		{
-			var seqKey:String = String(index) + "@" + String(materializationSequence[index]++);
-			preMaterializationNotice(gameTime, seqKey);
-		}
-		
-		public function preMaterializationNotice(gameTime:int, key:String):void
-		{
-			var ns:Object = findKey(key);
-			if (ns == null) return;
-			ns.lastAddition = gameTime;
-			ns.preMaterialization = true;
-			dispatchEvent(new ObstacleEvent(ObstacleEvent.preMaterializationNotice, gameTime, 0, ns.count));
-		}
-		
-		public function materializationNotice(gameTime:int, key:String):void
-		{
-			var ns:Object = findKey(key);
-			if (ns == null) return;
-			notice += ns.count;
-			dispatchEvent(new ObstacleEvent(ObstacleEvent.materializationNotice, gameTime, 0, ns.count));
-			var i:int = noticeSave.indexOf(ns);
-			noticeSave.splice(i, 1);
-		}
-		
-		private function findKey(key:String):Object
-		{
-			for (var i:int = 0; i < noticeSave.length; i++)
-			{
-				if (noticeSave[i].key == key) return noticeSave[i];
-			}
-			return null;
-		}
-		
-		public function counterbalance(count:int):int
-		{
-			var ret:int =  Math.min(count, getNoticeCount() + getNoticeSaveCount());
-			var rest:int = ret;
-			var ncb:int = Math.min(rest, notice);
-			rest -= ncb;
-			notice -= ncb;
-			while (rest > 0 && noticeSave.length > 0)
-			{
-				var nscb:int = Math.min(rest, noticeSave[0].count);
-				rest -= nscb;
-				noticeSave[0].count -= nscb;
-				if (noticeSave[0].count <= 0) noticeSave.shift();
-			}
-			return ret;
-		}
-		
-		public function takeNotice(max:int):int
-		{
-			var ret:int = Math.min(max, notice);
-			notice -= ret;
-			return ret;
-		}
-		
-		public function noticeAddition(gameTime:int, setting:GameSetting):void
-		{
-			trialAddition(gameTime, setting);
-			for (var i:int = 0; i < noticeSave.length; i++)
-			{
-				if (noticeSave[i].preMaterialization == false) continue;
-				if (gameTime >= noticeSave[i].lastAddition + setting.obstacleSaveTime)
-				{
-					materializationNotice(gameTime, noticeSave[i].key);
-				}
+				if (!enabledObstacle[i]) continue;
+				outsideEnabledSequence[i]++;
 			}
 		}
 		
-		private function trialAddition(gameTime:int, setting:GameSetting):void
+		private function appendRecord(type:int, count:int, gameTime:int, sequence:int = 0):void
+		{
+			records.push(new ObstacleRecord(type, count, gameTime, sequence));
+			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
+		}
+		
+		public function occurObstacle(comboCount:int):void
+		{
+			var count:int = setting.getOccurObstacleCount(comboCount);
+			appendRecord(ObstacleRecord.occur, count, gameTime, decisionSequence);
+		}
+		
+		public function receivedNotice(gameTime:int):int
+		{
+			var count:int = Math.min(setting.getReceiveObstacleCount(), notice);
+			appendRecord(ObstacleRecord.received, count, gameTime);
+			return count;
+		}
+		
+		public function noticeAddition(gameTime:int):void
+		{
+			trialAddition(gameTime);
+			enableObstacle(gameTime);
+		}
+		
+		private function trialAddition(gameTime:int):void
 		{
 			if (trialLastAddition == 0)
 			{
-				addObstacle(gameTime, trialKey, setting.obstacleAdditionCount);
-				materializationNotice(gameTime, trialKey);
+				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, int.MIN_VALUE, int.MIN_VALUE);
 				trialLastAddition = gameTime;
 			}
-			if (gameTime >= trialLastAddition + setting.obstacleInterval)
+			if (getNextTrialObstacleTime(gameTime) == 0)
 			{
-				addObstacle(gameTime, trialKey, setting.obstacleAdditionCount);
-				preMaterializationNotice(gameTime, trialKey);
+				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, gameTime, trialSequence++);
 				trialLastAddition = gameTime;
 			}
+		}
+		
+		private function enableObstacle(gameTime:int):void
+		{
+			
+		}
+	}
+	
+	internal class ObstacleRecord
+	{
+		public static const occur:int = 0;
+		public static const received:int = 1;
+		public static const trialObstacle:int = 2;
+		
+		public var type:int;
+		public var count:int;
+		public var gameTime:int;
+		public var sequence:int;
+		
+		public function ObstacleRecord(type:int = 0, count:int = 0, gameTime:int = 0, sequence:int = 0)
+		{
+			this.type = type;
+			this.count = count;
+			this.gameTime = gameTime;
+			this.sequence = sequence;
 		}
 	}
 }

@@ -18,10 +18,9 @@ package model
 		public static const free:String = "free";
 		public static const battle:String = "battle";
 		
-		private const levelUpCoefficient:int = 4000;
-		private const levelTimeCoefficient:int = 6000;
-		private const breakLineCoefficient:int = 1000;
-		private const occurObstacleCoefficient:int = 5;
+		public const levelUpCoefficient:int = 4000;
+		public const levelTimeCoefficient:int = 6000;
+		public const breakLineCoefficient:int = 1000;
 		
 		public var version:uint = alpha1;
 		public var gameMode:String = battle;
@@ -30,19 +29,26 @@ package model
 		public var levelClearLine:int = int.MIN_VALUE;
 		public var gameClearLevel:int = 20;
 		
+		public const hitPointMax:Number = 10;
 		public var naturalFallSpeed:Number;
 		public var fastFallSpeed:Number;
 		public var fallAcceleration:Number;
 		public var playTime:int;
-		public var playFastTime:int;
+		public const playFastTime:int = 15;
 		
-		public var hitPointMax:Number;
 		public var quantityOddsBasis:Vector.<int>;
 		public var bigOminoCountMax:int;
 		public var bigOminoCountAddition:Number;
-		public var obstacleSaveTime:int;
+		
+		public const obstacleSaveTime:int = 120;
 		public var obstacleInterval:int;
 		public var obstacleAdditionCount:Number;
+		public const occurObstacleCoefficient:int = 5;
+		public const obstacleLineMax:int = 20;
+		public const obstacleLineBlockMax:int = 5;
+		public const towerLineBlockMax:int = 6;
+		public const obstacleColor1:uint = Color.lightgray;
+		public const obstacleColor2:uint = Color.gray;
 		
 		public static function modeToText(mode:String):String
 		{
@@ -125,9 +131,14 @@ package model
 			return comboCount * comboCount * breakLineCoefficient;
 		}
 		
-		public function occurObstacle(comboCount:int):int
+		public function getOccurObstacleCount(comboCount:int):int
 		{
 			return (comboCount + 1) * occurObstacleCoefficient;
+		}
+		
+		public function getReceiveObstacleCount():int
+		{
+			return obstacleLineMax * obstacleLineBlockMax;
 		}
 		
 		public function setLevelParameter(level:int):void
@@ -188,7 +199,6 @@ package model
 				fallAcceleration = 10 / 400;
 				playTime = 60;
 			}
-			playFastTime = 15;
 		}
 		
 		private function setObstacleAddition(level:int):void
@@ -208,7 +218,6 @@ package model
 				obstacleInterval = 0;
 				obstacleAdditionCount = 0;
 			}
-			obstacleSaveTime = 120;
 		}
 		
 		private function setQuantityOdds(level:int):void
@@ -246,7 +255,6 @@ package model
 				bigOminoCountMax = 0;
 				bigOminoCountAddition = 0;
 			}
-			hitPointMax = 10;
 		}
 	}
 }

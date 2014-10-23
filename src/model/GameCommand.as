@@ -26,11 +26,11 @@ package model
 		public var falling:int;
 		public var fix:Boolean;
 		public var noDamege:Boolean;
-		public var materialization:Vector.<Boolean>;
+		public var enabledObstacle:Vector.<Boolean>;
 		
-		public function GameCommand(materialization:Vector.<Boolean> = null)
+		public function GameCommand(enabledObstacle:Vector.<Boolean> = null)
 		{
-			this.materialization = materialization;
+			this.enabledObstacle = enabledObstacle;
 		}
 		
 		public function writeExternal(output:IDataOutput):void 
@@ -48,7 +48,7 @@ package model
 			for (var i:int = 0; i < materializationLength; i++)
 			{
 				value <<= booleanShift;
-				value |= uint(materialization[i]) & booleanMask;
+				value |= uint(enabledObstacle[i]) & booleanMask;
 			}
 			output.writeShort(value);
 		}
@@ -56,10 +56,10 @@ package model
 		public function readExternal(input:IDataInput):void 
 		{
 			var value:uint = input.readUnsignedShort();
-			materialization = new Vector.<Boolean>(materializationLength);
+			enabledObstacle = new Vector.<Boolean>(materializationLength);
 			for (var i:int = materializationLength - 1; i >= 0; i--)
 			{
-				materialization[i] = Boolean(value & booleanMask);
+				enabledObstacle[i] = Boolean(value & booleanMask);
 				value >>>= booleanShift;
 			}
 			noDamege = Boolean(value & booleanMask);

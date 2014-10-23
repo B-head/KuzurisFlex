@@ -1,10 +1,7 @@
 package model 
 {
 	import events.*;
-	import flash.utils.IDataInput;
-	import flash.utils.IDataOutput;
-	import flash.utils.IExternalizable;
-	import model.ai.FragmentGameModel;
+	import flash.utils.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -14,10 +11,13 @@ package model
 	[Event(name="updateControl", type="events.GameEvent")]
 	[Event(name="updateNext", type="events.GameEvent")]
 	[Event(name="firstUpdateNext", type="events.GameEvent")]
+	[Event(name="updateObstacle", type="events.GameEvent")]
 	[Event(name="gameOver", type="events.GameEvent")]
 	[Event(name="gameClear", type="events.GameEvent")]
 	[Event(name="breakConbo", type="events.GameEvent")]
 	[Event(name="extractFall", type="events.GameEvent")]
+	[Event(name="obstacleFall", type="events.GameEvent")]
+	[Event(name="appendTower", type="events.GameEvent")]
 	[Event(name="fixOmino", type="events.ControlEvent")]
 	[Event(name="setOmino", type="events.ControlEvent")]
 	[Event(name="moveOK", type="events.ControlEvent")]
@@ -38,36 +38,34 @@ package model
 	[Event(name="breakLine", type="events.BreakLineEvent")]
 	[Event(name="sectionBreakLine", type="events.BreakLineEvent")]
 	[Event(name="totalBreakLine", type="events.BreakLineEvent")]
-	[Event(name="addObstacle", type="events.ObstacleEvent")]
-	[Event(name="materializationNotice", type="events.ObstacleEvent")]
-	[Event(name="preMaterializationNotice", type="events.ObstacleEvent")]
-	[Event(name="occurObstacle", type="events.ObstacleEvent")]
-	[Event(name="counterbalanceObstacle", type="events.ObstacleEvent")]
-	[Event(name="obstacleFall", type="events.ObstacleEvent")]
 	public class GameModel extends GameModelBase implements IExternalizable
 	{
 		private var setting:GameSetting;
 		private var _record:GameRecord;
-		private var obstacleManager:ObstacleManager;
+		private var _obstacleManager:ObstacleManager;
 		private var nextPRNG:XorShift128;
 		private var bigNextPRNG:XorShift128;
 		private var obstaclePRNG:XorShift128;
 		
 		private var _isGameOver:Boolean;
 		private var controlPhase:Boolean;
-		private var controlFalling:Boolean;
-		private var lastMoveDir:int;
-		private var firstShock:Boolean;
-		private var _shockSave:Boolean;
-		private var useShockSave:Boolean;
 		private var completedObstacle:Boolean;
 		private var completedTower:Boolean;
 		private var appendTowerCount:int;
+		
+		private var _cox:Number = 0;
+		private var _coy:Number = 0;
+		private var _ffy:Number = 0;
 		
 		private var fallSpeed:Number = 0;
 		private var startFall:Number = 0;
 		private var playRest:int;
 		private var playLimit:int;
+		private var controlFalling:Boolean;
+		private var lastMoveDir:int;
+		private var firstShock:Boolean;
+		private var _shockSave:Boolean;
+		private var useShockSave:Boolean;
 		
 		private var comboCount:int;
 		private var totalDamage:Number = 0;
@@ -77,24 +75,16 @@ package model
 		private var ominoOdds:Vector.<Vector.<Boolean>>;
 		private var bigOminoCount:Number = 0;
 		
-		private var _cox:Number = 0;
-		private var _coy:Number = 0;
-		private var _ffy:Number = 0;
-		
-		private const obstacleLineMax:int = 5;
-		private const obstacleColor1:uint = Color.lightgray;
-		private const obstacleColor2:uint = Color.gray;
-		
 		public function GameModel() 
 		{
 			super(true);
 			_record = new GameRecord();
 			setting = new GameSetting();
 			_isGameOver = true;
-			obstacleManager = new ObstacleManager();
-			obstacleManager.addEventListener(ObstacleEvent.addObstacle, function(e:ObstacleEvent):void { dispatchEvent(e); });
-			obstacleManager.addEventListener(ObstacleEvent.preMaterializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
-			obstacleManager.addEventListener(ObstacleEvent.materializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
+			_obstacleManager = new ObstacleManager();
+			_obstacleManager.addEventListener(ObstacleEvent.addObstacle, function(e:ObstacleEvent):void { dispatchEvent(e); });
+			_obstacleManager.addEventListener(ObstacleEvent.preMaterializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
+			_obstacleManager.addEventListener(ObstacleEvent.materializationNotice, function(e:ObstacleEvent):void { dispatchEvent(e); });
 		}
 		
 		[Bindable(event="forwardGame")]
@@ -109,24 +99,6 @@ package model
 		}
 		
 		[Bindable(event="forwardGame")]
-		public function get cox():Number 
-		{
-			return _cox;
-		}
-		
-		[Bindable(event="forwardGame")]
-		public function get coy():Number 
-		{
-			return _coy;
-		}
-		
-		[Bindable(event="forwardGame")]
-		public function get ffy():Number 
-		{
-			return _ffy;
-		}
-		
-		[Bindable(event="forwardGame")]
 		public function get rfvy():Number
 		{
 			var rect:Rect = _mainField.getRect();
@@ -134,89 +106,28 @@ package model
 		}
 		
 		[Bindable(event="forwardGame")]
-		public function get shockSave():Boolean 
-		{
-			return _shockSave;
-		}
+		public function get cox():Number { return _cox; }
 		
 		[Bindable(event="forwardGame")]
-		public function get isGameOver():Boolean
-		{
-			return _isGameOver;
-		}
+		public function get coy():Number { return _coy; }
 		
 		[Bindable(event="forwardGame")]
-		public function get isObstacleAddition():Boolean
-		{
-			return setting.isObstacleAddition();
-		}
+		public function get ffy():Number { return _ffy; }
 		
 		[Bindable(event="forwardGame")]
-		public function get record():GameRecord
-		{
-			return _record;
-		}
+		public function get shockSave():Boolean { return _shockSave; }
 		
 		[Bindable(event="forwardGame")]
-		public function get obstacleNotice():int
-		{
-			return obstacleManager.getNoticeCount();
-		}
+		public function get isGameOver():Boolean { return _isGameOver; }
 		
 		[Bindable(event="forwardGame")]
-		public function get obstacleNoticeSave():int
-		{
-			return obstacleManager.getNoticeSaveCount();
-		}
+		public function get isObstacleAddition():Boolean { return setting.isObstacleAddition(); }
 		
 		[Bindable(event="forwardGame")]
-		public function get nextObstacleTime():int
-		{
-			return obstacleManager.getNextObstacleTime(_record.gameTime, setting);
-		}
+		public function get record():GameRecord { return _record; }
 		
-		public function getLightModel():FragmentGameModel
-		{
-			var result:FragmentGameModel = new FragmentGameModel();
-			result.mainField = _mainField.clone();
-			result.fallField = _fallField.clone();
-			result.controlOmino = _controlOmino.clone();
-			result.nextOmino = new Vector.<OminoField>(nextLength, true);
-			for (var i:int = 0; i < nextLength; i++)
-			{
-				result.nextOmino[i] = _nextOmino[i].clone();
-			}
-			return result;
-		}
-		
-		public function getMainField():MainField
-		{
-			if (_mainField == null) return null;
-			return _mainField.clone();
-		}
-		
-		public function getFallField():MainField
-		{
-			if (_fallField == null) return null;
-			return _fallField.clone();
-		}
-		
-		public function getControlOmino():OminoField
-		{
-			if (_controlOmino == null) return null;
-			return _controlOmino.clone();
-		}
-		
-		public function getNextOmino():Vector.<OminoField>
-		{
-			var ret:Vector.<OminoField> = new Vector.<OminoField>(nextLength, true);
-			for (var i:int = 0; i < nextLength; i++)
-			{
-				if (_nextOmino[i] == null) continue;
-				ret[i] = _nextOmino[i].clone();
-			}
-			return ret;
-		}
+		[Bindable(event="forwardGame")]
+		public function get obstacleManager():ObstacleManager { return _obstacleManager; }
 		
 		public function hash():uint
 		{
@@ -229,6 +140,7 @@ package model
 			_record = new GameRecord();
 			_record.level = setting.startLevel;
 			this.setting.setLevelParameter(_record.level);
+			_obstacleManager.setSetting(setting);
 			_isGameOver = false;
 			nextPRNG = seed.clone();
 			bigNextPRNG = seed.clone();
@@ -254,8 +166,7 @@ package model
 		{
 			if (_isGameOver || setting == null) return;
 			_record.gameTime++;
-			materializationNotice(command.materialization);
-			obstacleManager.noticeAddition(_record.gameTime, setting);
+			_obstacleManager.noticeAddition(_record.gameTime, setting);
 			if (appendTowerCount > 0)
 			{
 				appendTowerBlocks();
@@ -271,6 +182,7 @@ package model
 				_record.controlTime++;
 				forwardControl(command);
 			}
+			_obstacleManager.checkEnabledObstacle(command.enabledObstacle);
 			dispatchEvent(new GameEvent(GameEvent.forwardGame, _record.gameTime, 0));
 		}
 		
@@ -308,13 +220,13 @@ package model
 			_record.blockDamage += totalDamage;
 			comboCount = 0;
 			totalDamage = 0;
-			if (!completedObstacle && obstacleManager.getNoticeCount() > 0)
+			if (!completedObstacle && _obstacleManager.getNoticeCount() > 0)
 			{
-				var oc:int = appendObstacleBlocks();
+				appendObstacleBlocks();
 				fallSpeed = setting.fastFallSpeed;
 				completedObstacle = true;
 				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
-				dispatchEvent(new ObstacleEvent(ObstacleEvent.obstacleFall, _record.gameTime, 0, oc));
+				dispatchEvent(new GameEvent(GameEvent.obstacleFall, _record.gameTime, 0));
 				_record.receivedObstacle += oc;
 				return;
 			}
@@ -324,7 +236,7 @@ package model
 				if (appendTowerCount > 0)
 				{
 					completedTower = true;
-					dispatchEvent(new ObstacleEvent(ObstacleEvent.appendTower, _record.gameTime, 0, appendTowerCount * 6));
+					dispatchEvent(new GameEvent(GameEvent.appendTower, _record.gameTime, 0));
 					return;
 				}
 			}
@@ -376,25 +288,6 @@ package model
 			}
 		}
 		
-		public function addObstacle(player:int, count:int):void
-		{
-			obstacleManager.addObstacleAt(_record.gameTime, player, count);
-		}
-		
-		public function breakConboNotice(player:int):void
-		{
-			obstacleManager.breakConboNotice(_record.gameTime, player);
-		}
-		
-		private function materializationNotice(materialization:Vector.<Boolean>):void
-		{
-			for (var i:int = 0; i < materialization.length; i++)
-			{
-				if (!materialization[i]) continue;
-				obstacleManager.preMaterializationNoticeAt(_record.gameTime, i);
-			}
-		}
-		
 		override protected function onBreakLine(y:int, colors:Vector.<uint>):void 
 		{
 			_record.breakLine++;
@@ -404,9 +297,9 @@ package model
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, comboCount, y, colors));
 			if (setting.gameMode == GameSetting.battle)
 			{
-				var obs:int = setting.occurObstacle(comboCount);
+				var obs:int = setting.getOccurObstacleCount(comboCount);
 				_record.occurObstacle += obs;
-				var cb:int = obstacleManager.counterbalance(obs);
+				var cb:int = _obstacleManager.counterbalance(obs);
 				if (cb > 0)
 				{
 					obs -= cb;
@@ -752,31 +645,29 @@ package model
 			return OminoField.readOmino(q, o, ominoSize);
 		}
 		
-		private function appendObstacleBlocks():int
+		private function appendObstacleBlocks():void
 		{
-			var ret:int = obstacleManager.takeNotice(100);
-			var rest:int = ret;
+			var rest:int = obstacleManager.receivedNotice(_record.gameTime);
 			for (var y:int = fieldHeight / 2 - 1; y >= 0 && rest > 0; y--)
 			{
-				if (rest < obstacleLineMax)
+				if (rest < setting.obstacleLineBlockMax)
 				{
-					_fallField.setObstacleLine(y, rest, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+					_fallField.setObstacleLine(y, rest, setting.hitPointMax, setting.obstacleColor1, obstaclePRNG);
 					rest = 0;
 				}
 				else
 				{
-					_fallField.setObstacleLine(y, obstacleLineMax, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+					_fallField.setObstacleLine(y, setting.obstacleLineBlockMax, setting.hitPointMax, setting.obstacleColor1, obstaclePRNG);
 					rest -= obstacleLineMax;
 				}
 			}
-			return ret;
 		}
 		
 		private function appendTowerBlocks():void
 		{
 			var y:int = GameModelBase.fieldHeight - 1;
 			_mainField.shiftUp(y);
-			_mainField.setObstacleLine(y, 6, setting.hitPointMax, obstacleColor1, obstaclePRNG);
+			_mainField.setObstacleLine(y, setting.towerLineBlockMax, setting.hitPointMax, obstacleColor1, obstaclePRNG);
 		}
 		
 		public function writeExternal(output:IDataOutput):void 
@@ -785,31 +676,38 @@ package model
 			output.writeObject(_fallField);
 			output.writeObject(_controlOmino);
 			output.writeObject(_nextOmino);
+			
 			output.writeObject(setting);
 			output.writeObject(_record);
-			output.writeObject(obstacleManager);
+			output.writeObject(_obstacleManager);
 			output.writeObject(nextPRNG);
 			output.writeObject(bigNextPRNG);
 			output.writeObject(obstaclePRNG);
+			
 			output.writeBoolean(_isGameOver);
 			output.writeBoolean(controlPhase);
+			output.writeBoolean(completedObstacle);
+			output.writeBoolean(completedTower);
+			output.writeInt(appendTowerCount);
+			
+			output.writeDouble(_cox);
+			output.writeDouble(_coy);
+			output.writeDouble(_ffy);
+			
+			output.writeDouble(fallSpeed);
+			output.writeDouble(startFall);
+			output.writeInt(playRest);
+			output.writeInt(playLimit);
 			output.writeBoolean(controlFalling);
 			output.writeInt(lastMoveDir);
 			output.writeBoolean(firstShock);
 			output.writeBoolean(_shockSave);
 			output.writeBoolean(useShockSave);
-			output.writeBoolean(completedObstacle);
-			output.writeBoolean(completedTower);
-			output.writeInt(appendTowerCount);
-			output.writeDouble(_cox);
-			output.writeDouble(_coy);
-			output.writeDouble(_ffy);
-			output.writeDouble(fallSpeed);
-			output.writeDouble(startFall);
-			output.writeInt(playRest);
+			
 			output.writeInt(comboCount);
 			output.writeDouble(totalDamage);
 			output.writeInt(levelStartTime);
+			
 			output.writeObject(quantityOdds);
 			output.writeObject(ominoOdds);
 			output.writeInt(bigOminoCount);
@@ -821,31 +719,38 @@ package model
 			_fallField = input.readObject();
 			_controlOmino = input.readObject();
 			_nextOmino = input.readObject();
+			
 			setting = input.readObject();
 			_record = input.readObject();
-			obstacleManager = input.readObject();
+			_obstacleManager = input.readObject();
 			nextPRNG = input.readObject();
 			bigNextPRNG = input.readObject();
 			obstaclePRNG = input.readObject();
+			
 			_isGameOver = input.readBoolean();
 			controlPhase = input.readBoolean();
+			completedObstacle = input.readBoolean();
+			completedTower = input.readBoolean();
+			appendTowerCount = input.readInt();
+			
+			_cox = input.readDouble();
+			_coy = input.readDouble();
+			_ffy = input.readDouble();
+			
+			fallSpeed = input.readDouble();
+			startFall = input.readDouble();
+			playRest = input.readInt();
+			playLimit = input.readInt();
 			controlFalling = input.readBoolean();
 			lastMoveDir = input.readInt();
 			firstShock = input.readBoolean();
 			_shockSave = input.readBoolean();
 			useShockSave = input.readBoolean();
-			completedObstacle = input.readBoolean();
-			completedTower = input.readBoolean();
-			appendTowerCount = input.readInt();
-			_cox = input.readDouble();
-			_coy = input.readDouble();
-			_ffy = input.readDouble();
-			fallSpeed = input.readDouble();
-			startFall = input.readDouble();
-			playRest = input.readInt();
+			
 			comboCount = input.readInt();
 			totalDamage = input.readDouble();
 			levelStartTime = input.readInt();
+			
 			quantityOdds = input.readObject();
 			ominoOdds = input.readObject();
 			bigOminoCount = input.readInt();

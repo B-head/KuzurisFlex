@@ -1,6 +1,7 @@
 package model 
 {
 	import flash.events.EventDispatcher;
+	import model.ai.FragmentGameModel;
 	
 	/**
 	 * ...
@@ -34,6 +35,49 @@ package model
 			_mainField = new MainField(fieldWidth, fieldHeight);
 			_fallField = new MainField(fieldWidth, fieldHeight);
 			_nextOmino = new Vector.<OminoField>(nextLength, true);
+		}
+		
+		public function getLightModel():FragmentGameModel
+		{
+			var result:FragmentGameModel = new FragmentGameModel();
+			result.mainField = _mainField.clone();
+			result.fallField = _fallField.clone();
+			result.controlOmino = _controlOmino.clone();
+			result.nextOmino = new Vector.<OminoField>(nextLength, true);
+			for (var i:int = 0; i < nextLength; i++)
+			{
+				result.nextOmino[i] = _nextOmino[i].clone();
+			}
+			return result;
+		}
+		
+		public function getMainField():MainField
+		{
+			if (_mainField == null) return null;
+			return _mainField.clone();
+		}
+		
+		public function getFallField():MainField
+		{
+			if (_fallField == null) return null;
+			return _fallField.clone();
+		}
+		
+		public function getControlOmino():OminoField
+		{
+			if (_controlOmino == null) return null;
+			return _controlOmino.clone();
+		}
+		
+		public function getNextOmino():Vector.<OminoField>
+		{
+			var ret:Vector.<OminoField> = new Vector.<OminoField>(nextLength, true);
+			for (var i:int = 0; i < nextLength; i++)
+			{
+				if (_nextOmino[i] == null) continue;
+				ret[i] = _nextOmino[i].clone();
+			}
+			return ret;
 		}
 		
 		protected function onBreakLine(y:int, colors:Vector.<uint>):void
