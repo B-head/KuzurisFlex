@@ -12,7 +12,7 @@ package events {
 		public static const connectFailed:String = "connectFailed";
 		public static const loungeConnectFailed:String = "loungeConnectFailed";
 		public static const roomConnectFailed:String = "roomConnectFailed";
-		public static const streamDrop:String = "streamDrop";
+		public static const notEqualHash:String = "notEqualHash";
 		public static const differPassword:String = "differPassword";
 		
 		public function KuzurisErrorEvent(type:String, text:String = "") 

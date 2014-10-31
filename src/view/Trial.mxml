@@ -82,13 +82,20 @@
 		
 		private function pauseListener(e:KuzurisEvent):void
 		{
-			if (currentState == "pause")
+			switch(currentState)
 			{
-				resume();
-			}
-			else
-			{
-				pauseing();
+				case "prepare":
+					start();
+					break;
+				case "pause":
+					resume();
+					break;
+				case "hidden":
+					pauseing();
+					break;
+				case "result":
+					prepare();
+					break;
 			}
 		}
 		
@@ -147,11 +154,11 @@
 	</s:VGroup>
 	<s:VGroup includeIn="pause" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button width="100" label="つづける" buttonDown="resume()" />
-		<s:Button styleName="restart" width="100" label="はじめから" buttonDown="restart()" />
+		<s:Button width="100" label="はじめから" buttonDown="restart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>
 	<s:VGroup includeIn="result" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
-		<s:Button styleName="restart" width="100" label="もういちど" buttonDown="restart()" />
+		<s:Button width="100" label="もういちど" buttonDown="restart()" />
 		<s:Button width="100" label="リプレイ" buttonDown="replayStart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
 	</s:VGroup>

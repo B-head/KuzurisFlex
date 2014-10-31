@@ -18,13 +18,16 @@ package events {
 		public static const updateNext:String = "updateNext";
 		public static const firstUpdateNext:String = "firstUpdateNext";
 		public static const updateObstacle:String = "updateObstacle";
+		public static const outsideUpdateObstacle:String = "outsideUpdateObstacle";
 		public static const enabledObstacle:String = "enabledObstacle";
 		public static const gameOver:String = "gameOver";
 		public static const gameClear:String = "gameClear";
-		public static const breakConbo:String = "breakConbo";
+		public static const breakChain:String = "breakChain";
+		public static const breakCombo:String = "breakCombo";
 		public static const extractFall:String = "extractFall";
 		public static const obstacleFall:String = "obstacleFall";
 		public static const appendTower:String = "appendTower";
+		public static const blockAllClear:String = "blockAllClear";
 		
 		public function GameEvent(type:String, gameTime:int, plusScore:int) 
 		{ 

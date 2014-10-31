@@ -98,7 +98,7 @@ package model.network {
 		{
 			if (networkManager == null) return;
 			if (obj == null) obj = new Object();
-			var message:MessageObject = new MessageObject(type, obj, MessageObject.posting, networkManager.selfPeerID);
+			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			netGroup.post(message);
 			if (type != keepAlivePalse && type != "playerUpdate")
 			{
@@ -110,10 +110,37 @@ package model.network {
 		{
 			if (networkManager == null) return;
 			if (obj == null) obj = new Object();
-			var message:MessageObject = new MessageObject(type, obj, MessageObject.toPeer, networkManager.selfPeerID, toPeerID);
+			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID, toPeerID);
 			var groupAddress:String = netGroup.convertPeerIDToGroupAddress(toPeerID);
-			sendNearest(message, groupAddress);
-			trace("sendPeer", message.type, _peerID);
+			var sendResult:String = netGroup.sendToNearest(message, groupAddress);
+			trace("sendPeer", message.type, sendResult, _peerID);
+		}
+		
+		public function sendNeighbors(type:String, obj:Object = null):void
+		{
+			if (networkManager == null) return;
+			if (obj == null) obj = new Object();
+			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
+			var sendResult:String = netGroup.sendToAllNeighbors(message);
+			trace("sendNeighbors", message.type, sendResult, _peerID);
+		}
+		
+		public function sendDecreasing(type:String, obj:Object = null):void
+		{
+			if (networkManager == null) return;
+			if (obj == null) obj = new Object();
+			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
+			var sendResult:String = netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_DECREASING);
+			trace("sendDecreasing", message.type, sendResult, _peerID);
+		}
+		
+		public function sendIncreasing(type:String, obj:Object = null):void
+		{
+			if (networkManager == null) return;
+			if (obj == null) obj = new Object();
+			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
+			var sendResult:String = netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_INCREASING);
+			trace("sendIncreasing", message.type, sendResult, _peerID);
 		}
 		
 		private function postingNotify(message:MessageObject, messageID:String):void
@@ -143,49 +170,14 @@ package model.network {
 		{
 			if (message == null) return;
 			trace("sendToNotify", message.type, _peerID);
-			switch(message.sendMode)
+			if (message.toPeerID != "" && message.toPeerID != networkManager.selfPeerID)
 			{
-				case MessageObject.toPeer:
-					if (fromLocal)
-					{
-						dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
-					}
-					else
-					{
-						var groupAddress:String = netGroup.convertPeerIDToGroupAddress(message.toPeerID);
-						netGroup.sendToNearest(message, groupAddress);
-					}
-					break;
-				case MessageObject.decreasing:
-					dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
-					break;
-				case MessageObject.increasing:
-					dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
-					break;
-				case MessageObject.neighbors:
-					dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
-					break;
+				var groupAddress:String = netGroup.convertPeerIDToGroupAddress(message.toPeerID);
+				var sendResult:String = netGroup.sendToNearest(message, groupAddress);
+				trace("sendRelay", message.type, sendResult, _peerID);
+				return;
 			}
-		}
-		
-		private function sendNeighbors(message:MessageObject):void
-		{
-			netGroup.sendToAllNeighbors(message);
-		}
-		
-		private function sendIncreasing(message:MessageObject):void
-		{
-			netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_INCREASING);
-		}
-		
-		private function sendDecreasing(message:MessageObject):void
-		{
-			netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_DECREASING);
-		}
-		
-		private function sendNearest(message:MessageObject, groupAddress:String):void
-		{
-			netGroup.sendToNearest(message, groupAddress);
+			dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
 		}
 		
 		private function timerListener(e:TimerEvent):void

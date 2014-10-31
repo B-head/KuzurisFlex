@@ -256,12 +256,13 @@ package model
 		{
 			_width = input.readInt();
 			_height = input.readInt();
+			value = generateValue(_width, _height);
 			for (var x:int = 0; x < _width; x++)
 			{
 				for (var y:int = 0; y < _height; y++)
 				{
 					var b:Boolean = input.readBoolean();
-					if (b)
+					if (!b)
 					{
 						value[x][y] = null;
 					}

@@ -6,6 +6,9 @@ package model.ai {
 	 */
 	public class FragmentGameModel extends GameModelBase 
 	{
+		public var comboTotalLine:int;
+		public var comboCount:int;
+		
 		public function FragmentGameModel() 
 		{
 			super(false);
@@ -93,13 +96,17 @@ package model.ai {
 			earthFix(cox, coy, way.shift);
 			do
 			{
-				ret.lossTime += fallingField(0, GameModelBase.fieldHeight - 1);
+				ret.lossTime += fallingField(0, GameModelBase.fieldHeight - 1, false);
 				ret.breakLine += breakLines();
 				extractFallBlocks();
 			}
 			while (_fallField.countBlock() > 0);
 			_mainField.clearSpecialUnion();
 			rotateNext(null);
+			rect = _controlOmino.getRect();
+			cox = init_cox(rect);
+			coy = init_coy(rect);
+			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
 			return ret;
 		}
 		

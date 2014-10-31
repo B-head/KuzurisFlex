@@ -17,15 +17,15 @@ package model.network {
 	{
 		private static const collectRoom:String = "collectRoom";
 		private static const offerRoom:String = "offerRoom";
-		private static const connectRoom:String = "connectRoom";
-		private static const permitRoom:String = "permitRoom";
-		private static const rejectRoom:String = "rejectRoom";
+		private static const requestConnectRoom:String = "requestConnectRoom";
+		private static const permitConnectRoom:String = "permitConnectRoom";
+		private static const rejectConnectRoom:String = "rejectConnectRoom";
 		private static const playerUpdate:String = "playerUpdate";
 		
 		private var networkManager:NetworkManager;
 		private var loungeGroup:NetworkGroupManager;
+		private var timeoutTimer:Timer;
 		private var roomPassword:String;
-		private var playerIndex:int;
 		[Bindable]
 		public var rooms:ArrayCollection;
 		[Bindable]
@@ -35,11 +35,14 @@ package model.network {
 		[Bindable]
 		public var selfInput:UserInput;
 		
+		private const timeoutPeriod:int = 1000;
+		
 		public function RoomManager(networkManager:NetworkManager) 
 		{
 			rooms = new ArrayCollection(new Array());
 			selfPlayerInfo = new PlayerInformation(networkManager.selfPeerID, "", false);
 			selfInput = SharedObjectHelper.input;
+			timeoutTimer = new Timer(timeoutPeriod);
 			this.networkManager = networkManager;
 			networkManager.addEventListener(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
 			networkManager.addEventListener(KuzurisErrorEvent.roomConnectFailed, roomConnectFailedListener);
@@ -86,24 +89,35 @@ package model.network {
 			var room:RoomInformation = new RoomInformation(name, quick, multi);
 			rooms.addItem(room);
 			currentRoom = room;
-			playerIndex = 0;
 			roomPassword = password;
-			dispatchEvent(new KuzurisEvent(KuzurisEvent.roomConnectSuccess));
+			selfConnectedEnterRoom(currentRoom, selfPlayerInfo, 0, 0);
 		}
 		
-		public function selfEnterRoom(room:RoomInformation, index:int, password:String = ""):void
+		public function selfEnterRoom(room:RoomInformation, battleIndex:int, password:String = ""):void
 		{
 			currentRoom = room;
-			playerIndex = index;
-			loungeGroup.post(connectRoom, { room:currentRoom, player:selfPlayerInfo, password:password } );
+			roomPassword = password;
+			var host:PlayerInformation = currentRoom.getHostPlayer();
+			loungeGroup.sendPeer(host.peerID, requestConnectRoom, { room:currentRoom, player:selfPlayerInfo, battleIndex:battleIndex, password:password } );
+			timeoutTimer.reset();
+			timeoutTimer.start();
 		}
 		
-		private function selfConnectedEnterRoom():void
+		private function selfConnectedEnterRoom(room:RoomInformation, player:PlayerInformation, hostPriority:int, battleIndex:int):void
 		{
+			if (currentRoom == null || room.id != currentRoom.id || player.peerID != selfPlayerInfo.peerID)
+			{
+				trace("ignore connected");
+				return;
+			}
+			timeoutTimer.stop();
 			selfPlayerInfo.currentRoomID = currentRoom.id;
-			if (playerIndex >= 0) 
+			selfPlayerInfo.hostPriority = hostPriority;
+			selfPlayerInfo.currentBattleIndex = battleIndex;
+			selfPlayerInfo.winCount = 0;
+			if (battleIndex >= 0) 
 			{	
-				selfEnterBattle(playerIndex);
+				selfEnterBattle(battleIndex);
 			}
 			else
 			{
@@ -111,6 +125,33 @@ package model.network {
 				currentRoom.updatePlayer(selfPlayerInfo);
 				loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
 			}
+		}
+		
+		private function requestConnectReply(room:RoomInformation, player:PlayerInformation, battleIndex:int, password:String):void
+		{
+			if (currentRoom == null || room.id != currentRoom.id || selfPlayerInfo.peerID != currentRoom.getHostPlayer().peerID)
+			{
+				var host:PlayerInformation = currentRoom.getHostPlayer();
+				loungeGroup.sendPeer(host.peerID, requestConnectRoom, { room:currentRoom, player:player, battleIndex:battleIndex, password:password } );
+				trace("relay request connect");
+				return;
+			}
+			if (password != roomPassword)
+			{
+				loungeGroup.sendPeer(player.peerID, rejectConnectRoom, { room:currentRoom } );
+				return;
+			}
+			var hostPriority:int = currentRoom.getNextHostPriority();
+			if (battleIndex >= 0 && currentRoom.entrant.getItemAt(battleIndex) != null)
+			{
+				battleIndex = currentRoom.getEnterableIndex();
+			}
+			player.currentRoomID = currentRoom.id;
+			player.hostPriority = hostPriority;
+			player.currentBattleIndex = battleIndex;
+			selfPlayerInfo.winCount = 0;
+			currentRoom.updatePlayer(player);
+			loungeGroup.sendPeer(player.peerID, permitConnectRoom, { room:currentRoom, player:player, hostPriority:hostPriority, battleIndex:battleIndex, specifier:networkManager.roomGroupSpecifier });
 		}
 		
 		public function selfLeaveRoom():void
@@ -182,24 +223,29 @@ package model.network {
 		
 		private function roomConnectSuccessListener(e:KuzurisEvent):void
 		{
-			selfConnectedEnterRoom();
 			dispatchEvent(e);
 		}
 		
 		private function roomConnectFailedListener(e:KuzurisErrorEvent):void
 		{
-			currentRoom = null;
+			selfLeaveRoom()
 			dispatchEvent(e);
 		}
 		
 		private function connectNeighborListener(e:KuzurisEvent):void
 		{
-			loungeGroup.post(collectRoom, {} );
+			loungeGroup.post(collectRoom);
 		}
 		
 		private function announceClockListener(e:KuzurisEvent):void
 		{
 			loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
+		}
+		
+		private function timeoutListener(e:TimerEvent):void
+		{
+			selfLeaveRoom()
+			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.roomConnectFailed, "ルームへの接続がタイムアウトしました。"));
 		}
 		
 		private function removedUserListener(e:UpdateUserEvent):void
@@ -221,24 +267,22 @@ package model.network {
 			switch (e.message.type)
 			{
 				case collectRoom:
-					if (currentRoom != null) loungeGroup.post(offerRoom, { room:currentRoom } );
+					if (currentRoom != null) loungeGroup.sendPeer(e.message.peerID, offerRoom, { room:currentRoom } );
 					break;
 				case offerRoom:
 					if (temp == null) rooms.addItem(room);
 					break;
-				case connectRoom:
-					if (currentRoom != temp) break;
-					loungeGroup.post(permitRoom, { room:currentRoom, specifier:networkManager.roomGroupSpecifier });
+				case requestConnectRoom:
+					requestConnectReply(e.message.obj.room, e.message.obj.player, e.message.obj.battleIndex, e.message.obj.password);
 					break;
-				case permitRoom:
-					if (currentRoom != temp) break;
+				case permitConnectRoom:
 					dispatchEvent(new KuzurisEvent(KuzurisEvent.agreePassword));
+					selfConnectedEnterRoom(e.message.obj.room, e.message.obj.player, e.message.obj.hostPriority, e.message.obj.battleIndex);
 					networkManager.connectRoomGroup(e.message.obj.specifier);
 					break;
-				case rejectRoom:
-					if (currentRoom != temp) break;
+				case rejectConnectRoom:
 					dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.differPassword, "パスワードが違います。"));
-					currentRoom == null;
+					selfLeaveRoom()
 					break;
 				case playerUpdate:
 					if (temp == null)

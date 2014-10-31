@@ -1,39 +1,104 @@
 package model 
 {
 	import events.GameEvent;
-	import events.ObstacleEvent;
 	import flash.events.EventDispatcher;
+	import flash.utils.IDataInput;
+	import flash.utils.IDataOutput;
+	import flash.utils.IExternalizable;
 	/**
 	 * ...
 	 * @author B_head
 	 */
 	[Event(name="updateObstacle", type="events.GameEvent")]
 	[Event(name="enabledObstacle", type="events.GameEvent")]
-	public class ObstacleManager extends EventDispatcher
+	public class ObstacleManager extends EventDispatcher implements IExternalizable
 	{
 		private var setting:GameSetting;
 		private var records:Vector.<ObstacleRecord>;
 		private var outsideManager:Vector.<ObstacleManager>;
 		private var trialLastAddition:int;
 		private var trialSequence:int;
-		private var decisionSequence:int;
+		private var _decisionSequence:int;
 		private var outsideEnabledSequence:Vector.<int>;
+		private var noticePrintCount:int;
+		private var noticePrintReady:Boolean;
 		
 		public function ObstacleManager()
 		{
 			records = new Vector.<ObstacleRecord>();
-			outsideManager = new Vector.<ObstacleManager>();
-			outsideDecisionSequence = new Vector.<int>();
+			outsideManager = new Vector.<ObstacleManager>(8);
+			outsideEnabledSequence = new Vector.<int>(8);
+		}
+		
+		public function get decisionSequence():int
+		{
+			return _decisionSequence;
 		}
 		
 		public function get noticeCount():int
 		{
-			
+			var self:int = getOccurCount(_decisionSequence, true);
+			var otherMax:int = 0;
+			for (var i:int = 0; i < outsideManager.length; i++)
+			{
+				if (outsideManager[i] == null) continue;
+				if (outsideManager[i] == this) continue;
+				var seq:int = outsideEnabledSequence[i];
+				otherMax = Math.max(otherMax, outsideManager[i].getOccurCount(seq, false));
+			}
+			return Math.max(0, otherMax - self);
 		}
 		
 		public function get noticeSaveCount():int
 		{
-			
+			var self:int = getOccurSaveCount(_decisionSequence, true);
+			var otherMax:int = 0;
+			for (var i:int = 0; i < outsideManager.length; i++)
+			{
+				if (outsideManager[i] == null) continue;
+				if (outsideManager[i] == this) continue;
+				var seq:int = outsideEnabledSequence[i];
+				otherMax = Math.max(otherMax, outsideManager[i].getOccurSaveCount(seq, false));
+			}
+			return Math.max(0, otherMax - self);
+		}
+		
+		public function getOccurCount(sequence:int, self:Boolean):int
+		{
+			var ret:int = 0;
+			for (var i:int = 0; i < records.length; i++)
+			{
+				ret += getNoticeCountAt(i, false, self, sequence);
+			}
+			return ret;
+		}
+		
+		public function getOccurSaveCount(sequence:int, self:Boolean):int
+		{
+			var ret:int = 0;
+			for (var i:int = 0; i < records.length; i++)
+			{
+				ret += getNoticeCountAt(i, true, self, sequence);
+			}
+			return ret;
+		}
+		
+		private function getNoticeCountAt(index:int, save:Boolean, self:Boolean, sequence:int):int
+		{
+			var t:ObstacleRecord = records[index];
+			switch (t.type)
+			{
+				case ObstacleRecord.occur:
+					if (!self && !save && t.sequence >= sequence) return 0;
+					return t.count;
+				case ObstacleRecord.received:
+					return t.count;
+				case ObstacleRecord.trialObstacle:
+					if (!save && t.sequence >= trialSequence) return 0;
+					return -t.count;
+				default:
+					throw new Error();
+			}
 		}
 		
 		public function getNextTrialObstacleTime(gameTime:int):int
@@ -41,48 +106,130 @@ package model
 			return (trialLastAddition + setting.obstacleInterval) - gameTime;
 		}
 		
+		public function getTrialObstacleEnableTime(gameTime:int):int
+		{
+			return (trialLastAddition + setting.obstacleSaveTime) - gameTime;
+		}
+		
+		public function isActiveNotice():Boolean
+		{
+			//return noticeCount > 0;
+			return noticePrintCount > 0;
+		}
+		
+		public function isStandOutsideEnabled():Boolean
+		{
+			if (!noticePrintReady) return false;
+			for (var i:int = 0; i < outsideManager.length; i++)
+			{
+				if (outsideManager[i] == null) continue;
+				if (outsideManager[i].decisionSequence < outsideEnabledSequence[i])
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		
 		public function setSetting(setting:GameSetting):void
 		{
 			this.setting = setting;
 		}
 		
-		public function appendOutsideManager(manager:ObstacleManager):void
+		public function appendOutsideManager(index:int, manager:ObstacleManager):void
 		{
-			outsideManager.push(manager);
+			outsideManager[index] = manager;
+			manager.addEventListener(GameEvent.updateObstacle, outsideUpdateListener);
 		}
 		
-		public function checkEnabledObstacle(enabledObstacle:Vector.<Boolean>):void
+		private function outsideUpdateListener(e:GameEvent):void
 		{
-			for (var i:int = 0; i < enabledObstacle.length; i++)
+			dispatchEvent(new GameEvent(GameEvent.outsideUpdateObstacle, e.gameTime, 0));
+		}
+		
+		public function checkEnabledObstacle(gameTime:int, enabledObstacle:Vector.<Boolean>):void
+		{
+			var isUpdate:Boolean = false;
+			for (var i:int = 0; i < outsideEnabledSequence.length; i++)
 			{
 				if (!enabledObstacle[i]) continue;
 				outsideEnabledSequence[i]++;
+				isUpdate = true;
+			}
+			if (isUpdate)
+			{
+				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
 		}
 		
-		private function appendRecord(type:int, count:int, gameTime:int, sequence:int = 0):void
+		private function appendRecord(type:int, count:int, gameTime:int, sequence:int = 0):ObstacleRecord
 		{
-			records.push(new ObstacleRecord(type, count, gameTime, sequence));
-			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
+			var ret:ObstacleRecord = new ObstacleRecord(type, count, gameTime, sequence);
+			records.push(ret);
+			return ret;
 		}
 		
-		public function occurObstacle(comboCount:int):void
+		public function occurObstacle(gameTime:int, lineCount:int, comboCount:int):int
 		{
-			var count:int = setting.getOccurObstacleCount(comboCount);
-			appendRecord(ObstacleRecord.occur, count, gameTime, decisionSequence);
+			var r:ObstacleRecord = getOccurRecord(gameTime);
+			var count:int = setting.occurObstacleCount(lineCount, comboCount);
+			var ret:int = count - r.count;
+			r.count += ret;
+			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
+			return ret;
+		}
+		
+		public function blockAllClear(gameTime:int):int
+		{
+			var count:int = setting.blockAllClearBonusObstacle;
+			var r:ObstacleRecord = getOccurRecord(gameTime);
+			r.count += count;
+			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
+			return count;
+		}
+		
+		private function getOccurRecord(gameTime:int):ObstacleRecord
+		{
+			for (var i:int = records.length - 1; i >= 0; i--)
+			{
+				if (records[i].type != ObstacleRecord.occur) continue;
+				if (records[i].sequence == _decisionSequence) return records[i];
+				break;
+			}
+			return appendRecord(ObstacleRecord.occur, 0, gameTime, _decisionSequence);
+		}
+		
+		public function noticePrint():void
+		{
+			noticePrintReady = true;
+		}
+		
+		public function breakCombo(gameTime:int):void
+		{
+			_decisionSequence++;
+			dispatchEvent(new GameEvent(GameEvent.enabledObstacle, gameTime, 0));
 		}
 		
 		public function receivedNotice(gameTime:int):int
 		{
-			var count:int = Math.min(setting.getReceiveObstacleCount(), notice);
+			var count:int = Math.min(setting.receiveObstacleCount(), noticePrintCount);
 			appendRecord(ObstacleRecord.received, count, gameTime);
+			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			return count;
 		}
 		
 		public function noticeAddition(gameTime:int):void
 		{
-			trialAddition(gameTime);
-			enableObstacle(gameTime);
+			if (noticePrintReady)
+			{
+				noticePrintReady = false;
+				noticePrintCount = noticeCount;
+				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
+			}
+			if (setting.isObstacleAddition())
+			{
+				trialAddition(gameTime);
+			}
 		}
 		
 		private function trialAddition(gameTime:int):void
@@ -91,37 +238,43 @@ package model
 			{
 				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, int.MIN_VALUE, int.MIN_VALUE);
 				trialLastAddition = gameTime;
+				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
 			if (getNextTrialObstacleTime(gameTime) == 0)
 			{
-				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, gameTime, trialSequence++);
+				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, gameTime, trialSequence);
 				trialLastAddition = gameTime;
+				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
+			}
+			if (getTrialObstacleEnableTime(gameTime) == 0)
+			{
+				trialSequence++;
+				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
 		}
 		
-		private function enableObstacle(gameTime:int):void
+		public function writeExternal(output:IDataOutput):void 
 		{
-			
+			output.writeObject(setting);
+			output.writeObject(records);
+			output.writeInt(trialLastAddition);
+			output.writeInt(trialSequence);
+			output.writeInt(_decisionSequence);
+			output.writeObject(outsideEnabledSequence);
+			output.writeInt(noticePrintCount);
+			output.writeBoolean(noticePrintReady);
 		}
-	}
-	
-	internal class ObstacleRecord
-	{
-		public static const occur:int = 0;
-		public static const received:int = 1;
-		public static const trialObstacle:int = 2;
 		
-		public var type:int;
-		public var count:int;
-		public var gameTime:int;
-		public var sequence:int;
-		
-		public function ObstacleRecord(type:int = 0, count:int = 0, gameTime:int = 0, sequence:int = 0)
+		public function readExternal(input:IDataInput):void 
 		{
-			this.type = type;
-			this.count = count;
-			this.gameTime = gameTime;
-			this.sequence = sequence;
+			setting = input.readObject();
+			records = input.readObject();
+			trialLastAddition = input.readInt();
+			trialSequence = input.readInt();
+			_decisionSequence = input.readInt();
+			outsideEnabledSequence = input.readObject();
+			noticePrintCount = input.readInt();
+			noticePrintReady = input.readBoolean();
 		}
 	}
 }

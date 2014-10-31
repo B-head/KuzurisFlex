@@ -28,6 +28,7 @@
 				networkManager.addEventListener(KuzurisErrorEvent.ioError, loungeConnectErrorListener);
 				networkManager.addEventListener(KuzurisErrorEvent.loungeConnectFailed, loungeConnectErrorListener);
 				networkManager.connect();
+				stateText.text = "ラウンジに接続中…";
 				currentState = "loungeConnecting";
 			}
 			
@@ -67,11 +68,12 @@
 			private function roomConnectErrorListener(e:KuzurisErrorEvent):void
 			{
 				stateText.text = e.text;
-				currentState = "error";
+				currentState = "loungeError";
 			}
 			
 			private function createRoom():void
 			{
+				stateText.text = "ルームに接続中…";
 				currentState = "roomConnecting";
 				var name:String = roomName.text;
 				if (name == "") name = roomName.prompt;
@@ -81,12 +83,14 @@
 			
 			public function quickEnterRoom(multi:Boolean):void
 			{
+				stateText.text = "ルームに接続中…";
 				currentState = "roomConnecting";
 				roomManager.quickEnterRoom(multi);
 			}
 			
 			public function enterRoom(roomIndex:int, playerIndex:int = -1):void
 			{
+				stateText.text = "ルームに接続中…";
 				currentState = "roomConnecting";
 				var room:RoomInformation = roomManager.rooms.getItemAt(roomIndex) as RoomInformation;
 				roomManager.selfEnterRoom(room, playerIndex);
@@ -100,7 +104,8 @@
 			private function leaveRoom():void
 			{
 				roomManager.selfLeaveRoom();
-				currentState = 'selectRoom'
+				currentState = 'selectRoom';
+				parentApplication.bgm.stop();
 			}
 		]]>
 	</fx:Script>
@@ -114,6 +119,7 @@
 		<s:State name="roomConnecting" stateGroups="lounge, state" />
 		<s:State name="closeing" stateGroups="state, ok" />
 		<s:State name="error" stateGroups="state, ok" />
+		<s:State name="loungeError" stateGroups="lounge, state, ok" />
 		<s:State name="selectRoom" stateGroups="lounge" />
 		<s:State name="createRoom" stateGroups="lounge" />
 		<s:State name="battleLog" stateGroups="lounge" />
@@ -171,7 +177,7 @@
 		<s:layout>
 			<s:VerticalLayout verticalAlign="middle" horizontalAlign="center" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4"/>
 		</s:layout>
-		<s:Label id="stateText" text.loungeConnecting="ラウンジに接続中…" text.roomConnecting="ルームに接続中…" />
+		<s:Label id="stateText"/>
 		<s:Button includeIn="ok" label="OK" buttonDown.closeing="close()" buttonDown.error="currentState = 'selectRoom'" />
 	</s:BorderContainer>
 </s:Group>

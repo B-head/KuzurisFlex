@@ -15,13 +15,15 @@ package model
 	[Event(name="gamePause", type="events.KuzurisEvent")]
 	[Event(name="gameResume", type="events.KuzurisEvent")]
 	[Event(name="initializeGameModel", type="events.KuzurisEvent")]
+	[Event(name="playerUpdate", type="events.KuzurisEvent")]
 	public class GameManager extends EventDispatcher
 	{
-		private var maxPlayer:int;
-		private var control:Vector.<GameControl>;
-		private var replay:Vector.<GameReplay>;
-		private var gameModel:Vector.<GameModel>;
-		private var execution:Boolean;
+		protected var maxPlayer:int;
+		protected var playerInfo:Vector.<PlayerInformation>;
+		protected var control:Vector.<GameControl>;
+		protected var gameModel:Vector.<GameModel>;
+		protected var replay:Vector.<GameReplay>;
+		protected var execution:Boolean;
 		private var replayMode:Boolean;
 		private var readyDelay:int;
 		private var prevFrameCount:int;
@@ -29,9 +31,10 @@ package model
 		public function GameManager(maxPlayer:int) 
 		{
 			this.maxPlayer = maxPlayer;
+			playerInfo = new Vector.<PlayerInformation>(maxPlayer);
 			control = new Vector.<GameControl>(maxPlayer);
-			replay = new Vector.<GameReplay>(maxPlayer);
 			gameModel = new Vector.<GameModel>(maxPlayer);
+			replay = new Vector.<GameReplay>(maxPlayer);
 			initialize();
 		}
 		
@@ -55,9 +58,11 @@ package model
 			return gameModel[index].isGameOver;
 		}
 		
-		public function setPlayer(index:int, control:GameControl):void
+		public function setPlayer(index:int, control:GameControl, playerInfo:PlayerInformation = null):void
 		{
 			this.control[index] = control;
+			this.playerInfo[index] = playerInfo;
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
 		}
 		
 		public function setAILevel(index:int, level:int):void
@@ -67,11 +72,13 @@ package model
 			ai.setAILevel(level);
 		}
 		
+		[Bindable(event="initializeGameModel")]
 		public function getGameModel(index:int):GameModel
 		{
 			return gameModel[index];
 		}
 		
+		[Bindable(event="initializeGameModel")]
 		public function getRecord(index:int):GameRecord
 		{
 			var ret:GameRecord = gameModel[index].record;
@@ -79,22 +86,46 @@ package model
 			return ret;
 		}
 		
+		[Bindable(event="gameEnd")]
 		public function getRank(index:int):int
 		{
 			return 0;
+		}
+		
+		[Bindable(event="playerUpdate")]
+		public function getPlayerInfo(index:int):PlayerInformation
+		{
+			return playerInfo[index];
 		}
 		
 		public function initialize():void
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				gameModel[i] = new GameModel();
-				gameModel[i].addEventListener(GameEvent.gameOver, GameEndListener);
-				gameModel[i].addEventListener(GameEvent.gameClear, GameEndListener);
-				gameModel[i].addEventListener(ObstacleEvent.occurObstacle, createOccurObstacleListener(i));
-				gameModel[i].addEventListener(GameEvent.breakConbo, createBreakComboListener(i));
+				registerGameModel(i, new GameModel());
+			}
+			for (i = 0; i < maxPlayer; i++)
+			{
+				appendOutsideManager(i);
 			}
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.initializeGameModel));
+		}
+		
+		protected function registerGameModel(index:int, gm:GameModel):void
+		{
+			gameModel[index] = gm;
+			gameModel[index].addEventListener(GameEvent.gameOver, GameEndListener);
+			gameModel[index].addEventListener(GameEvent.gameClear, GameEndListener);
+			gameModel[index].obstacleManager.addEventListener(GameEvent.enabledObstacle, createOccurObstacleListener(index));
+		}
+		
+		protected function appendOutsideManager(index:int):void
+		{
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				var om:ObstacleManager = gameModel[i].obstacleManager;
+				gameModel[index].obstacleManager.appendOutsideManager(i, om);
+			}
 		}
 		
 		public function startGame(setting:GameSetting = null, seed:XorShift128 = null, delay:int = 120):void
@@ -190,6 +221,8 @@ package model
 		private function forwordGamePert(index:int, limitTime:int):void
 		{
 			if (control[index] == null) return;
+			if (gameModel[index].isGameOver) return;
+			if (gameModel[index].obstacleManager.isStandOutsideEnabled()) return;
 			if (gameModel[index].record.gameTime >= limitTime)
 			{
 				control[index].enable = false;
@@ -223,20 +256,6 @@ package model
 			return ret;
 		}
 		
-		protected function checkGameEnd():void
-		{
-			var count:int = 0;
-			for (var i:int = 0; i < maxPlayer; i++)
-			{
-				if (control[i] == null || gameModel[i].isGameOver) count++;
-			}
-			if (count >= maxPlayer - 1)
-			{
-				endGame();
-				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
-			}
-		}
-		
 		public function frameConstructedListener():void
 		{
 			if (execution == false) return;
@@ -258,36 +277,39 @@ package model
 				}
 				readyDelay--;
 			}
+			checkGameEnd();
+		}
+		
+		protected function checkGameEnd():void
+		{
+			var count:int = 0;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				if (control[i] == null || !control[i].enable) continue;
+				if (gameModel[i].isGameOver) continue;
+				count++;
+			}
+			if (count <= (isBattle() ? 1 : 0))
+			{
+				endGame();
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
+			}
 		}
 		
 		private function GameEndListener(e:GameEvent):void
 		{
-			checkGameEnd();
+			return;
 		}
 		
 		private function createOccurObstacleListener(self:int):Function
-		{
-			return function(e:ObstacleEvent):void
-			{
-				for (var i:int = 0; i < maxPlayer; i++)
-				{
-					if (i == self) continue;
-					if (gameModel[i].isGameOver) continue;
-					gameModel[i].addObstacle(self, e.count);
-				}
-			}
-		}
-		
-		private function createBreakComboListener(self:int):Function
 		{
 			return function(e:GameEvent):void
 			{
 				for (var i:int = 0; i < maxPlayer; i++)
 				{
-					if (control[i] == null) continue;
-					if (i == self) continue;
+					if (control[i] == null) return;
+					if (gameModel[i].isGameOver) continue;
 					control[i].setMaterialization(self);
-					gameModel[i].breakConboNotice(self);
 				}
 			}
 		}

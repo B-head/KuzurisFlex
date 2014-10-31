@@ -29,6 +29,7 @@
 			
 			private function init():void
 			{
+				currentState = "hidden";
 				parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener);
 				chat.init(networkManager.roomGroup, roomManager.selfPlayerInfo);
 				networkGameManager = roomManager.createGameManager();
@@ -36,11 +37,12 @@
 				networkGameManager.addEventListener(KuzurisEvent.gameEnd, endListener);
 				networkGameManager.addEventListener(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
 				networkGameManager.addEventListener(KuzurisEvent.playerUpdate, playerUpdateListener);
+				networkGameManager.addEventListener(KuzurisEvent.completedSyncState, completedSyncStateListener);
 				networkGameManager.initialize();
 				practiceGameManager = new GameManager(1);
 				practiceGameManager.addEventListener(KuzurisEvent.gameStart, startListener);
 				practiceGameManager.addEventListener(KuzurisEvent.gameEnd, practiceEndListener);
-				prepare();
+				networkGameManager.syncState();
 			}
 			
 			private function enterBattle(index:int):void
@@ -81,22 +83,30 @@
 			
 			private function start():void
 			{
-				networkGameManager.gameSync();
+				networkGameManager.syncReady();
 			}
 			
 			private function practiceStart():void
 			{
 				currentState = "practice";
 				practiceGameManager.initialize();
-				practiceGameManager.setPlayer(0, roomManager.selfInput);
+				practiceGameManager.setPlayer(0, roomManager.selfInput, roomManager.selfPlayerInfo);
 				practiceGameManager.startGame();
 				setFocus();
 				isResult = false;
 			}
 			
+			private function completedSyncStateListener(e:KuzurisEvent):void
+			{
+				prepare();
+			}
+			
 			private function networkGameReadyListener(e:NetworkGameReadyEvent):void
 			{
-				currentState = "hidden";
+				if (networkGameManager.isEnter())
+				{
+					currentState = "hidden";
+				}
 				networkGameManager.initialize();
 				networkGameManager.startGame(e.setting, e.seed, e.delay);
 				setFocus();
@@ -121,19 +131,26 @@
 			
 			private function practiceEndListener(e:KuzurisEvent):void
 			{
+				currentState = "hidden";
 				parentApplication.bgm.stop();
 				practiceGameManager.endGame();
-				currentState = "hidden";
 				prepare();
 			}
 		
 			private function pauseListener(e:KuzurisEvent):void
 			{
-				if (currentState != "practice") return;
-				parentApplication.bgm.stop();
-				practiceGameManager.endGame();
-				currentState = "hidden";
-				prepare();
+				switch(currentState)
+				{
+					case "enter":
+						start();
+						break;
+					case "stand":
+						practiceStart();
+						break;
+					case "practice":
+						practiceEndListener(e);
+						break;
+				}
 			}
 			
 			public function playerUpdateListener(e:KuzurisEvent):void
@@ -161,9 +178,9 @@
 		<s:State name="enter" stateGroups="prepare" />
 	</s:states>
 	
-	<v:GameView id="player1" x="18" y="24" battle="true" reverse="false" playerIndex="{isFlip ? 1 : 0}"
+	<v:GameView id="player1" x="{isFlip ? 436 : 18}" y="24" battle="true" reverse="{isFlip}" playerIndex="0"
 		gameManager="{networkGameManager}" visible.practice="{networkGameManager.transFlip(isFlip)}" />
-	<v:GameView id="player2" x="436" y="24" battle="true" reverse="true" playerIndex="{isFlip ? 0 : 1}"
+	<v:GameView id="player2" x="{isFlip ? 18 : 436}" y="24" battle="true" reverse="{!isFlip}" playerIndex="1"
 		gameManager="{networkGameManager}" visible.practice="{!networkGameManager.transFlip(isFlip)}"/>
 	<v:GameView id="practicePlayer" x="{networkGameManager.transFlip(isFlip) ? 436 : 18}" y="24" battle="true" visible="false" visible.practice="true"
 		reverse="{networkGameManager.transFlip(isFlip)}" playerIndex="0" gameManager="{practiceGameManager}"/>
@@ -187,9 +204,9 @@
 		<s:Button styleName="back" width="100" label="退室" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" visible="false" visible.watch="true" />
 	</s:VGroup>
 	<s:VGroup x="143" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
-		<s:Button includeIn="watch" label="参加" buttonDown="enterBattle(0)" visible="{networkGameManager.isIndexEmpty(0)}" />
+		<s:Button includeIn="watch" styleName="enterButton" width="80" height="80" label="参加" buttonDown="enterBattle(0)" visible="{networkGameManager.isIndexEmpty(0)}" />
 	</s:VGroup>
 	<s:VGroup x="561" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
-		<s:Button includeIn="watch" label="参加" buttonDown="enterBattle(1)" visible="{networkGameManager.isIndexEmpty(1)}" />
+		<s:Button includeIn="watch" styleName="enterButton" width="80" height="80" label="参加" buttonDown="enterBattle(1)" visible="{networkGameManager.isIndexEmpty(1)}" />
 	</s:VGroup>
 </s:Group>

@@ -21,6 +21,13 @@ package model
 		public const levelUpCoefficient:int = 4000;
 		public const levelTimeCoefficient:int = 6000;
 		public const breakLineCoefficient:int = 1000;
+		public const blockAllClearBonusScore:int = 100000;
+		public const blockAllClearBonusObstacle:int = 100;
+		public const obstacleLineMax:int = 10;
+		public const obstacleLineBlockMax:int = 5;
+		public const towerLineBlockMax:int = 6;
+		public const obstacleColor1:uint = Color.lightgray;
+		public const obstacleColor2:uint = Color.gray;
 		
 		public var version:uint = alpha1;
 		public var gameMode:String = battle;
@@ -35,6 +42,7 @@ package model
 		public var fallAcceleration:Number;
 		public var playTime:int;
 		public const playFastTime:int = 15;
+		public const breakLineDelay:int = 0;
 		
 		public var quantityOddsBasis:Vector.<int>;
 		public var bigOminoCountMax:int;
@@ -43,12 +51,6 @@ package model
 		public const obstacleSaveTime:int = 120;
 		public var obstacleInterval:int;
 		public var obstacleAdditionCount:Number;
-		public const occurObstacleCoefficient:int = 5;
-		public const obstacleLineMax:int = 20;
-		public const obstacleLineBlockMax:int = 5;
-		public const towerLineBlockMax:int = 6;
-		public const obstacleColor1:uint = Color.lightgray;
-		public const obstacleColor2:uint = Color.gray;
 		
 		public static function modeToText(mode:String):String
 		{
@@ -121,22 +123,17 @@ package model
 			return (bonus > 0 ? bonus : 0) + (upCount - 1) * basis;
 		}
 		
-		public function breakLineScore(comboCount:int):int
+		public function breakLineScore(lineCount:int, comboCount:int):int
 		{
-			return (2 * comboCount - 1) * breakLineCoefficient;
+			return lineCount * (lineCount - comboCount) * breakLineCoefficient;
 		}
 		
-		public function totalBreakLineScore(comboCount:int):int
+		public function occurObstacleCount(lineCount:int, comboCount:int):int
 		{
-			return comboCount * comboCount * breakLineCoefficient;
+			return 10 * lineCount * (lineCount - comboCount + 3) / 4;
 		}
 		
-		public function getOccurObstacleCount(comboCount:int):int
-		{
-			return (comboCount + 1) * occurObstacleCoefficient;
-		}
-		
-		public function getReceiveObstacleCount():int
+		public function receiveObstacleCount():int
 		{
 			return obstacleLineMax * obstacleLineBlockMax;
 		}

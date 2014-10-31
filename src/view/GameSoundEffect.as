@@ -117,7 +117,8 @@ package view
 		
 		public function breakLineListener(e:BreakLineEvent):void
 		{
-			line[e.combo].play(); 
+			var powerLevel:int = Math.max(1, Math.min(20, e.powerLevel())); 
+			line[powerLevel].play(); 
 		}
 		
 		private function indexToLine(index:int):Sound

@@ -16,6 +16,8 @@ package model.network {
 		[Bindable]
 		public var multi:Boolean;
 		[Bindable]
+		public var isNeedPassword:Boolean;
+		[Bindable]
 		public var entrant:ArrayCollection;
 		[Bindable]
 		public var watch:ArrayCollection;
@@ -88,6 +90,68 @@ package model.network {
 				}
 				entrant.setItemAt(player, player.currentBattleIndex);
 			}
+		}
+		
+		public function getHostPlayer():PlayerInformation
+		{
+			var max:PlayerInformation;
+			if (entrant.length > 0)
+			{
+				for (var i:int = 0; i < entrant.length; i++)
+				{
+					if (entrant[i] == null) continue;
+					if (max == null)
+					{
+						max = entrant[i];
+						continue;
+					}
+					if (max.hostPriority > entrant[i].hostPriority)
+					{
+						max = entrant[i];
+						continue;
+					}
+				}
+			}
+			else
+			{
+				for (i = 0; i < watch.length; i++)
+				{
+					if (watch[i] == null) continue;
+					if (max == null)
+					{
+						max = watch[i];
+						continue;
+					}
+					if (max.hostPriority > watch[i].hostPriority)
+					{
+						max = watch[i];
+						continue;
+					}
+				}
+			}
+			return max;
+		}
+		
+		public function getNextHostPriority():int
+		{
+			var max:int = int.MIN_VALUE;
+			for (var i:int = 0; i < entrant.length; i++)
+			{
+				if (entrant[i] == null) continue;
+				if (max < entrant[i].hostPriority)
+				{
+					max = entrant[i].hostPriority;
+				}
+			}
+			for (i = 0; i < watch.length; i++)
+			{
+				if (watch[i] == null) continue;
+				if (max < watch[i].hostPriority)
+				{
+					max = watch[i].hostPriority;
+				}
+			}
+			return max;
 		}
 		
 		private function getPlayerIndex(collection:ArrayCollection, player:PlayerInformation):int

@@ -37,20 +37,6 @@ package model
 			_nextOmino = new Vector.<OminoField>(nextLength, true);
 		}
 		
-		public function getLightModel():FragmentGameModel
-		{
-			var result:FragmentGameModel = new FragmentGameModel();
-			result.mainField = _mainField.clone();
-			result.fallField = _fallField.clone();
-			result.controlOmino = _controlOmino.clone();
-			result.nextOmino = new Vector.<OminoField>(nextLength, true);
-			for (var i:int = 0; i < nextLength; i++)
-			{
-				result.nextOmino[i] = _nextOmino[i].clone();
-			}
-			return result;
-		}
-		
 		public function getMainField():MainField
 		{
 			if (_mainField == null) return null;
@@ -128,7 +114,7 @@ package model
 			}
 		}
 		
-		protected function fallingField(from:int, to:int):int
+		protected function fallingField(from:int, to:int, fast:Boolean):int
 		{
 			var tempField:MainField = new MainField(fieldWidth, fieldHeight);
 			var blockscCount:int = _fallField.countBlock();
@@ -136,7 +122,7 @@ package model
 			for (var i:int = from; i <= to; i++)
 			{
 				blockscCount -= collideFallingBlocks(i, tempField);
-				var coefficient:Number = getNaturalShockDamage(i);
+				var coefficient:Number = getNaturalShockDamage(i, fast);
 				var damage:Number = shockDamage(tempField, 0, i, coefficient)
 				onSectionDamage(damage, shockDamageCoefficient * coefficient);
 				_mainField.fix(tempField, 0, i);
@@ -207,8 +193,9 @@ package model
 			_nextOmino[nextLength - 1] = replenish;
 		}
 		
-		protected function getNaturalShockDamage(n:int):Number
+		protected function getNaturalShockDamage(n:int, fast:Boolean):Number
 		{
+			if (fast) n = distanceDamageCoefficient.length - 1;
 			if (n >= distanceDamageCoefficient.length) n = distanceDamageCoefficient.length - 1;
 			return naturalShockDamageCoefficient * distanceDamageCoefficient[n];
 		}
@@ -219,7 +206,7 @@ package model
 			var g:Number = 1 / 40;
 			for (var i:int = 0, l:int = vec.length; i < l; i++)
 			{
-				if (i <= 20)
+				if (i < 20)
 				{
 					vec[i] = Math.sqrt(2 * g * i);
 				}

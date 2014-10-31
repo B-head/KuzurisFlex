@@ -40,15 +40,8 @@
 			_gameManager.addEventListener(KuzurisEvent.gamePause, function():void { currentState = "pause" } );
 			_gameManager.addEventListener(KuzurisEvent.gameResume, function():void { currentState = "normal" } );
 			_gameManager.addEventListener(KuzurisEvent.initializeGameModel, setGameModel);
-			var ngm:NetworkGameManager = value as NetworkGameManager;
-			if (ngm != null)
-			{
-				playerInfo = ngm.getPlayerInfo(_playerIndex);
-			}
-			else
-			{
-				playerInfo = null;
-			}
+			_gameManager.addEventListener(KuzurisEvent.playerUpdate, updatePlayerListener);
+			playerInfo = _gameManager.getPlayerInfo(_playerIndex);
 		}
 		
 		public function get playerIndex():int
@@ -58,11 +51,8 @@
 		public function set playerIndex(value:int):void
 		{
 			_playerIndex = value;
-			var ngm:NetworkGameManager = _gameManager as NetworkGameManager;
-			if (ngm != null)
-			{
-				playerInfo = ngm.getPlayerInfo(_playerIndex);
-			}
+			if (_gameManager == null) return;
+			playerInfo = _gameManager.getPlayerInfo(_playerIndex);
 		}
 		
 		public function setGameModel(e:KuzurisEvent):void
@@ -73,18 +63,18 @@
 			ghost.update(_gameModel.getControlOmino(), _gameModel.shockSave);
 			control.update(_gameModel.getControlOmino(), _gameModel.shockSave);
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, true);
-			obstacle.update(_gameModel.obstacleNotice, _gameModel.obstacleNoticeSave);
+			obstacle.update();
 			_gameModel.addEventListener(GameEvent.updateField, updateFieldListener);
 			_gameModel.addEventListener(GameEvent.updateControl, updateControlListener);
 			_gameModel.addEventListener(GameEvent.updateNext, updateNextListener);
 			_gameModel.addEventListener(GameEvent.firstUpdateNext, updateNextListener);
+			_gameModel.obstacleManager.addEventListener(GameEvent.updateObstacle, updateObstacleLestener);
+			_gameModel.obstacleManager.addEventListener(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
 			_gameModel.addEventListener(BreakLineEvent.breakLine, breakLineListener);
 			_gameModel.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
 			_gameModel.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
 			_gameModel.addEventListener(LevelClearEvent.levelClear, levelClearListener);
-			_gameModel.addEventListener(ObstacleEvent.addObstacle, updateObstacleLestener);
-			_gameModel.addEventListener(ObstacleEvent.counterbalanceObstacle, updateObstacleLestener);
-			_gameModel.addEventListener(ObstacleEvent.obstacleFall, updateObstacleLestener);
+			_gameModel.addEventListener(GameEvent.blockAllClear, allClearListener);
 			_gameModel.addEventListener(GameEvent.gameOver, function():void { currentState = "gameOver" } );
 			_gameModel.addEventListener(GameEvent.gameClear, function():void { currentState = "gameClear"  } );
 		}
@@ -93,6 +83,12 @@
 		{
 			blockGraphics = Main.blockGraphics;
 			breakLineGraphics = Main.breakLineGraphics;
+		}
+		
+		private function updatePlayerListener(e:KuzurisEvent):void
+		{
+			if (_gameManager == null) return;
+			playerInfo = _gameManager.getPlayerInfo(_playerIndex);
 		}
 		
 		private function updateFieldListener(e:GameEvent):void
@@ -112,11 +108,28 @@
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, e.type == GameEvent.firstUpdateNext);
 		}
 		
+		private function updateObstacleLestener(e:GameEvent):void
+		{
+			if (_gameModel.isGameOver) return;
+			obstacle.update();
+		}
+		
 		private function breakLineListener(e:BreakLineEvent):void
 		{
 			line = e;
 			lineEffect.stop();
 			lineEffect.play();
+			obstacleRecordEffect.stop();
+			obstacleRecordEffect.play();
+			if (e.comboCount > 0)
+			{
+				comboEffect.stop();
+				comboEffect.play();
+			}
+			else
+			{
+				comboScore.visible = false;
+			}
 			if (e.type == BreakLineEvent.breakLine)
 			{
 				var ble:BreakLineEffect = new BreakLineEffect();
@@ -129,19 +142,12 @@
 			}
 			else if (e.type == BreakLineEvent.sectionBreakLine)
 			{
-				lineScore.visible = false;
-				//var frvy:Number = Math.max(20, _gameModel.rfvy);
-				//recordFieldView.y = frvy * blockGraphics.blockWidth - 320;
+				var powerLevel:int = Math.min(20, e.powerLevel());
 				for (var i:int = 0; i < breakLineContainer.numElements; i++)
 				{
 					var a:BreakLineEffect = BreakLineEffect(breakLineContainer.getElementAt(i));
-					a.combo = e.combo;
+					a.powerLevel = powerLevel;
 				}
-			}
-			else if (e.type == BreakLineEvent.totalBreakLine)
-			{
-				lineScoreEffect.stop();
-				lineScoreEffect.play();
 			}
 		}
 		
@@ -152,9 +158,10 @@
 			levelUpEffect.play();
 		}
 		
-		private function updateObstacleLestener(e:ObstacleEvent):void
+		private function allClearListener(e:GameEvent):void
 		{
-			obstacle.update(_gameModel.obstacleNotice, _gameModel.obstacleNoticeSave);
+			allClearEffect.stop();
+			allClearEffect.play();
 		}
 		]]>
 	</fx:Script>
@@ -170,29 +177,48 @@
 	<fx:Declarations>
 		<fx:Boolean id="reverse"/>
 		<v:GameSoundEffect gameModel="{_gameModel}"/>
+		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
 		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
 		<s:Sequence id="lineEffect">
 			<s:SetAction property="visible" value="true" target="{lineRecord}"/>
-			<s:SetAction property="visible" value="false" target="{lineRecord}" startDelay="2000" />
+			<s:SetAction property="visible" value="false" target="{lineRecord}" startDelay="4000" />
+		</s:Sequence>
+		<s:Sequence id="comboEffect">
+			<s:SetAction property="visible" value="true" target="{comboScore}"/>
+			<s:SetAction property="visible" value="false" target="{comboScore}" startDelay="4000" />
 		</s:Sequence>
 		<s:Sequence id="lineScoreEffect">
 			<s:SetAction property="visible" value="true" target="{lineScore}"/>
-			<s:SetAction property="visible" value="false" target="{lineScore}" startDelay="2000" />
+			<s:SetAction property="visible" value="false" target="{lineScore}" startDelay="4000" />
+		</s:Sequence>
+		<s:Sequence id="obstacleRecordEffect">
+			<s:SetAction property="visible" value="true" target="{obstacleRecord}"/>
+			<s:SetAction property="visible" value="false" target="{obstacleRecord}" startDelay="4000" />
 		</s:Sequence>
 		<s:Parallel id="levelUpEffect">
 			<s:Sequence>
-				<s:Move xFrom="80" xTo="0" duration="500" target="{levelUpRecord}"/>
-				<s:Move xFrom="0" xTo="-80" duration="500" startDelay="1000" target="{levelUpRecord}"/>
+				<s:Move xFrom="80" xTo="0" duration="250" target="{levelUpRecord}"/>
+				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500" target="{levelUpRecord}"/>
 			</s:Sequence>
 			<s:Sequence>
-				<s:Fade alphaFrom="0" alphaTo="1" duration="500" target="{levelUpRecord}"/>
-				<s:Fade alphaFrom="1" alphaTo="0" duration="500" startDelay="1000" target="{levelUpRecord}"/>
+				<s:Fade alphaFrom="0" alphaTo="1" duration="250" target="{levelUpRecord}"/>
+				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500" target="{levelUpRecord}"/>
+			</s:Sequence>
+		</s:Parallel>
+		<s:Parallel id="allClearEffect">
+			<s:Sequence>
+				<s:Move xFrom="80" xTo="0" duration="250" target="{allClear}"/>
+				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500" target="{allClear}"/>
+			</s:Sequence>
+			<s:Sequence>
+				<s:Fade alphaFrom="0" alphaTo="1" duration="250" target="{allClear}"/>
+				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500" target="{allClear}"/>
 			</s:Sequence>
 		</s:Parallel>
 	</fx:Declarations>
 	
 	<s:Group x="{reverse ? 104 : 0}" y="0">
-		<s:Rect x="15" y="64" width="161" height="320" alpha="0.8">
+		<s:Rect x="15" y="32" width="161" height="320" alpha="0.8">
 			<s:fill>
 				<s:SolidColor color="#000000"/>
 			</s:fill>
@@ -200,27 +226,34 @@
 				<s:SolidColorStroke color="#ff9900" weight="1" />
 			</s:stroke>
 		</s:Rect>
-		<s:Image x="0" y="64" source="@Embed('../graphic/frame.png')"/>
-		<s:Group id="recordFieldView" x="0" y="64">
+		<s:Image x="0" y="32" source="@Embed('../graphic/frame.png')"/>
+		<s:Group id="recordFieldView" x="0" y="32">
 			<s:Label id="levelUpRecord" styleName="field-record level-up" y="0" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
-			<s:Label id="lineRecord" styleName="field-record break-line" y="24" width="192" text="{line.combo}ライン" visible="false"/>
-			<s:Label id="lineScore" styleName="break-line" y="48" width="192" text="+{line.plusScore}pt" visible="false"/>
+			<s:Label id="allClear" styleName="field-record all-clear" y="0" width="192" text="オールクリア！" visible="false"/>
+			<s:Label id="comboScore" styleName="break-combo-score" y="24" width="192" text="{line.comboCount}コンボ" visible="false"/>
+			<s:Label id="lineRecord" styleName="field-record break-line" y="36" width="192" text="{line.comboTotalLine}ライン" visible="false"/>
+			<s:Label id="lineScore" styleName="break-line-score" y="60" width="192" text="+{line.plusScore}pt" visible="false"/>
+			<s:Label id="obstacleRecord" styleName="obstacle-record" y="60" width="192" text="+{line.occurObstacle()}obs[×{nf.format(line.powerScale())}]" visible="false"/>
 		</s:Group>
-		<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
-		<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
-		<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" x="16" y="-256" showSpecial="true"/>
-		<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+		<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 288}" showSpecial="true" alpha="0.5"/>
+		<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 288}" showSpecial="true"/>
+		<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="16" y="-288" showSpecial="true"/>
+		<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 288}" showSpecial="true"/>
 		<s:Group x="16" y="0" id="breakLineContainer"/>
-		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" blockGraphics="{blockGraphics}"/>
-		<s:BorderContainer x="16" y="400" width="160" height="32" visible="{playerInfo != null}">
+		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" obstacleManager="{_gameModel.obstacleManager}" blockGraphics="{blockGraphics}"/>
+		<s:BorderContainer x="16" y="368" width="160" height="32" visible="{playerInfo != null}">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label text="{playerInfo.getName()}" textAlign="center" />
 		</s:BorderContainer>
-		<s:Label styleName="ready" x="0" y="212" width="192" text="レディ" visible="false" visible.ready="true" />
-		<s:Label id="gameOver" styleName="game-over" x="0" y="96" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
-		<s:Label id="gameClear" styleName="game-clear" x="0" y="96" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
+		<s:Label styleName="ready" x="0" y="180" width="192" text="レディ" visible="false" visible.ready="true" />
+		<s:Label id="gameOver" styleName="game-over" x="0" y="64" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
+		<s:Label id="gameClear" styleName="game-clear" x="0" y="64" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
 	</s:Group>
-	<v:NextOminoView id="next" x="{reverse ? 0 : 200}" y="64" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
+	<v:NextOminoView id="next" x="{reverse ? 0 : 200}" y="32" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
 </s:Group>

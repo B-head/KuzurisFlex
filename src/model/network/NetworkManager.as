@@ -175,7 +175,6 @@ package model.network {
 		
 		private function netConnectionListener(e:NetStatusEvent):void
 		{
-			trace(e.info.code, selfPeerID);
 			switch (e.info.code)
 			{
 				case "NetConnection.Connect.AppShutdown":
@@ -235,6 +234,7 @@ package model.network {
 					break;
 			}
 			dispatchEvent(e);
+			trace(e.info.code, selfPeerID);
 		}
 		
 		private function asyncErrorListener(e:AsyncErrorEvent):void

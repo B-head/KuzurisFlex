@@ -126,13 +126,17 @@
 		
 		private function pauseListener(e:KuzurisEvent):void
 		{
-			if (currentState == "pause")
+			switch(currentState)
 			{
-				resume();
-			}
-			else
-			{
-				pauseing();
+				case "prepare":
+					start();
+					break;
+				case "pause":
+					resume();
+					break;
+				case "hidden":
+					pauseing();
+					break;
 			}
 		}
 		

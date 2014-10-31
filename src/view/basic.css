@@ -85,13 +85,14 @@ s|DataGrid {
 	chrome-color: rgb(255, 153, 0);
 }
 
-.restart {
-	chrome-color: rgb(255, 153, 0);
-}
-
 .menu-label {
 	background-color: rgb(0, 0, 0);
 	background-alpha: 0.8;
+}
+
+.enterButton {
+	font-size: 24px;
+	corner-radius: 40;
 }
 
 .field-record {
@@ -104,14 +105,27 @@ s|DataGrid {
 	color: rgb(102, 204, 255);
 }
 
+.all-clear {
+	color: rgb(250, 245, 0);
+}
+
 .break-line {
 	color: rgb(250, 245, 0);
+}
+
+.break-combo-score {
+	color: rgb(102, 204, 255);
 	text-align: center;
 }
 
 .break-line-score {
-	color: rgb(200, 200, 203);
-	font-weight: bold;
+	color: rgb(250, 245, 0);
+	text-align: center;
+}
+
+.obstacle-record {
+	color: rgb(255, 153, 0);
+	text-align: center;
 }
 
 .ready {

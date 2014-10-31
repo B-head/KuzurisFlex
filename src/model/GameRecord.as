@@ -12,15 +12,13 @@ package model
 		[Bindable] 
 		public var breakLine:int;
 		[Bindable] 
-		public var comboLines:ArrayCollection;
+		public var chainLines:ArrayCollection;
 		[Bindable] 
 		public var blockDamage:int;
 		[Bindable] 
 		public var fixOmino:int;
 		[Bindable] 
 		public var occurObstacle:int;
-		[Bindable] 
-		public var counterbalance:int;
 		[Bindable] 
 		public var receivedObstacle:int;
 		[Bindable] 
@@ -45,7 +43,7 @@ package model
 			{
 				arr.push(0);
 			}
-			comboLines = new ArrayCollection(arr);
+			chainLines = new ArrayCollection(arr);
 		}
 		
 		public function ominoPerMinute():Number

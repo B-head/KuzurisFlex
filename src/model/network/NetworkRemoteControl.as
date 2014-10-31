@@ -14,18 +14,12 @@ package model.network {
 	[Event(name="connectClosed", type="events.KuzurisEvent")]
 	[Event(name="disposed", type="events.KuzurisEvent")]
 	[Event(name="connectFailed", type="events.KuzurisErrorEvent")]
-	[Event(name="streamDrop", type="events.KuzurisErrorEvent")]
+	[Event(name="notEqualHash", type="events.KuzurisErrorEvent")]
 	[Event(name="ioError", type="events.KuzurisErrorEvent")]
 	[Event(name="asyncError", type="events.KuzurisErrorEvent")]
 	[Event(name="networkGameReady", type="events.NetworkGameReadyEvent")]
 	public class NetworkRemoteControl extends EventDispatcher implements GameControl 
-	{
-		public static const gameCommnadHandlerName:String = "onGameCommnad";
-		public static const gameRequestCommnadHandlerName:String = "onGameRequestCommnad";
-		public static const gameSyncHandlerName:String = "onGameSync";
-		public static const gameSyncReplyHandlerName:String = "onGameSyncReply";
-		public static const networkGameReadyHandlerName:String = "onNetworkGameReady";
-		
+	{		
 		private var _enable:Boolean;
 		private var _peerID:String;
 		private var _isConnected:Boolean;
@@ -36,22 +30,22 @@ package model.network {
 		private var gameModel:GameModel;
 		private var commandRecord:Vector.<GameCommand>;
 		private var hashRecord:Vector.<uint>;
-		private var currentCommandIndex:int;
+		private var currentCommandSequence:int;
 		
-		private const reconnectPeriod:int = 1000;
-		private const reconnectRepeat:int = 0;
+		private const reconnectPeriod:int = 2000;
 		
 		public function NetworkRemoteControl(networkManager:NetworkManager, selfControl:NetworkSelfControl, peerID:String) 
 		{
+			commandRecord = new Vector.<GameCommand>();
+			hashRecord = new Vector.<uint>();
 			_peerID = peerID;
 			this.networkManager = networkManager;
 			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
 			this.selfControl = selfControl;
 			initStream();
 			trace("play", _peerID)
-			reconnectTimer = new Timer(reconnectPeriod, reconnectRepeat);
+			reconnectTimer = new Timer(reconnectPeriod, 1);
 			reconnectTimer.addEventListener(TimerEvent.TIMER, reconnectTimerListener);
-			reconnectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, reconnectTimerCompleteListener);
 		}
 		
 		private function initStream():void
@@ -69,9 +63,18 @@ package model.network {
 		public function dispose():void
 		{
 			reconnectTimer.stop();
+			streamDispose()
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.disposed));
+		}
+		
+		private function streamDispose():void
+		{
 			netStream.close();
 			netStream.dispose();
-			dispatchEvent(new KuzurisEvent(KuzurisEvent.disposed));
+			netStream.removeEventListener(NetStatusEvent.NET_STATUS, netStreamListener);
+			netStream.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
+			netStream.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorListener);
+			netStream.removeEventListener(NetDataEvent.MEDIA_TYPE_DATA, mediaTypeDataListener);
 		}
 		
 		public function get isConnected():Boolean
@@ -79,9 +82,22 @@ package model.network {
 			return _isConnected;
 		}
 		
-		public function onGameCommnad(startIndex:int, sliceCommandRecord:Vector.<GameCommand>, sliceHashRecord:Vector.<uint>):void
+		public function onGameCommnad(startIndex:int, sliceCommandRecord:Vector.<GameCommand>, sliceHashRecord:Vector.<uint>, receiveSendHash:uint):void
 		{
+			var sendHash:uint = 0;
 			for (var i:int = 0; i < sliceCommandRecord.length; i++)
+			{
+				sendHash ^= sliceCommandRecord[i].toUInt();
+				sendHash ^= sliceHashRecord[i];
+			}
+			if (sendHash != receiveSendHash)
+			{
+				trace("ignore onGameCommnad", _peerID);
+				return;
+			}
+			commandRecord.length = Math.max(commandRecord.length, startIndex);
+			hashRecord.length = Math.max(hashRecord.length, startIndex);
+			for (i = 0; i < sliceCommandRecord.length; i++)
 			{
 				commandRecord[startIndex + i] = sliceCommandRecord[i];
 				hashRecord[startIndex + i] = sliceHashRecord[i];
@@ -121,7 +137,7 @@ package model.network {
 			this.gameModel = gameModel;
 			commandRecord = new Vector.<GameCommand>();
 			hashRecord = new Vector.<uint>();
-			currentCommandIndex = 0;
+			currentCommandSequence = 0;
 		}
 		
 		public function setMaterialization(index:int):void
@@ -131,22 +147,32 @@ package model.network {
 		
 		public function issueGameCommand():GameCommand 
 		{
-			if (commandRecord.length <= currentCommandIndex ) return null;
-			if (gameModel.hash() != hashRecord[currentCommandIndex]) trace("hash not equal", currentCommandIndex, _peerID);
-			return commandRecord[currentCommandIndex++];
+			if (commandRecord.length <= currentCommandSequence ) return null;
+			if (gameModel.hash() != hashRecord[currentCommandSequence])
+			{
+				trace("hash not equal", currentCommandSequence, gameModel.hash(), hashRecord[currentCommandSequence], _peerID);
+				dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.notEqualHash, "ゲームモデルのハッシュ値が一致しませんでした。"));
+				currentCommandSequence = int.MAX_VALUE;
+				return null;
+			}
+			var ret:GameCommand = commandRecord[currentCommandSequence];
+			if (ret != null) currentCommandSequence++;
+			return ret;
+		}
+		
+		public function obtainState(gameModel:GameModel):void
+		{
+			this.gameModel = gameModel;
+			commandRecord = new Vector.<GameCommand>();
+			hashRecord = new Vector.<uint>();
+			currentCommandSequence = gameModel.record.gameTime + 1;
+			selfControl.sendRequestCommand();
 		}
 		
 		private function reconnectTimerListener(e:TimerEvent):void
 		{
 			if (!networkManager.isConnected) return;
-			netStream.close();
-			netStream.play(_peerID);
-			selfControl.sendRequestCommand();
-		}
-		
-		private function reconnectTimerCompleteListener(e:TimerEvent):void
-		{
-			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.streamDrop, "ストリームが切断されました。"));
+			initStream();
 		}
 		
 		private function netConnectionListener(e:NetStatusEvent):void
@@ -156,6 +182,7 @@ package model.network {
 			{
 				case "NetStream.Connect.Closed":
 					_isConnected = false;
+					streamDispose();
 					reconnectTimer.reset();
 					reconnectTimer.start();
 					dispatchEvent(new KuzurisEvent(KuzurisEvent.connectClosed));
@@ -169,6 +196,7 @@ package model.network {
 				case "NetStream.Connect.Success":
 					_isConnected = true;
 					reconnectTimer.stop();
+					selfControl.sendRequestCommand();
 					dispatchEvent(new KuzurisEvent(KuzurisEvent.connectSuccess));
 					break;
 			}
@@ -204,7 +232,7 @@ package model.network {
 		
 		private function mediaTypeDataListener(e:NetDataEvent):void
 		{
-			if (e.info.handler == NetworkRemoteControl.gameCommnadHandlerName) return;
+			if (e.info.handler == "onGameCommnad") return;
 			trace(e.info.handler, _peerID, "remote");
 		}
 	}

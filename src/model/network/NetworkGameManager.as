@@ -8,10 +8,13 @@ package model.network {
 	 * ...
 	 * @author B_head
 	 */
-	[Event(name="playerUpdate", type="events.KuzurisEvent")]
+	[Event(name="completedSyncState", type="events.KuzurisEvent")]
 	[Event(name="networkGameReady", type="events.NetworkGameReadyEvent")]
 	public class NetworkGameManager extends GameManager 
 	{
+		private static const requestState:String = "requestState";
+		private static const replyState:String = "replyState";
+		
 		private var networkManager:NetworkManager;
 		private var roomManager:RoomManager;
 		private var roomGroup:NetworkGroupManager;
@@ -28,13 +31,47 @@ package model.network {
 			this.networkManager = networkManager;
 			this.roomManager = roomManager;
 			roomGroup = networkManager.roomGroup;
+			roomGroup.addEventListener(NotifyEvent.notify, notifyListener);
+			roomGroup.addEventListener(KuzurisEvent.disposed, disposedListener);
+			currentRoom = roomManager.currentRoom;
+			currentRoom.entrant.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener);
 			//selfControl = networkManager.getSelfGameControl(roomManager.selfInput);
 			selfControl = networkManager.getSelfGameControl(GameAIManager.createDefaultAI());
-			currentRoom = roomManager.currentRoom;
 			selfPlayerInfo = roomManager.selfPlayerInfo;
-			roomGroup.addEventListener(KuzurisEvent.disposed, disposedListener);
-			currentRoom.entrant.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener);
+		}
+		
+		public function syncState():void
+		{
 			setPlayers();
+			if (!isOnePlayer())
+			{
+				roomGroup.sendDecreasing(requestState);
+			}
+			else
+			{
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.completedSyncState));
+			}
+		}
+		
+		private function setReplyState(execution:Boolean, gameModel:Vector.<GameModel>, replay:Vector.<GameReplay>):void
+		{
+			this.execution = execution;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				registerGameModel(i, gameModel[i]);
+				this.replay[i] = replay[i];
+			}
+			for (i = 0; i < maxPlayer; i++)
+			{
+				appendOutsideManager(i);
+				var nrc:NetworkRemoteControl = control[i] as NetworkRemoteControl;
+				if (nrc != null)
+				{
+					nrc.obtainState(gameModel[i]);
+				}
+			}
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.initializeGameModel));
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.completedSyncState));
 		}
 		
 		private function setPlayers():void
@@ -46,9 +83,8 @@ package model.network {
 				var playerInfo:PlayerInformation = currentRoom.entrant.getItemAt(i) as PlayerInformation;
 				var control:GameControl = createGameControl(playerInfo, i);
 				if(control == selfControl) selfPlayerIndex = i;
-				setPlayer(i, control);
+				setPlayer(i, control, playerInfo);
 			}
-			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
 			if (isExecution()) checkGameEnd();
 		}
 		
@@ -64,7 +100,7 @@ package model.network {
 				ret.addEventListener(KuzurisEvent.gameSync, createGameSyncListener(index));
 				ret.addEventListener(KuzurisEvent.gameSyncReply, createGameSyncReplayListener(index));
 				ret.addEventListener(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
-				ret.addEventListener(KuzurisErrorEvent.streamDrop, createStreamDropListener(index));
+				ret.addEventListener(KuzurisErrorEvent.notEqualHash, createNotEqualHashListener(index));
 			}
 			return ret;
 		}
@@ -82,6 +118,12 @@ package model.network {
 			{
 				return isGameOver(selfPlayerIndex);
 			}
+			return isOnePlayer();
+		}
+		
+		[Bindable(event="playerUpdate")]
+		public function isOnePlayer():Boolean
+		{
 			var count:int;
 			var maxPlayer:int = currentRoom.entrant.length;
 			for (var i:int = 0; i < maxPlayer; i++)
@@ -98,12 +140,6 @@ package model.network {
 			if (index == 0) return selfPlayerIndex;
 			if (index <= selfPlayerIndex) return index - 1;
 			return index;
-		}
-		
-		[Bindable(event="playerUpdate")]
-		public function getPlayerInfo(index:int):PlayerInformation
-		{
-			return currentRoom.entrant.getItemAt(index) as PlayerInformation;
 		}
 		
 		[Bindable(event="playerUpdate")]
@@ -125,7 +161,7 @@ package model.network {
 			}
 		}
 		
-		public function gameSync():void
+		public function syncReady():void
 		{
 			syncTime = getTimer();
 			sendDelayTimes = new Vector.<int>(currentRoom.entrant.length);
@@ -191,12 +227,25 @@ package model.network {
 			dispatchEvent(e);
 		}
 		
-		private function createStreamDropListener(playerIndex:int):Function
+		private function createNotEqualHashListener(playerIndex:int):Function
 		{
 			return function(e:KuzurisErrorEvent):void
 			{
-				setPlayer(playerIndex, null);
-				checkGameEnd();
+				syncState();
+			}
+		}
+		
+		private function notifyListener(e:NotifyEvent):void
+		{
+			switch (e.message.type)
+			{
+				case requestState:
+					trace(e.message.peerID);
+					roomGroup.sendPeer(e.message.peerID, replyState, { execution:execution, gameModel:gameModel, replay:replay } );
+					break;
+				case replyState:
+					setReplyState(e.message.obj.execution, e.message.obj.gameModel, e.message.obj.replay);
+					break;
 			}
 		}
 		

@@ -16,6 +16,12 @@ package model.network {
 	[Event(name="asyncError", type="events.KuzurisErrorEvent")]
 	public class NetworkSelfControl extends EventDispatcher implements GameControl 
 	{
+		private static const gameCommnadHandlerName:String = "onGameCommnad";
+		private static const gameRequestCommnadHandlerName:String = "onGameRequestCommnad";
+		private static const gameSyncHandlerName:String = "onGameSync";
+		private static const gameSyncReplyHandlerName:String = "onGameSyncReply";
+		private static const networkGameReadyHandlerName:String = "onNetworkGameReady";
+		
 		private var _peerID:String;
 		private var _isConnected:Boolean;
 		private var networkManager:NetworkManager;
@@ -29,6 +35,8 @@ package model.network {
 		
 		public function NetworkSelfControl(networkManager:NetworkManager) 
 		{
+			commandRecord = new Vector.<GameCommand>();
+			hashRecord = new Vector.<uint>();
 			_peerID = networkManager.selfPeerID;
 			this.networkManager = networkManager;
 			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
@@ -71,13 +79,19 @@ package model.network {
 			var startIndex:int = all ? 0 : Math.max(0, commandRecord.length - sendCommandLength);
 			var sliceCommandRecord:Vector.<GameCommand> = commandRecord.slice(startIndex, commandRecord.length);
 			var sliceHashRecord:Vector.<uint> = hashRecord.slice(startIndex, hashRecord.length);
-			netStream.send(NetworkRemoteControl.gameCommnadHandlerName, startIndex, sliceCommandRecord, sliceHashRecord);
+			var sendHash:uint = 0;
+			for (var i:int = 0; i < sliceCommandRecord.length; i++)
+			{
+				sendHash ^= sliceCommandRecord[i].toUInt();
+				sendHash ^= sliceHashRecord[i];
+			}
+			netStream.send(gameCommnadHandlerName, startIndex, sliceCommandRecord, sliceHashRecord, sendHash);
 		}
 		
 		public function sendRequestCommand():void
 		{
 			trace("sendRequestCommand", _peerID);
-			netStream.send(NetworkRemoteControl.gameRequestCommnadHandlerName);
+			netStream.send(gameRequestCommnadHandlerName);
 		}
 		
 		public function sendSync():void
@@ -85,19 +99,19 @@ package model.network {
 			trace("sendSync", _peerID);
 			tracePeerStreams();
 			traceUnconnectedPeerStreams();
-			netStream.send(NetworkRemoteControl.gameSyncHandlerName);
+			netStream.send(gameSyncHandlerName);
 		}
 		
 		public function sendSyncReply():void
 		{
 			trace("sendSyncReply", _peerID);
-			netStream.send(NetworkRemoteControl.gameSyncReplyHandlerName);
+			netStream.send(gameSyncReplyHandlerName);
 		}
 		
 		public function sendReady(playerIndex:int, setting:GameSetting, seed:XorShift128, delay:int):void
 		{
 			trace("sendReady", playerIndex, _peerID);
-			netStream.send(NetworkRemoteControl.networkGameReadyHandlerName, playerIndex, setting, seed, delay);
+			netStream.send(networkGameReadyHandlerName, playerIndex, setting, seed, delay);
 		}
 		
 		private function tracePeerStreams():void
@@ -194,7 +208,7 @@ package model.network {
 		
 		private function mediaTypeDataListener(e:NetDataEvent):void
 		{
-			if (e.info.handler == NetworkRemoteControl.gameCommnadHandlerName) return;
+			if (e.info.handler == gameCommnadHandlerName) return;
 			trace(e.info.handler, _peerID, "self");
 		}
 	}

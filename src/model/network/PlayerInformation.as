@@ -9,8 +9,10 @@ package model.network {
 		public var name:String;
 		public var isAI:Boolean;
 		public var rate:Number;
+		public var winCount:int; 
 		public var currentRoomID:String;
 		public var currentBattleIndex:int;
+		public var hostPriority:int;
 		
 		private static const gradeList:Vector.<String> = new <String>[
 			"十級", "十級", "九級", "八級", "七級", "六級", "五級", "四級", "三級", "二級", "一級", 

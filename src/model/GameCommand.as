@@ -33,7 +33,7 @@ package model
 			this.enabledObstacle = enabledObstacle;
 		}
 		
-		public function writeExternal(output:IDataOutput):void 
+		public function toUInt():uint
 		{
 			var value:uint = 0;
 			value |= rotation & bitMask;
@@ -50,12 +50,11 @@ package model
 				value <<= booleanShift;
 				value |= uint(enabledObstacle[i]) & booleanMask;
 			}
-			output.writeShort(value);
+			return value;
 		}
 		
-		public function readExternal(input:IDataInput):void 
+		public function fromUInt(value:uint):void
 		{
-			var value:uint = input.readUnsignedShort();
 			enabledObstacle = new Vector.<Boolean>(materializationLength);
 			for (var i:int = materializationLength - 1; i >= 0; i--)
 			{
@@ -71,6 +70,16 @@ package model
 			move = value & bitMask;
 			value >>>= bitShift;
 			rotation = value & bitMask;
+		}
+		
+		public function writeExternal(output:IDataOutput):void 
+		{
+			output.writeShort(toUInt());
+		}
+		
+		public function readExternal(input:IDataInput):void 
+		{
+			fromUInt(input.readUnsignedShort());
 		}
 	}
 

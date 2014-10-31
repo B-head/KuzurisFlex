@@ -24,10 +24,10 @@ package model.ai {
 			{
 				next[i].marks += postAppraise(rootModel, next[i].fr, notice);
 			}
-			return treeRoot.getChoices(getBotder());
+			return treeRoot.getChoices(getBorder());
 		}
 		
-		protected function getBotder():Number
+		protected function getBorder():Number
 		{
 			return 0;
 		}

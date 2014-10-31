@@ -13,6 +13,7 @@ package events {
 		public static const gamePause:String = "gamePause";
 		public static const gameResume:String = "gameResume";
 		public static const initializeGameModel:String = "initializeGameModel";
+		public static const completedSyncState:String = "completedSyncState";
 		public static const connectSuccess:String = "connectSuccess";
 		public static const loungeConnectSuccess:String = "loungeConnectSuccess";
 		public static const roomConnectSuccess:String = "roomConnectSuccess";

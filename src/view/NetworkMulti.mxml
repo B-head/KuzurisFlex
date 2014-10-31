@@ -29,6 +29,7 @@
 			
 			private function init():void
 			{
+				currentState = "hidden";
 				parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener);
 				chat.init(networkManager.roomGroup, roomManager.selfPlayerInfo);
 				networkGameManager = roomManager.createGameManager();
@@ -36,11 +37,12 @@
 				networkGameManager.addEventListener(KuzurisEvent.gameEnd, endListener);
 				networkGameManager.addEventListener(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
 				networkGameManager.addEventListener(KuzurisEvent.playerUpdate, playerUpdateListener);
+				networkGameManager.addEventListener(KuzurisEvent.completedSyncState, completedSyncStateListener);
 				networkGameManager.initialize();
 				practiceGameManager = new GameManager(1);
 				practiceGameManager.addEventListener(KuzurisEvent.gameStart, startListener);
 				practiceGameManager.addEventListener(KuzurisEvent.gameEnd, practiceEndListener);
-				prepare();
+				networkGameManager.syncState();
 			}
 			
 			private function enterBattle(index:int):void
@@ -80,22 +82,30 @@
 			
 			private function start():void
 			{
-				networkGameManager.gameSync();
+				networkGameManager.syncReady();
 			}
 			
 			private function practiceStart():void
 			{
 				currentState = "practice";
 				practiceGameManager.initialize();
-				practiceGameManager.setPlayer(0, roomManager.selfInput);
+				practiceGameManager.setPlayer(0, roomManager.selfInput, roomManager.selfPlayerInfo);
 				practiceGameManager.startGame();
 				setFocus();
 				isResult = false;
 			}
 			
+			private function completedSyncStateListener(e:KuzurisEvent):void
+			{
+				prepare();
+			}
+			
 			private function networkGameReadyListener(e:NetworkGameReadyEvent):void
 			{
-				currentState = "hidden";
+				if (networkGameManager.isEnter())
+				{
+					currentState = "hidden";
+				}
 				networkGameManager.initialize();
 				networkGameManager.startGame(e.setting, e.seed, e.delay);
 				setFocus();
@@ -118,19 +128,26 @@
 			
 			private function practiceEndListener(e:KuzurisEvent):void
 			{
+				currentState = "hidden";
 				parentApplication.bgm.stop();
 				practiceGameManager.endGame();
-				currentState = "hidden";
 				prepare();
 			}
 		
 			private function pauseListener(e:KuzurisEvent):void
 			{
-				if (currentState != "practice") return;
-				parentApplication.bgm.stop();
-				practiceGameManager.endGame();
-				currentState = "hidden";
-				prepare();
+				switch(currentState)
+				{
+					case "enter":
+						start();
+						break;
+					case "stand":
+						practiceStart();
+						break;
+					case "practice":
+						practiceEndListener(e);
+						break;
+				}
 			}
 			
 			public function playerUpdateListener(e:KuzurisEvent):void
@@ -158,39 +175,39 @@
 		<s:State name="enter" stateGroups="prepare" />
 	</s:states>
 	
-	<v:CompactGameView id="selfPlayer" x="{isFlip ? 540 : 18}" y="24" reverse="{isFlip}"
-		playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" visible.practice="false" />
-	<v:CompactGameView id="practicePlayer" x="{isFlip ? 540 : 18}" y="24" visible="false" visible.practice="true"
+	<v:GameView id="selfPlayer" x="{isFlip ? 436 : 18}" y="24" reverse="{isFlip}"
+		playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" visible.practice="false" visible.watch="false" />
+	<v:GameView id="practicePlayer" x="{isFlip ? 436 : 18}" y="24" visible="false" visible.practice="true"
 		reverse="{isFlip}" playerIndex="0" gameManager="{practiceGameManager}"/>
-	<s:Group x="{isFlip ? 18 : 332}" y="24" scaleX="0.5" scaleY="0.5">
-		<v:CompactGameView x="0" y="0" reverse="{isFlip}" visible="false" visible.watch="true"
+	<s:Group x="{isFlip ? 18 : 436}" x.watch="227" y="8" scaleX="0.5" scaleY="0.5">
+		<v:CompactGameView x="0" y="0" z="-2" reverse="{isFlip}" visible="false" visible.watch="true"
 			playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="178" x.watch="356" y="0" reverse="{isFlip}" 
+		<v:CompactGameView x="133" x.watch="266" y="0" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(1)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="534" x.watch="712" y="0" reverse="{isFlip}" 
+		<v:CompactGameView x="399" x.watch="532" y="0" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(2)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="0" y="432" reverse="{isFlip}" 
+		<v:CompactGameView x="0" y="408" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(3)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="356" y="432" reverse="{isFlip}" 
+		<v:CompactGameView x="266" y="408" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(4)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="712" y="432" reverse="{isFlip}" 
+		<v:CompactGameView x="532" y="408" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(5)}" gameManager="{networkGameManager}" />
 	</s:Group>
-	<s:VGroup includeIn="prepare" x="{isFlip ? 665 : 39}" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+	<s:VGroup includeIn="prepare" x="{isFlip ? 561 : 143}" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button includeIn="enter" styleName="start" width="150" label="スタート" buttonDown="start()" />
 		<s:Button includeIn="stand" styleName="start" width="150" label="練習" buttonDown="practiceStart()" />
 		<s:Button width="100" label="位置変更" buttonDown="isFlip = !isFlip" />
 		<s:Button width="100" label="観戦" buttonDown="leaveBattle()" />
 		<s:Button styleName="back" width="100" label="退室" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" />
 	</s:VGroup>
-	<v:TextChatView id="chat" x="322" y="416" width="210" height="64" visible="false" />
-	<s:VGroup x="322" y="0" width="210" height="80" verticalAlign="middle" horizontalAlign="center" visible="false">
+	<v:TextChatView id="chat" x="322" x.watch="213" y="416" width="210" height="64" />
+	<s:VGroup x="{isFlip ? 104 : 540 }" x.watch="431" y="416" width="210" height="64" verticalAlign="middle" horizontalAlign="center">
+		<s:Button styleName="back" width="100" label="退室" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" visible="false" visible.watch="true" />
 		<s:BorderContainer width="100%">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="center"/>
 			</s:layout>
 			<s:Label text="{roomManager.currentRoom.name}"/>
 		</s:BorderContainer>
-		<s:Button styleName="back" width="100" label="退室" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" visible="false" visible.watch="true" />
 	</s:VGroup>
 </s:Group>

@@ -15,7 +15,7 @@
 		[Bindable]
 		public var lineEvent:BreakLineEvent;
 		[Bindable]
-		public var combo:int;
+		public var powerLevel:int;
 		public var blockGraphics:BlockGraphics;
 		public var breakLineGraphics:BreakLineGraphics;
 		private var count:int;
@@ -41,7 +41,7 @@
 		{
 			if (count < 15)
 			{
-				light.source = breakLineGraphics.getItemAt(combo).getItemAt(count);
+				light.source = breakLineGraphics.getItemAt(powerLevel).getItemAt(count);
 				count++;
 			}
 			else

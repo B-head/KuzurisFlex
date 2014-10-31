@@ -19,6 +19,12 @@ package model
 		public static function init():void
 		{
 			registerClassAlias("UserInput", UserInput);
+			registerClassAlias("GameModel", GameModel);
+			registerClassAlias("MainField", MainField);
+			registerClassAlias("OminoField", OminoField);
+			registerClassAlias("BlockState", BlockState);
+			registerClassAlias("ObstacleManager", ObstacleManager);
+			registerClassAlias("ObstacleRecord", ObstacleRecord);
 			registerClassAlias("GameRaking", GameRanking);
 			registerClassAlias("GameRecord", GameRecord);
 			registerClassAlias("GameReplay", GameReplay);

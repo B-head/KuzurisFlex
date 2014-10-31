@@ -2,6 +2,7 @@ package view
 {
 	import flash.accessibility.ISearchableText;
 	import model.Color;
+	import model.ObstacleManager;
 	import mx.graphics.SolidColorStroke;
 	import spark.components.BorderContainer;
 	import spark.effects.Move;
@@ -14,6 +15,8 @@ package view
 	//TODO 桁の変わる更新があった時に表示がズレるバグを修正する。
 	public class ObstacleView extends BorderContainer 
 	{
+		[Bindable]
+		public var obstacleManager:ObstacleManager;
 		private var parts:Vector.<ObstacleViewParts>;
 		private var moveEffects:Vector.<Move>;
 		private var scaleEffects:Vector.<Scale>;
@@ -24,7 +27,7 @@ package view
 			parts = new Vector.<ObstacleViewParts>(4);
 			moveEffects = new Vector.<Move>(4);
 			scaleEffects = new Vector.<Scale>(4);
-			var duration:Number = 1000 * 4 / 60;
+			var duration:Number = 1000 * 8 / 60;
 			for (var i:int = 0; i < 4; i++)
 			{
 				parts[i] = new ObstacleViewParts();
@@ -49,11 +52,12 @@ package view
 			parts[3].blockGraphic = value.obstacleThousand;
 		}
 		
-		public function update(notice:int, noticeSave:int):void
+		public function update():void
 		{
-			var n:int = notice + noticeSave;
+			var notice:int = obstacleManager.noticeCount;
+			var n:int = obstacleManager.noticeSaveCount;
 			visible = n > 0;
-			borderStroke = new SolidColorStroke(notice > 0 ? Color.orange : Color.green);
+			borderStroke = new SolidColorStroke(obstacleManager.isActiveNotice() ? Color.orange : Color.green);
 			if (n == 0)
 			{
 				reset();
@@ -142,6 +146,8 @@ package view
 		{
 			for (var i:int = 0; i < 4; i++)
 			{
+				moveEffects[i].xFrom = parts[i].x;
+				moveEffects[i].yFrom = parts[i].y;
 				moveEffects[i].stop();
 				moveEffects[i].play();
 				scaleEffects[i].stop();

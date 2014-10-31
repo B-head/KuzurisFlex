@@ -7,7 +7,9 @@ package events {
 	public class BreakLineEvent extends GameEvent
 	{
 		[Bindable]
-		public var combo:int;
+		public var comboTotalLine:int;
+		[Bindable]
+		public var comboCount:int;
 		public var position:int;
 		public var colors:Vector.<uint>;
 		
@@ -15,17 +17,33 @@ package events {
 		public static const sectionBreakLine:String = "sectionBreakLine";
 		public static const totalBreakLine:String = "totalBreakLine";
 		
-		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, combo:int, position:int, colors:Vector.<uint>) 
+		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, comboTotalLine:int, comboCount:int, position:int = int.MIN_VALUE, colors:Vector.<uint> = null) 
 		{ 
 			super(type, gameTime, plusScore);
-			this.combo = combo;
+			this.comboTotalLine = comboTotalLine;
+			this.comboCount = comboCount;
 			this.position = position;
 			this.colors = colors;
 		} 
 		
 		public override function clone():Event 
 		{ 
-			return new BreakLineEvent(type, gameTime, plusScore, combo, position, colors)
+			return new BreakLineEvent(type, gameTime, plusScore, comboTotalLine, comboCount, position, colors)
+		}
+		
+		public function powerLevel():int
+		{
+			return comboTotalLine - comboCount;
+		}
+		
+		public function powerScale():Number
+		{
+			return (powerLevel() + 3) / 4;
+		}
+		
+		public function occurObstacle():int
+		{
+			return 10 * comboTotalLine * powerScale();
 		}
 	}
 

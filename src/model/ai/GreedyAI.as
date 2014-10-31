@@ -7,44 +7,49 @@ package model.ai
 	 */
 	public class GreedyAI extends GameAI 
 	{	
-	 	override protected function getBotder():Number
+	 	override protected function getBorder():Number
 		{
-			return (21 - level) / 200;
+			if (level > 20) return 0;
+			return (21 - level) / 80;
 		}
 		
 		override protected function appraise(current:FragmentGameModel, prev:FragmentGameModel, fr:ForwardResult):Number
 		{
 			var tops:Vector.<int> = getTops(current);
-			//var rMinTops:int = GameModelBase.fieldHeight - vectorMin(tops);
+			var rMinTops:int = GameModelBase.fieldHeight - vectorMin(tops);
 			var countOverTops:int = vectorCount(tops, function(i:int):Boolean { return i <= GameModelBase.gameOverHeight; });
 			var vertical:Vector.<int> = verticalBlockCount(current);
 			var minVertical:int = vectorMin(vertical);
 			var roughness:int = appraiseRoughness(vertical);
 			var horizontal:Vector.<int> = horizontalBlockCount(current);
+			var blockCount:int = vectorSum(horizontal); 
 			var semiBreak:int = semiBreakLines(horizontal);
 			var coveredSemiBreak:int = coveredSemiBreakLines(current, horizontal);
 			var chasm:Vector.<int> = appraiseChasm(current, horizontal);
 			var sumChasm:int = vectorSum(chasm);
 			var ret:int = 0;
-			ret += Math.pow(fr.breakLine, 2) * 100;
-			ret -= fr.lossTime;
-			ret -= countOverTops * 2000;
-			ret += minVertical * 200;
+			ret += Math.pow(fr.breakLine + prev.comboTotalLine, 2) * 100;
+			ret -= fr.lossTime * 5;
+			//ret -= rMinTops * 10;
+			ret -= countOverTops * 1000;
+			//ret += minVertical * 200;
 			ret -= roughness * 5;
-			ret += semiBreak * 4;
-			ret += Math.pow(coveredSemiBreak, 2) * 25;
+			ret += semiBreak * 5;
+			//ret += Math.pow(coveredSemiBreak, 2) * 25;
 			ret -= sumChasm * 50;
-			if (vertical[0] == minVertical) ret += 100;
-			if (vertical[9] == minVertical) ret += 200;
+			if (vertical[0] == minVertical) ret += 50;
+			if (vertical[9] == minVertical) ret += 100;
+			if (blockCount == 0) ret += 1000;
 			return ret;
 		}
 		
 		override protected function postAppraise(current:FragmentGameModel, fr:ForwardResult, notice:int):Number 
 		{
-			var blockCountLimit:int = GameModelBase.fieldHeight * GameModelBase.fieldWidth * (level / 20) / 3;
+			var blockCountLimitBase:int = (GameModelBase.fieldWidth - 1) * GameModelBase.fieldHeight / 2;
+			var blockCountLimit:int = Math.min(blockCountLimitBase, blockCountLimitBase * level / 20);
 			var blockCount:int = current.mainField.countBlock();
-			var over:int = Math.max(0, (blockCount + notice * 2) - blockCountLimit);
-			return Math.min(over, fr.breakLine * 10) * 400;
+			var over:int = Math.max(0, (blockCount + notice * 2) - (blockCountLimit + fr.breakLine * 10));
+			return over * -50;
 		}
 		
 		private function getTops(gameModel:FragmentGameModel):Vector.<int>
@@ -139,14 +144,10 @@ package model.ai
 		
 		private function appraiseRoughness(vertical:Vector.<int>):int
 		{
-			var minVertical:int = vectorMin(vertical);
-			var countMin:int = vectorCount(vertical, function(i:int):Boolean { return i == minVertical; } );
-			if (countMin > 1) minVertical = int.MIN_VALUE;
 			var ret:int = 0;
 			var prev:int = int.MIN_VALUE;
 			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
 			{
-				if (vertical[x] == minVertical) continue;
 				if (prev != int.MIN_VALUE)
 				{
 					var a:int = Math.abs(prev - vertical[x]);
