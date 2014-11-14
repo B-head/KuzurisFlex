@@ -52,6 +52,8 @@ package model.ai {
 		
 		public function setAILevel(level:int):void
 		{
+			if (level == 1) level = levelAsterisk;
+			if (level == 2) level = levelDoubleAsterisk;
 			ai.level = level;
 			if (level == levelAsterisk || level == levelDoubleAsterisk)
 			{

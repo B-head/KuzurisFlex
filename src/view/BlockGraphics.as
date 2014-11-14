@@ -3,6 +3,7 @@ package view
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.BlendMode;
+	import flash.geom.Matrix;
 	import model.Color;
 	import spark.components.supportClasses.Skin;
 	
@@ -12,40 +13,28 @@ package view
 	 */
 	public dynamic class BlockGraphics
 	{
-		[Embed(source='../graphic/block/0.png')]
+		[Embed(source='../graphic/block/split0.png')]
 		private var Block0:Class;
-		[Embed(source='../graphic/block/1.png')]
+		[Embed(source='../graphic/block/union1.png')]
 		private var Block1:Class;
-		[Embed(source='../graphic/block/2.png')]
+		[Embed(source='../graphic/block/union2.png')]
 		private var Block2:Class;
-		[Embed(source='../graphic/block/3.png')]
+		[Embed(source='../graphic/block/union3.png')]
 		private var Block3:Class;
-		[Embed(source='../graphic/block/4.png')]
+		[Embed(source='../graphic/block/union4.png')]
 		private var Block4:Class;
-		[Embed(source='../graphic/block/5.png')]
+		[Embed(source='../graphic/block/union5.png')]
 		private var Block5:Class;
-		[Embed(source='../graphic/block/6.png')]
+		[Embed(source='../graphic/block/union6.png')]
 		private var Block6:Class;
-		[Embed(source='../graphic/block/7.png')]
+		[Embed(source='../graphic/block/union7.png')]
 		private var Block7:Class;
-		[Embed(source='../graphic/block/8.png')]
+		[Embed(source='../graphic/block/union8.png')]
 		private var Block8:Class;
-		[Embed(source='../graphic/block/9.png')]
+		[Embed(source='../graphic/block/union9.png')]
 		private var Block9:Class;
-		[Embed(source='../graphic/block/10.png')]
+		[Embed(source='../graphic/block/union10.png')]
 		private var Block10:Class;
-		[Embed(source='../graphic/block/100.png')]
-		private var Block100:Class;
-		[Embed(source='../graphic/block/1000.png')]
-		private var Block1000:Class;
-		[Embed(source='../graphic/block/splinter.png')]
-		private var Splinter:Class;
-		
-		public var splinters:Object;
-		public var obstacleOne:BitmapData;
-		public var obstacleTen:BitmapData;
-		public var obstacleHundred:BitmapData;
-		public var obstacleThousand:BitmapData;
 		
 		public const blockLength:int = 11;
 		[Bindable] 
@@ -57,7 +46,6 @@ package view
 		{
 			this.blockWidth = blockWidth;
 			this.blockHeight = blockHeight;
-			this.splinters = new Object();
 			for (var i:int; i < 19; i++)
 			{
 				var blockColorSet:uint = indexToColor(i);
@@ -67,26 +55,16 @@ package view
 					var bitmap:Bitmap = indexToBlock(j);
 					this[blockColorSet][j] = coloring(bitmap, blockColorSet);
 				}
-				this.splinters[blockColorSet] = coloring2(new Splinter(), blockColorSet);
 			}
-			obstacleOne = coloring(new Block1(), Color.brown);
-			obstacleTen = coloring(new Block10(), Color.lightgray);
-			obstacleHundred = coloring(new Block100(), Color.yellow);
-			obstacleThousand = coloring(new Block1000(), Color.purple);
 		}
 		
 		private function coloring(bitmap:Bitmap, color:uint):BitmapData
 		{
+			var matrix:Matrix = new Matrix();
+			matrix.createBox(blockWidth / bitmap.width, blockHeight / bitmap.height);
 			var data:BitmapData = new BitmapData(blockWidth, blockHeight, true, color);
-			data.draw(bitmap, null, null, BlendMode.HARDLIGHT);
-			return data;
-		}
-		
-		private function coloring2(bitmap:Bitmap, color:uint):BitmapData
-		{
-			var data:BitmapData = new BitmapData(8, 8, true, color);
-			data.draw(bitmap, null, null, BlendMode.HARDLIGHT);
-			data.draw(bitmap, null, null, BlendMode.ALPHA);
+			data.draw(bitmap, matrix, null, BlendMode.HARDLIGHT);
+			data.draw(bitmap, matrix, null, BlendMode.ALPHA);
 			return data;
 		}
 		

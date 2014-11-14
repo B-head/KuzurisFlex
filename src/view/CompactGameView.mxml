@@ -17,6 +17,7 @@
 		[Bindable] 
 		public var breakLineGraphics:BreakLineGraphics;
 		private var _gameManager:GameManager;
+		private var shockEffectHelper:ShockEffectHelper;
 		[Bindable]
 		private var _gameModel:GameModel;
 		[Bindable]
@@ -73,6 +74,8 @@
 			_gameModel.addEventListener(BreakLineEvent.breakLine, breakLineListener);
 			_gameModel.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
 			_gameModel.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
+			_gameModel.addEventListener(ShockBlockEvent.shockDamage, shockBlockListener);
+			_gameModel.addEventListener(ShockBlockEvent.clearSpecialUnion, shockBlockListener);
 			_gameModel.addEventListener(LevelClearEvent.levelClear, levelClearListener);
 			_gameModel.addEventListener(GameEvent.blockAllClear, allClearListener);
 			_gameModel.addEventListener(GameEvent.gameOver, function():void { currentState = "gameOver" } );
@@ -81,8 +84,9 @@
 		
 		private function init():void
 		{
-			blockGraphics = Main.blockGraphics;
-			breakLineGraphics = Main.breakLineGraphics;
+			blockGraphics = Main.compactBlockGraphics;
+			breakLineGraphics = Main.compactBreakLineGraphics;
+			shockEffectHelper = new ShockEffectHelper();
 		}
 		
 		private function updatePlayerListener(e:KuzurisEvent):void
@@ -134,9 +138,8 @@
 			{
 				var ble:BreakLineEffect = new BreakLineEffect();
 				ble.lineEvent = e;
-				ble.blockGraphics = blockGraphics;
 				ble.breakLineGraphics = breakLineGraphics;
-				ble.y = e.position * blockGraphics.blockHeight - 256
+				ble.y = e.position * blockGraphics.blockHeight - 144;
 				breakLineContainer.addElement(ble);
 				ble.addEventListener(EffectEvent.EFFECT_END, function(e:EffectEvent):void { breakLineContainer.removeElement(ble); } );
 			}
@@ -149,6 +152,11 @@
 					a.powerLevel = powerLevel;
 				}
 			}
+		}
+		
+		private function shockBlockListener(e:ShockBlockEvent):void
+		{
+			shockEffectHelper.registerShockBlockEvent(e);
 		}
 		
 		private function levelClearListener(e:LevelClearEvent):void
@@ -217,8 +225,8 @@
 		</s:Parallel>
 	</fx:Declarations>
 	
-	<s:Group x="{reverse ? 104 : 0}" y="0">
-		<s:Rect x="15" y="32" width="161" height="320" alpha="0.8">
+	<s:Group x="{reverse ? 36 : 0}" y="0">
+		<s:Rect x="7" y="16" width="81" height="160" alpha="0.8">
 			<s:fill>
 				<s:SolidColor color="#000000"/>
 			</s:fill>
@@ -226,26 +234,26 @@
 				<s:SolidColorStroke color="#ff9900" weight="1" />
 			</s:stroke>
 		</s:Rect>
-		<s:Image x="0" y="32" source="@Embed('../graphic/frame.png')"/>
-		<s:Group id="recordFieldView" x="0" y="32">
+		<s:Image x="0" y="16" source="@Embed('../graphic/frame.png')" scaleX="0.5" scaleY="0.5" />
+		<s:Group id="recordFieldView" x="0" y="16">
 			<s:Label id="levelUpRecord" styleName="field-record level-up" y="0" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
 			<s:Label id="allClear" styleName="field-record all-clear" y="0" width="192" text="オールクリア！" visible="false"/>
 			<s:Label id="comboScore" styleName="break-combo-score" y="24" width="192" text="{line.comboCount}コンボ" visible="false"/>
-			<s:Label id="lineRecord" styleName="field-record break-line" y="36" width="192" text="{line.comboTotalLine}ライン" visible="false"/>
+			<s:Label id="lineRecord" styleName="field-record break-line" y="36" width="192" text="{line.line}ライン" visible="false"/>
 			<s:Label id="lineScore" styleName="break-line-score" y="60" width="192" text="+{line.plusScore}pt" visible="false"/>
 			<s:Label id="obstacleRecord" styleName="obstacle-record" y="60" width="192" text="+{line.occurObstacle()}obs[×{nf.format(line.powerScale())}]" visible="false"/>
 		</s:Group>
-		<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" 
-			x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 288}" showSpecial="true" alpha="0.5"/>
-		<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" 
-			x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 288}" showSpecial="true"/>
-		<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" 
-			x="16" y="-288" showSpecial="true"/>
-		<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" 
-			x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 288}" showSpecial="true"/>
-		<s:Group x="16" y="0" id="breakLineContainer"/>
-		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" obstacleManager="{_gameModel.obstacleManager}" blockGraphics="{blockGraphics}"/>
-		<s:BorderContainer x="16" y="368" width="160" height="32" visible="{playerInfo != null}">
+		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="{_gameModel.cox * blockGraphics.blockWidth + 8}" y="{_gameModel.goy * blockGraphics.blockHeight - 144}" showSpecial="true" alpha="0.5"/>
+		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="{_gameModel.cox * blockGraphics.blockWidth + 8}" y="{_gameModel.coy * blockGraphics.blockHeight - 144}" showSpecial="true"/>
+		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="8" y="-144" showSpecial="true"/>
+		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" visible.pause="false" 
+			x="8" y="{_gameModel.ffy * blockGraphics.blockHeight - 144}" showSpecial="true"/>
+		<s:Group x="8" y="0" id="breakLineContainer"/>
+		<v:ObstacleView id="obstacle" x="8" y="0" width="80" height="16" blockScale="0.5" visible="false" obstacleManager="{_gameModel.obstacleManager}"/>
+		<s:BorderContainer x="0" y="176" width="96" height="24" visible="{playerInfo != null}">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
@@ -255,5 +263,5 @@
 		<s:Label id="gameOver" styleName="game-over" x="0" y="64" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
 		<s:Label id="gameClear" styleName="game-clear" x="0" y="64" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
 	</s:Group>
-	<v:NextOminoView id="next" x="{reverse ? 0 : 200}" y="32" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
+	<v:NextOminoView id="next" x="{reverse ? 0 : 96}" y="16" circleWidth="32" circleHeight="24" gap="2" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
 </s:Group>

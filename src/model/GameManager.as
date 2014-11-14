@@ -238,12 +238,6 @@ package model
 			gameModel[index].forwardGame(command);
 		}
 		
-		private function resetFrameCount(delay:Boolean = false):void
-		{
-			prevFrameCount = getTimer() * 60 / 1000;
-			if (delay) prevFrameCount -= 60;
-		}
-		
 		private function getMinGameTime():int
 		{
 			var ret:int = int.MAX_VALUE;
@@ -254,6 +248,12 @@ package model
 				ret = Math.min(ret, gameModel[i].record.gameTime);
 			}
 			return ret;
+		}
+		
+		private function resetFrameCount(delay:Boolean = false):void
+		{
+			prevFrameCount = getTimer() * 60 / 1000;
+			if (delay) prevFrameCount -= 60;
 		}
 		
 		public function frameConstructedListener():void

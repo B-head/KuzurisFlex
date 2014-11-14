@@ -48,7 +48,7 @@ package model.ai
 			var blockCountLimitBase:int = (GameModelBase.fieldWidth - 1) * GameModelBase.fieldHeight / 2;
 			var blockCountLimit:int = Math.min(blockCountLimitBase, blockCountLimitBase * level / 20);
 			var blockCount:int = current.mainField.countBlock();
-			var over:int = Math.max(0, (blockCount + notice * 2) - (blockCountLimit + fr.breakLine * 10));
+			var over:int = Math.max(0, (blockCount + notice * 3) - (blockCountLimit + fr.breakLine * 30));
 			return over * -50;
 		}
 		

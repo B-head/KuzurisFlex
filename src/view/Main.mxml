@@ -16,6 +16,9 @@
 			
 			public static var blockGraphics:BlockGraphics;
 			public static var breakLineGraphics:BreakLineGraphics;
+			public static var shockGraphics:ShockEffectGraphics;
+			public static var compactBlockGraphics:BlockGraphics;
+			public static var compactBreakLineGraphics:BreakLineGraphics;
 			
 			public var pause:Vector.<uint>;
 			private var stats:SpriteVisualElement;
@@ -27,10 +30,13 @@
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 				var st:SoundTransform = SoundMixer.soundTransform
-				st.volume = 0.5;
+				st.volume = 0.1;
 				SoundMixer.soundTransform = st;
-				blockGraphics = new BlockGraphics();
-				breakLineGraphics = new BreakLineGraphics();
+				blockGraphics = new BlockGraphics(16, 16);
+				breakLineGraphics = new BreakLineGraphics(160, 16);
+				shockGraphics = new ShockEffectGraphics(16, 16);
+				compactBlockGraphics = new BlockGraphics(8, 8);
+				compactBreakLineGraphics = new BreakLineGraphics(80, 8);
 				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE]
 			}
 			
@@ -132,7 +138,7 @@
 					  buttonDown="decideTlial(GameSetting.obstacleAttack)" />
 			<s:Button styleName="title-menu" width="300"
 					  label="{GameSetting.modeToText(GameSetting.polyOmino)}"
-					  buttonDown="decideTlial(GameSetting.polyOmino)" enabled="false" />
+					  buttonDown="decideTlial(GameSetting.polyOmino)" />
 			<s:Button styleName="title-menu hard-mode" width="300"
 					  label="{GameSetting.modeToText(GameSetting.overSpeed)}"
 					  buttonDown="decideTlial(GameSetting.overSpeed)" />
@@ -141,7 +147,7 @@
 					  buttonDown="decideTlial(GameSetting.obstacleFight)" />
 			<s:Button styleName="title-menu hard-mode" width="300"
 					  label="{GameSetting.modeToText(GameSetting.bigOmino)}"
-					  buttonDown="decideTlial(GameSetting.bigOmino)" enabled="false" />
+					  buttonDown="decideTlial(GameSetting.bigOmino)" />
 			<s:Button styleName="title-menu" width="300"
 					  label="{GameSetting.modeToText(GameSetting.free)}"
 					  buttonDown="decideTlial(GameSetting.free)" />

@@ -2,36 +2,44 @@ package view
 {
 	import flash.display.*;
 	import flash.geom.Matrix;
+	import flash.utils.Dictionary;
 	import mx.collections.ArrayCollection;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	public dynamic class BreakLineGraphics extends ArrayCollection
+	public class BreakLineGraphics
 	{
+		public var grfs:Vector.<Vector.<Shape>>;
+		public var width:Number;
+		public var height:Number;
 		
-		public function BreakLineGraphics() 
+		public static const frameMax:int = 30;
+		
+		public function BreakLineGraphics(width:Number = 160, height:Number = 16) 
 		{
-			super(new Array());
-			for (var i:int = 0; i < 20; i++)
+			grfs = new Vector.<Vector.<Shape>>(frameMax);
+			this.width = width;
+			this.height = height;
+			for (var i:int = 0; i < frameMax; i++)
 			{
-				var color:uint = indexToColor(i);
-				addItem(new ArrayCollection(new Array()));
-				for (var j:int = 0; j < 15; j++)
+				grfs[i] = new Vector.<Shape>(20);
+				for (var c:int = 0; c <= 20; c++)
 				{
+					var color:uint = indexToColor(c);
 					var shape:Shape = new Shape();
 					var grf:Graphics = shape.graphics;
 					var matrix:Matrix = new Matrix();
-					var w:int = 160 * (15 - j) / 15;
-					matrix.createGradientBox(160, 16, 0, w - 160, 0);
+					var w:int = width * (frameMax - i) / frameMax;
+					matrix.createGradientBox(width, height, 0, w - width, 0);
 					grf.beginGradientFill(GradientType.LINEAR, [color, color, color], [0, 1, 0], [0, 127, 255], matrix);
-					grf.drawRect(0, 0, 160, 16);
+					grf.drawRect(0, 0, width, height);
 					grf.endFill();
-					matrix.createGradientBox(160, 16, 0, 160 - w, 0);
+					matrix.createGradientBox(width, height, 0, width - w, 0);
 					grf.beginGradientFill(GradientType.LINEAR, [color, color, color], [0, 1, 0], [0, 127, 255], matrix);
-					grf.drawRect(0, 0, 160, 16);
+					grf.drawRect(0, 0, width, height);
 					grf.endFill();
-					this[i].addItem(shape);
+					grfs[i][c] = shape;
 				}
 			}
 		}

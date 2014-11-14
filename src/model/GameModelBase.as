@@ -76,7 +76,7 @@ package model
 			return;
 		}
 		
-		protected function onBlockDamage(x:int, y:int, damage:Number, coefficient:Number):void
+		protected function onBlockDamage(damage:Number, newState:BlockState, oldState:BlockState):void
 		{
 			return;
 		}
@@ -171,16 +171,11 @@ package model
 					{
 						continue;
 					}
-					result += field.verticalShock(x, y, shockDamage, indirectShockDamage, onDifference, true);
+					result += field.verticalShock(x, y, shockDamage, indirectShockDamage, onBlockDamage, true);
 					result += _mainField.verticalShock(tx, ty, shockDamage, indirectShockDamage, onBlockDamage, false);
 				}
 			}
 			return result;
-			
-			function onDifference(ix:int, iy:int, damage:Number, coefficient:Number):void
-			{ 
-				onBlockDamage(ix + dx, iy + dy, damage, coefficient);
-			}
 		}
 		
 		protected function rotateNext(replenish:OminoField):void

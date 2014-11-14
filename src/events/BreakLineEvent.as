@@ -1,13 +1,15 @@
 package events {
 	import flash.events.Event;
+	import model.GameSetting;
 	/**
 	 * ...
 	 * @author B_head
 	 */
 	public class BreakLineEvent extends GameEvent
 	{
+		private var setting:GameSetting;
 		[Bindable]
-		public var comboTotalLine:int;
+		public var line:int;
 		[Bindable]
 		public var comboCount:int;
 		public var position:int;
@@ -16,11 +18,13 @@ package events {
 		public static const breakLine:String = "breakLine";
 		public static const sectionBreakLine:String = "sectionBreakLine";
 		public static const totalBreakLine:String = "totalBreakLine";
+		public static const technicalSpin:String = "technicalSpin";
 		
-		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, comboTotalLine:int, comboCount:int, position:int = int.MIN_VALUE, colors:Vector.<uint> = null) 
+		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, setting:GameSetting, line:int, comboCount:int, position:int = int.MIN_VALUE, colors:Vector.<uint> = null) 
 		{ 
 			super(type, gameTime, plusScore);
-			this.comboTotalLine = comboTotalLine;
+			this.setting = setting;
+			this.line = line;
 			this.comboCount = comboCount;
 			this.position = position;
 			this.colors = colors;
@@ -28,22 +32,22 @@ package events {
 		
 		public override function clone():Event 
 		{ 
-			return new BreakLineEvent(type, gameTime, plusScore, comboTotalLine, comboCount, position, colors)
+			return new BreakLineEvent(type, gameTime, plusScore, setting, line, comboCount, position, colors)
 		}
 		
 		public function powerLevel():int
 		{
-			return comboTotalLine - comboCount;
+			return setting.powerLevel(line, comboCount);
 		}
 		
 		public function powerScale():Number
 		{
-			return (powerLevel() + 3) / 4;
+			return setting.powerScale(line, comboCount);;
 		}
 		
 		public function occurObstacle():int
 		{
-			return 10 * comboTotalLine * powerScale();
+			return setting.occurObstacleCount(line, comboCount);;
 		}
 	}
 

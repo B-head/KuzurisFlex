@@ -179,18 +179,18 @@
 		playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" visible.practice="false" visible.watch="false" />
 	<v:GameView id="practicePlayer" x="{isFlip ? 436 : 18}" y="24" visible="false" visible.practice="true"
 		reverse="{isFlip}" playerIndex="0" gameManager="{practiceGameManager}"/>
-	<s:Group x="{isFlip ? 18 : 436}" x.watch="227" y="8" scaleX="0.5" scaleY="0.5">
+	<s:Group x="{isFlip ? 18 : 436}" x.watch="227" y="8">
 		<v:CompactGameView x="0" y="0" z="-2" reverse="{isFlip}" visible="false" visible.watch="true"
 			playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="133" x.watch="266" y="0" z="-2" reverse="{isFlip}" 
+		<v:CompactGameView x="66" x.watch="133" y="0" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(1)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="399" x.watch="532" y="0" z="-2" reverse="{isFlip}" 
+		<v:CompactGameView x="200" x.watch="266" y="0" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(2)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="0" y="408" z="-1" reverse="{isFlip}" 
+		<v:CompactGameView x="0" y="204" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(3)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="266" y="408" z="-1" reverse="{isFlip}" 
+		<v:CompactGameView x="133" y="204" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(4)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="532" y="408" z="-1" reverse="{isFlip}" 
+		<v:CompactGameView x="266" y="204" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(5)}" gameManager="{networkGameManager}" />
 	</s:Group>
 	<s:VGroup includeIn="prepare" x="{isFlip ? 561 : 143}" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">

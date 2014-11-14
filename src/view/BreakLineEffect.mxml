@@ -2,90 +2,36 @@
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/mx"
-			   xmlns:v="view.*"
-			   creationComplete="creationCompleteListener()"
-			   frameConstructed="frameConstructedListener()">
+			   xmlns:v="view.*">
 			   
 	<fx:Script>
 		<![CDATA[
 		import events.*;
 		import flash.display.BitmapData;
 		import model.*;
+		import mx.events.EffectEvent;
 		
 		[Bindable]
 		public var lineEvent:BreakLineEvent;
 		[Bindable]
 		public var powerLevel:int;
-		public var blockGraphics:BlockGraphics;
 		public var breakLineGraphics:BreakLineGraphics;
 		private var count:int;
 		
-		private function creationCompleteListener():void
+		public function update():void
 		{
-			/*
-			bbe1.splinterGraphics = getSplinter(0);
-			bbe2.splinterGraphics = getSplinter(1);
-			bbe3.splinterGraphics = getSplinter(2);
-			bbe4.splinterGraphics = getSplinter(3);
-			bbe5.splinterGraphics = getSplinter(4);
-			bbe6.splinterGraphics = getSplinter(5);
-			bbe7.splinterGraphics = getSplinter(6);
-			bbe8.splinterGraphics = getSplinter(7);
-			bbe9.splinterGraphics = getSplinter(8);
-			bbe10.splinterGraphics = getSplinter(9);
-			*/
-			effects.play();
-		}
-		
-		private function frameConstructedListener():void
-		{
-			if (count < 15)
+			if (count < BreakLineGraphics.frameMax)
 			{
-				light.source = breakLineGraphics.getItemAt(powerLevel).getItemAt(count);
-				count++;
+				light.source = breakLineGraphics.grfs[count][powerLevel];
 			}
-			else
+			else if(count == BreakLineGraphics.frameMax)
 			{
-				light.visible = false;
+				dispatchEvent(new EffectEvent(EffectEvent.EFFECT_END));
 			}
-		}
-		
-		private function getSplinter(index:int):BitmapData
-		{
-			return blockGraphics.splinters[lineEvent.colors[index]];
+			count++;
 		}
 		]]>
 	</fx:Script>
 	
-	<fx:Declarations>
-		<s:Parallel id="effects" effectEnd="dispatchEvent(event)">
-			<s:Sequence>
-				<s:Move yTo="-16" duration="1000" target="{score}" />
-				<s:SetAction property="visible" value="false" target="{score}"/>
-			</s:Sequence>
-			<!--
-			<s:Sequence>
-				<s:Move yTo="160" duration="1000" target="{bbeContainer}"/>
-				<s:SetAction property="visible" value="false" target="{bbeContainer}"/>
-			</s:Sequence>
-			-->
-		</s:Parallel>
-	</fx:Declarations>
-	
-	<s:Label id="score" horizontalCenter="0" styleName="break-line-score" text="+{lineEvent.plusScore}pt" visible="false" />
-	<!--
-	<s:Group id="bbeContainer">
-		<v:BreakBlockEffect id="bbe1" x="0"/> 
-		<v:BreakBlockEffect id="bbe2" x="16"/> 
-		<v:BreakBlockEffect id="bbe3" x="32"/> 
-		<v:BreakBlockEffect id="bbe4" x="48"/> 
-		<v:BreakBlockEffect id="bbe5" x="64"/> 
-		<v:BreakBlockEffect id="bbe6" x="80"/> 
-		<v:BreakBlockEffect id="bbe7" x="96"/> 
-		<v:BreakBlockEffect id="bbe8" x="112"/> 
-		<v:BreakBlockEffect id="bbe9" x="128"/> 
-		<v:BreakBlockEffect id="bbe10" x="144"/> 
-	</s:Group>
-	-->
 	<s:Image id="light"/>
 </s:Group>

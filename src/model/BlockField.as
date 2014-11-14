@@ -40,6 +40,11 @@ package model
 			return _height;
 		}
 		
+		public function getState(x:int, y:int):BlockState
+		{
+			return value[x][y];
+		}
+		
 		public function getHitPoint(x:int, y:int):Number
 		{
 			return value[x][y].hitPoint;
@@ -166,31 +171,24 @@ package model
 				{
 					break;
 				}
-				var coefficient:Number = i == y ? shockDamage : indirectShockDamage;
-				var damage:Number = blockShock(x, i, coefficient);
-				onBlockDamageDelegate(x, y, damage, coefficient);
+				var pureDamage:Number = i == y ? shockDamage : indirectShockDamage;
+				var damage:Number = blockShock(x, i, pureDamage, onBlockDamageDelegate);
 				totalDamage += damage;
 			}
 			return totalDamage;
 		}
 		
-		private function blockShock(x:int, y:int, damage:Number):Number
+		private function blockShock(x:int, y:int, pureDamage:Number, onBlockDamageDelegate:Function):Number
 		{
 			var result:Number = 0;
 			var hitPoint:Number = value[x][y].hitPoint;
-			if (hitPoint <= damage) 
-			{ 
-				result = hitPoint; 
-				hitPoint = 0;
-			}
-			else
-			{
-				result = damage;
-				hitPoint -= damage;
-			}
-			var v:BlockState = value[x][y].clone();
+			result = (hitPoint <= pureDamage ? hitPoint : pureDamage);
+			hitPoint -= pureDamage;
+			var old:BlockState = value[x][y];
+			var v:BlockState = old.clone();
 			v.hitPoint = hitPoint;
 			value[x][y] = v;
+			onBlockDamageDelegate(pureDamage, value[x][y], old);
 			return result;
 		}
 		

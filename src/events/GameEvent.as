@@ -27,6 +27,7 @@ package events {
 		public static const extractFall:String = "extractFall";
 		public static const obstacleFall:String = "obstacleFall";
 		public static const appendTower:String = "appendTower";
+		public static const excellent:String = "excellent";
 		public static const blockAllClear:String = "blockAllClear";
 		
 		public function GameEvent(type:String, gameTime:int, plusScore:int) 

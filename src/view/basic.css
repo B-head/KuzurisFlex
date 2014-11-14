@@ -101,12 +101,19 @@ s|DataGrid {
 	text-align: center;
 }
 
+.technical-spin {
+	color: rgb(154, 0, 121);
+	text-align: center;
+}
+
 .level-up {
 	color: rgb(102, 204, 255);
+	text-align: center;
 }
 
 .all-clear {
 	color: rgb(250, 245, 0);
+	text-align: center;
 }
 
 .break-line {

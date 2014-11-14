@@ -113,7 +113,6 @@ package model
 		
 		public function isActiveNotice():Boolean
 		{
-			//return noticeCount > 0;
 			return noticePrintCount > 0;
 		}
 		
@@ -169,23 +168,16 @@ package model
 			return ret;
 		}
 		
-		public function occurObstacle(gameTime:int, lineCount:int, comboCount:int):int
+		public function occurObstacle(gameTime:int, comboTotalLine:int, comboCount:int, blockAllClearCount:int, excellentCount:int):int
 		{
 			var r:ObstacleRecord = getOccurRecord(gameTime);
-			var count:int = setting.occurObstacleCount(lineCount, comboCount);
+			var count:int = setting.occurObstacleCount(comboTotalLine, comboCount);
+			count += blockAllClearCount * setting.blockAllClearBonusObstacle;
+			count += excellentCount * setting.excellentBonusObstacle;
 			var ret:int = count - r.count;
 			r.count += ret;
 			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			return ret;
-		}
-		
-		public function blockAllClear(gameTime:int):int
-		{
-			var count:int = setting.blockAllClearBonusObstacle;
-			var r:ObstacleRecord = getOccurRecord(gameTime);
-			r.count += count;
-			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
-			return count;
 		}
 		
 		private function getOccurRecord(gameTime:int):ObstacleRecord

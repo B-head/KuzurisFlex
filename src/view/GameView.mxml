@@ -16,7 +16,11 @@
 		public var blockGraphics:BlockGraphics;
 		[Bindable] 
 		public var breakLineGraphics:BreakLineGraphics;
+		[Bindable] 
+		public var shockGraphics:ShockEffectGraphics;
 		private var _gameManager:GameManager;
+		[Bindable] 
+		private var shockEffectHelper:ShockEffectHelper;
 		[Bindable]
 		private var _gameModel:GameModel;
 		[Bindable]
@@ -25,6 +29,8 @@
 		private var _playerIndex:int;
 		[Bindable]
 		private var line:BreakLineEvent;
+		[Bindable]
+		private var technicalSpin:BreakLineEvent;
 		[Bindable]
 		private var levelClear:LevelClearEvent;
 		
@@ -64,15 +70,20 @@
 			control.update(_gameModel.getControlOmino(), _gameModel.shockSave);
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, true);
 			obstacle.update();
-			_gameModel.addEventListener(GameEvent.updateField, updateFieldListener);
-			_gameModel.addEventListener(GameEvent.updateControl, updateControlListener);
+			breakLineContainer.removeAllElements();
+			_gameModel.addEventListener(GameEvent.forwardGame, updateFieldListener);
+			_gameModel.addEventListener(GameEvent.forwardGame, updateControlListener);
 			_gameModel.addEventListener(GameEvent.updateNext, updateNextListener);
 			_gameModel.addEventListener(GameEvent.firstUpdateNext, updateNextListener);
+			_gameModel.addEventListener(GameEvent.forwardGame, updateBreakLineListener);
 			_gameModel.obstacleManager.addEventListener(GameEvent.updateObstacle, updateObstacleLestener);
 			_gameModel.obstacleManager.addEventListener(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
 			_gameModel.addEventListener(BreakLineEvent.breakLine, breakLineListener);
 			_gameModel.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
 			_gameModel.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
+			_gameModel.addEventListener(BreakLineEvent.technicalSpin, technicalSpinListener);
+			_gameModel.addEventListener(ShockBlockEvent.shockDamage, shockBlockListener);
+			_gameModel.addEventListener(ShockBlockEvent.clearSpecialUnion, shockBlockListener);
 			_gameModel.addEventListener(LevelClearEvent.levelClear, levelClearListener);
 			_gameModel.addEventListener(GameEvent.blockAllClear, allClearListener);
 			_gameModel.addEventListener(GameEvent.gameOver, function():void { currentState = "gameOver" } );
@@ -83,6 +94,8 @@
 		{
 			blockGraphics = Main.blockGraphics;
 			breakLineGraphics = Main.breakLineGraphics;
+			shockGraphics = Main.shockGraphics;
+			shockEffectHelper = new ShockEffectHelper();
 		}
 		
 		private function updatePlayerListener(e:KuzurisEvent):void
@@ -114,25 +127,31 @@
 			obstacle.update();
 		}
 		
+		private function updateBreakLineListener(e:GameEvent):void
+		{
+			for (var i:int = 0; i < breakLineContainer.numElements; i++)
+			{
+				var a:BreakLineEffect = BreakLineEffect(breakLineContainer.getElementAt(i));
+				a.update();
+			}
+		}
+		
 		private function breakLineListener(e:BreakLineEvent):void
 		{
 			line = e;
-			lineEffect.stop();
-			lineEffect.play();
+			fieldRecordEffect.stop();
+			fieldRecordEffect.play([lineRecord]);
 			if (battle)
 			{
-				obstacleRecordEffect.stop();
-				obstacleRecordEffect.play();
+				fieldRecordEffect.play([obstacleRecord]);
 			}
 			else
 			{
-				lineScoreEffect.stop();
-				lineScoreEffect.play();
+				fieldRecordEffect.play([lineScore]);
 			}
 			if (e.comboCount > 0)
 			{
-				comboEffect.stop();
-				comboEffect.play();
+				fieldRecordEffect.play([comboScore]);
 			}
 			else
 			{
@@ -142,11 +161,10 @@
 			{
 				var ble:BreakLineEffect = new BreakLineEffect();
 				ble.lineEvent = e;
-				ble.blockGraphics = blockGraphics;
 				ble.breakLineGraphics = breakLineGraphics;
-				ble.y = e.position * blockGraphics.blockHeight - 256
-				breakLineContainer.addElement(ble);
+				ble.y = e.position * blockGraphics.blockHeight - 256;
 				ble.addEventListener(EffectEvent.EFFECT_END, function(e:EffectEvent):void { breakLineContainer.removeElement(ble); } );
+				breakLineContainer.addElement(ble);
 			}
 			else if (e.type == BreakLineEvent.sectionBreakLine)
 			{
@@ -159,17 +177,26 @@
 			}
 		}
 		
+		private function technicalSpinListener(e:BreakLineEvent):void
+		{
+			technicalSpin = e;
+			bonusEffect.play([technicalSpinRecord, technicalSpinBonus]);
+		}
+		
+		private function shockBlockListener(e:ShockBlockEvent):void
+		{
+			shockEffectHelper.registerShockBlockEvent(e);
+		}
+		
 		private function levelClearListener(e:LevelClearEvent):void
 		{
 			levelClear = e;
-			levelUpEffect.stop();
-			levelUpEffect.play();
+			bonusEffect.play([levelUpRecord, levelUpBonus]);
 		}
 		
 		private function allClearListener(e:GameEvent):void
 		{
-			allClearEffect.stop();
-			allClearEffect.play();
+			bonusEffect.play([allClear, allClearBonus]);
 		}
 		]]>
 	</fx:Script>
@@ -188,44 +215,18 @@
 		<v:GameSoundEffect gameModel="{_gameModel}"/>
 		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
 		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
-		<s:Sequence id="lineEffect">
-			<s:SetAction property="visible" value="true" target="{lineRecord}"/>
-			<s:SetAction property="visible" value="false" target="{lineRecord}" startDelay="4000" />
+		<s:Sequence id="fieldRecordEffect">
+			<s:SetAction property="visible" value="true"/>
+			<s:SetAction property="visible" value="false" startDelay="4000" />
 		</s:Sequence>
-		<s:Sequence id="comboEffect">
-			<s:SetAction property="visible" value="true" target="{comboScore}"/>
-			<s:SetAction property="visible" value="false" target="{comboScore}" startDelay="4000" />
-		</s:Sequence>
-		<s:Sequence id="lineScoreEffect">
-			<s:SetAction property="visible" value="true" target="{lineScore}"/>
-			<s:SetAction property="visible" value="false" target="{lineScore}" startDelay="4000" />
-		</s:Sequence>
-		<s:Sequence id="obstacleRecordEffect">
-			<s:SetAction property="visible" value="true" target="{obstacleRecord}"/>
-			<s:SetAction property="visible" value="false" target="{obstacleRecord}" startDelay="4000" />
-		</s:Sequence>
-		<s:Parallel id="levelUpEffect">
+		<s:Parallel id="bonusEffect">
 			<s:Sequence>
-				<s:SetAction property="visible" value="true" target="{sectionTime}"/>
-				<s:SetAction property="visible" value="false" target="{sectionTime}" startDelay="8000" />
+				<s:Move xFrom="80" xTo="0" duration="250"/>
+				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500"/>
 			</s:Sequence>
 			<s:Sequence>
-				<s:Move xFrom="80" xTo="0" duration="250" target="{levelUpRecord}"/>
-				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500" target="{levelUpRecord}"/>
-			</s:Sequence>
-			<s:Sequence>
-				<s:Fade alphaFrom="0" alphaTo="1" duration="250" target="{levelUpRecord}"/>
-				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500" target="{levelUpRecord}"/>
-			</s:Sequence>
-		</s:Parallel>
-		<s:Parallel id="allClearEffect">
-			<s:Sequence>
-				<s:Move xFrom="80" xTo="0" duration="250" target="{allClear}"/>
-				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500" target="{allClear}"/>
-			</s:Sequence>
-			<s:Sequence>
-				<s:Fade alphaFrom="0" alphaTo="1" duration="250" target="{allClear}"/>
-				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500" target="{allClear}"/>
+				<s:Fade alphaFrom="0" alphaTo="1" duration="250"/>
+				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500"/>
 			</s:Sequence>
 		</s:Parallel>
 	</fx:Declarations>
@@ -241,19 +242,23 @@
 		</s:Rect>
 		<s:Image x="0" y="64" source="@Embed('../graphic/frame.png')"/>
 		<s:Group id="recordFieldView" x="0" y="64">
-			<s:Label id="levelUpRecord" styleName="field-record level-up" y="0" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
-			<s:Label id="allClear" styleName="field-record all-clear" y="0" width="192" text="オールクリア！" visible="false"/>
-			<s:Label id="comboScore" styleName="break-combo-score" y="24" width="192" text="{line.comboCount}コンボ" visible="false"/>
-			<s:Label id="lineRecord" styleName="field-record break-line" y="36" width="192" text="{line.comboTotalLine}ライン" visible="false"/>
-			<s:Label id="lineScore" styleName="break-line-score" y="60" width="192" text="+{line.plusScore}pt" visible="false"/>
-			<s:Label id="obstacleRecord" styleName="obstacle-record" y="60" width="192" text="+{line.occurObstacle()}obs[×{nf.format(line.powerScale())}]" visible="false"/>
+			<s:Label id="comboScore" styleName="break-combo-score" y="0" width="192" text="{line.comboCount}コンボ" visible="false"/>
+			<s:Label id="lineRecord" styleName="field-record break-line" y="12" width="192" text="{line.line}ライン" visible="false"/>
+			<s:Label id="lineScore" styleName="break-line-score" y="36" width="192" text="+{line.plusScore}点" visible="false"/>
+			<s:Label id="obstacleRecord" styleName="obstacle-record" y="36" width="192" text="+{line.occurObstacle()}おじゃま[×{nf.format(line.powerScale())}]" visible="false"/>
+			<s:Label id="technicalSpinBonus" styleName="technical-spin" y="48" width="192" text="+{technicalSpin.line}ライン" visible="false"/>
+			<s:Label id="technicalSpinRecord" styleName="field-record technical-spin" y="60" width="192" text="{technicalSpin.line}ライン&#10;テクニカルスピン" visible="false"/>
+			<s:Label id="levelUpBonus" styleName="level-up" y="48" width="192" text="+{levelClear.plusScore}点[{frameTime.format(levelClear.clearTime)}]" visible="false"/>
+			<s:Label id="levelUpRecord" styleName="field-record level-up" y="60" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
+			<s:Label id="allClearBonus" styleName="all-clear" y="48" width="192" text="+100000点" visible="false"/>
+			<s:Label id="allClear" styleName="field-record all-clear" y="60" width="192" text="オールクリア！" visible="false"/>
 		</s:Group>
-		<v:BlockFieldView id="ghost" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
-		<v:BlockFieldView id="control" spritesLength="100" blockGraphics="{blockGraphics}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
-		<v:BlockFieldView id="main" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" x="16" y="-256" showSpecial="true"/>
-		<v:BlockFieldView id="fall" spritesLength="400" blockGraphics="{blockGraphics}" visible.pause="false" x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
+		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="16" y="-256" showSpecial="true"/>
+		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
 		<s:Group x="16" y="0" id="breakLineContainer"/>
-		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" obstacleManager="{_gameModel.obstacleManager}" blockGraphics="{blockGraphics}"/>
+		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" obstacleManager="{_gameModel.obstacleManager}"/>
 		<s:BorderContainer x="16" y="400" width="160" height="32" visible="{playerInfo != null}">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
@@ -264,7 +269,7 @@
 		<s:Label id="gameOver" styleName="game-over" x="0" y="96" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
 		<s:Label id="gameClear" styleName="game-clear" x="0" y="96" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
 	</s:Group>
-	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
+	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" circleWidth="96" circleHeight="48" gap="4" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" pause="false" pause.pause="true"/>
 	<s:VGroup x="{reverse ? 304 : 0}" y="64" width="96" horizontalAlign="justify">
 		<s:BorderContainer>
 			<s:layout>
@@ -288,7 +293,7 @@
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label text="スコア"/>
-			<s:Label text="{_gameModel.record.gameScore}" textAlign="right" />
+			<s:Label text="{_gameModel.record.gameScore}点" textAlign="right" />
 			<s:Label text="タイム"/>
 			<s:Label text="{frameTime.format(_gameModel.record.gameTime)}" textAlign="right" />
 		</s:BorderContainer>
@@ -298,14 +303,6 @@
 			</s:layout>
 			<s:Label text="次のおじゃま"/>
 			<s:Label text="{frameTime.format(_gameModel.nextObstacleTime)}" textAlign="right"/>
-		</s:BorderContainer>
-		<s:BorderContainer id="sectionTime" visible="false">
-			<s:layout>
-				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
-			</s:layout>
-			<s:Label styleName="level-up" text="レベルタイム"/>
-			<s:Label styleName="level-up" text="{frameTime.format(levelClear.clearTime)}" textAlign="right" />
-			<s:Label styleName="level-up" text="+{levelClear.plusScore}pt" textAlign="right" />
 		</s:BorderContainer>
 	</s:VGroup>
 </s:Group>

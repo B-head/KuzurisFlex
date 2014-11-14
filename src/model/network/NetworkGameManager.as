@@ -58,6 +58,7 @@ package model.network {
 			this.execution = execution;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
+				if (i == selfPlayerIndex) continue;
 				registerGameModel(i, gameModel[i]);
 				this.replay[i] = replay[i];
 			}
@@ -116,6 +117,7 @@ package model.network {
 		{
 			if (isExecution())
 			{
+				if (selfPlayerIndex == RoomInformation.watchIndex) return true;
 				return isGameOver(selfPlayerIndex);
 			}
 			return isOnePlayer();

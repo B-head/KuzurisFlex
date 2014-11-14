@@ -41,19 +41,21 @@ package model
 			return colors;
 		}
 		
-		public function clearSpecialUnion():void
+		public function clearSpecialUnion(onClearSpecialUnion:Function = null):void
 		{
 			for (var x:int = 0; x < _width; x++)
 			{
 				for (var y:int = 0; y < _height; y++)
 				{
-					if (value[x][y] == null)
+					var old:BlockState = value[x][y];
+					if (old == null || old.specialUnion == false)
 					{
 						continue;
 					}
-					var v:BlockState = value[x][y].clone();
+					var v:BlockState = old.clone();
 					v.specialUnion = false;
 					value[x][y] = v;
+					if (onClearSpecialUnion != null) onClearSpecialUnion(v, old);
 				}
 			}
 		}
@@ -115,6 +117,18 @@ package model
 			{
 				value[x][line] = null;
 			}
+		}
+		
+		public function getHeight():int
+		{
+			for (var y:int = 0; y < _height; y++)
+			{
+				for (var x:int = 0; x < _width; x++)
+				{
+					if (value[x][y] != null) return y;
+				}
+			}
+			return _height;
 		}
 		
 		public function getColorHeight(color:uint):int

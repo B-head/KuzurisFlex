@@ -1,5 +1,6 @@
 package model 
 {
+	import flash.geom.ColorTransform;
 	/**
 	 * ...
 	 * @author B_head
@@ -35,6 +36,16 @@ package model
 			g = g % 256 * 0x100;
 			b = b % 256 * 0x1;
 			return r + g + b + 0xFF000000;
+		}
+		
+		public static function makeTransform(color:uint):ColorTransform
+		{
+			var colorTransform:ColorTransform = new ColorTransform();
+            colorTransform.redOffset = ((color & 0x00FF0000) >> 16) - 0x80;
+            colorTransform.greenOffset = ((color & 0x0000FF00) >> 8) - 0x80;
+            colorTransform.blueOffset = (color & 0x000000FF) - 0x80;
+            colorTransform.alphaMultiplier = ((color & 0xFF000000) >> 24);
+			return colorTransform;
 		}
 	}
 

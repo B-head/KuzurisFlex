@@ -3,29 +3,14 @@
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/halo"
 			   xmlns:v="view.*">
-	<fx:Library>
-		<fx:Definition name="NextCircle">
-			<s:Group>
-				<s:Ellipse width="96" height="48">
-					<s:fill>
-						<s:RadialGradient id="ncFill">
-							<s:GradientEntry color="#35a16b" ratio="0" alpha="0" />
-							<s:GradientEntry color="#35a16b" ratio="1" alpha="1" />
-						</s:RadialGradient>
-					</s:fill>
-				</s:Ellipse>
-			</s:Group>
-		</fx:Definition>
-	</fx:Library>
-	
 	<fx:Script>
 		<![CDATA[
 		import model.*;
 		
-		[Bindable] 
+		[Bindable]
 		public var blockGraphics:BlockGraphics;
 		[Bindable] 
-		public var pause:Boolean
+		public var shockGraphics:ShockEffectGraphics;
 		private const moveDuration:int = 1000 * 8 / 60;
 		
 		public function update(nextOmino:Vector.<OminoField>, shockSave:Boolean, first:Boolean):void
@@ -36,12 +21,20 @@
 			next3.update(nextOmino[3], shockSave);
 			next4.update(nextOmino[4], shockSave);
 			next5.update(nextOmino[5], shockSave);
-			adjust(next0, nextOmino[0], 0, 12, 96, 48, 1);
-			adjust(next1, nextOmino[1], 0, 64, 96, 48, 1);
-			adjust(next2, nextOmino[2], 0, 116, 96, 48, 1);
-			adjust(next3, nextOmino[3], 0, 168, 96, 48, 1);
-			adjust(next4, nextOmino[4], 0, 220, 96, 48, 1);
-			adjust(next5, nextOmino[5], 0, 272, 96, 48, 1);
+			var f:Number = circleHeight / 4;
+			var n:Number = circleHeight + gap;
+			adjust(next0, nextOmino[0], 0, f + n * 0, circleWidth, circleHeight, 1);
+			adjust(next1, nextOmino[1], 0, f + n * 1, circleWidth, circleHeight, 1);
+			adjust(next2, nextOmino[2], 0, f + n * 2, circleWidth, circleHeight, 1);
+			adjust(next3, nextOmino[3], 0, f + n * 3, circleWidth, circleHeight, 1);
+			adjust(next4, nextOmino[4], 0, f + n * 4, circleWidth, circleHeight, 1);
+			adjust(next5, nextOmino[5], 0, f + n * 5, circleWidth, circleHeight, 1);
+			circle0.y = f + n * 0;
+			circle1.y = f + n * 1;
+			circle2.y = f + n * 2;
+			circle3.y = f + n * 3;
+			circle4.y = f + n * 4;
+			circle5.y = f + n * 5;
 			if (first) return;
 			moveNext0.yTo = next0.y;
 			moveNext1.yTo = next1.y;
@@ -75,25 +68,33 @@
 	</fx:Script>
 	
 	<fx:Declarations>
-		<s:Move id="moveNext0" target="{next0}" duration="{moveDuration}" yBy="-52" />
-		<s:Move id="moveNext1" target="{next1}" duration="{moveDuration}" yBy="-52" />
-		<s:Move id="moveNext2" target="{next2}" duration="{moveDuration}" yBy="-52" />
-		<s:Move id="moveNext3" target="{next3}" duration="{moveDuration}" yBy="-52" />
-		<s:Move id="moveNext4" target="{next4}" duration="{moveDuration}" yBy="-52" />
-		<s:Move id="moveNext5" target="{next5}" duration="{moveDuration}" yBy="-52" />
+		<fx:Boolean id="pause"/>
+		<fx:Number id="circleWidth"/>
+		<fx:Number id="circleHeight"/>
+		<fx:Number id="gap"/>
+		<s:Move id="moveNext0" target="{next0}" duration="{moveDuration}" yBy="{-(circleHeight + gap)}" />
+		<s:Move id="moveNext1" target="{next1}" duration="{moveDuration}" yBy="{-(circleHeight + gap)}" />
+		<s:Move id="moveNext2" target="{next2}" duration="{moveDuration}" yBy="{-(circleHeight + gap)}" />
+		<s:Move id="moveNext3" target="{next3}" duration="{moveDuration}" yBy="{-(circleHeight + gap)}" />
+		<s:Move id="moveNext4" target="{next4}" duration="{moveDuration}" yBy="{-(circleHeight + gap)}" />
+		<s:Move id="moveNext5" target="{next5}" duration="{moveDuration}" yBy="{-(circleHeight + gap)}" />
+		<s:RadialGradient id="ncFill">
+			<s:GradientEntry color="#35a16b" ratio="0" alpha="0" />
+			<s:GradientEntry color="#35a16b" ratio="1" alpha="1" />
+		</s:RadialGradient>
 	</fx:Declarations>
 	
-	<fx:NextCircle x="0" y="12"/>
-	<fx:NextCircle x="0" y="64"/>
-	<fx:NextCircle x="0" y="116"/>
-	<fx:NextCircle x="0" y="168"/>
-	<fx:NextCircle x="0" y="220"/>
-	<fx:NextCircle x="0" y="272"/>
-	<s:Label x="0" y="0" width="96" textAlign="center" text="ネクスト"/>
-	<v:BlockFieldView id="next0" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next1" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next2" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next3" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next4" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next5" spritesLength="100" blockGraphics="{blockGraphics}" visible="{!pause}"/>
+	<s:Ellipse id="circle0" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+	<s:Ellipse id="circle1" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+	<s:Ellipse id="circle2" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+	<s:Ellipse id="circle3" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+	<s:Ellipse id="circle4" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+	<s:Ellipse id="circle5" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+	<s:Label x="0" y="0" width="{circleWidth}" textAlign="center" text="ネクスト"/>
+	<v:BlockFieldView id="next0" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next1" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next2" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next3" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next4" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+	<v:BlockFieldView id="next5" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
 </s:Group>

@@ -16,13 +16,16 @@ package model
 		public static const polyOmino:String = "polyOmino";
 		public static const bigOmino:String = "bigOmino";
 		public static const free:String = "free";
-		public static const battle:String = "battle";
+		public static const classicBattle:String = "classicBattle";
+		public static const digBattle:String = "digBattle";
 		
 		public const levelUpCoefficient:int = 4000;
 		public const levelTimeCoefficient:int = 6000;
 		public const breakLineCoefficient:int = 1000;
-		public const blockAllClearBonusScore:int = 100000;
+		public const blockAllClearBonusScore:int = 25000;
 		public const blockAllClearBonusObstacle:int = 100;
+		public const excellentBonusScore:int = 25000;
+		public const excellentBonusObstacle:int = 25;
 		public const obstacleLineMax:int = 10;
 		public const obstacleLineBlockMax:int = 5;
 		public const towerLineBlockMax:int = 6;
@@ -30,7 +33,7 @@ package model
 		public const obstacleColor2:uint = Color.gray;
 		
 		public var version:uint = alpha1;
-		public var gameMode:String = battle;
+		public var gameMode:String = classicBattle;
 		public var startLevel:int = 1;
 		public var endless:Boolean = true;
 		public var levelClearLine:int = int.MIN_VALUE;
@@ -51,6 +54,8 @@ package model
 		public const obstacleSaveTime:int = 120;
 		public var obstacleInterval:int;
 		public var obstacleAdditionCount:Number;
+		public var obstacleInitialCoefficient:int;
+		public var obstacleDivisor:int;
 		
 		public static function modeToText(mode:String):String
 		{
@@ -63,7 +68,7 @@ package model
 				case polyOmino: return "ポリオミノ";
 				case bigOmino: return "ビッグミノ";
 				case free: return "レベルフリー";
-				case battle: return "対戦";
+				case classicBattle: return "対戦";
 				default: return null;
 			}
 		}
@@ -89,6 +94,11 @@ package model
 			return ret;
 		}
 		
+		public function isBattle():Boolean
+		{
+			return gameMode == classicBattle || gameMode == digBattle;
+		}
+		
 		public function isObstacleAddition():Boolean
 		{
 			return gameMode == obstacleAttack || gameMode == obstacleFight;
@@ -96,7 +106,7 @@ package model
 		
 		public function isTowerAddition():Boolean
 		{
-			return gameMode == axelSpeed || gameMode == overSpeed;
+			return gameMode == axelSpeed || gameMode == overSpeed || gameMode == digBattle;
 		}
 		
 		public function isGameClear(level:int):Boolean
@@ -123,14 +133,24 @@ package model
 			return (bonus > 0 ? bonus : 0) + (upCount - 1) * basis;
 		}
 		
-		public function breakLineScore(lineCount:int, comboCount:int):int
+		public function powerLevel(comboTotalLine:int, comboCount:int):int
 		{
-			return lineCount * (lineCount - comboCount) * breakLineCoefficient;
+			return comboTotalLine - comboCount;
 		}
 		
-		public function occurObstacleCount(lineCount:int, comboCount:int):int
+		public function powerScale(comboTotalLine:int, comboCount:int):Number
 		{
-			return 10 * lineCount * (lineCount - comboCount + 3) / 4;
+			return (powerLevel(comboTotalLine, comboCount) + obstacleInitialCoefficient) / obstacleDivisor;
+		}
+		
+		public function breakLineScore(comboTotalLine:int, comboCount:int):int
+		{
+			return comboTotalLine * powerLevel(comboTotalLine, comboCount) * breakLineCoefficient;
+		}
+		
+		public function occurObstacleCount(comboTotalLine:int, comboCount:int):int
+		{
+			return 10 * comboTotalLine * powerScale(comboTotalLine, comboCount);
 		}
 		
 		public function receiveObstacleCount():int
@@ -144,6 +164,8 @@ package model
 			setSpeed(level);
 			setObstacleAddition(level);
 			setQuantityOdds(level);
+			obstacleInitialCoefficient = 3;
+			obstacleDivisor = (gameMode == digBattle ? 20 : 4)
 		}
 		
 		private function linerLeveling(level:int, low:Number, high:Number):Number
