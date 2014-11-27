@@ -17,17 +17,12 @@
 		[Bindable] 
 		public var breakLineGraphics:BreakLineGraphics;
 		private var _gameManager:GameManager;
-		private var shockEffectHelper:ShockEffectHelper;
 		[Bindable]
 		private var _gameModel:GameModel;
 		[Bindable]
 		private var playerInfo:PlayerInformation;
 		[Bindable]
 		private var _playerIndex:int;
-		[Bindable]
-		private var line:BreakLineEvent;
-		[Bindable]
-		private var levelClear:LevelClearEvent;
 		
 		public function get gameManager():GameManager
 		{
@@ -36,12 +31,12 @@
 		public function set gameManager(value:GameManager):void
 		{
 			_gameManager = value;
-			_gameManager.addEventListener(KuzurisEvent.gameReady, function():void { currentState = "ready" } );
-			_gameManager.addEventListener(KuzurisEvent.gameStart, function():void { currentState = "normal" } );
-			_gameManager.addEventListener(KuzurisEvent.gamePause, function():void { currentState = "pause" } );
-			_gameManager.addEventListener(KuzurisEvent.gameResume, function():void { currentState = "normal" } );
-			_gameManager.addEventListener(KuzurisEvent.initializeGameModel, setGameModel);
-			_gameManager.addEventListener(KuzurisEvent.playerUpdate, updatePlayerListener);
+			_gameManager.addTerget(KuzurisEvent.gameReady, function():void { currentState = "ready" }, false);
+			_gameManager.addTerget(KuzurisEvent.gameStart, function():void { currentState = "normal" }, false);
+			_gameManager.addTerget(KuzurisEvent.gamePause, function():void { currentState = "pause" }, false);
+			_gameManager.addTerget(KuzurisEvent.gameResume, function():void { currentState = "normal" }, false);
+			_gameManager.addTerget(KuzurisEvent.initializeGameModel, setGameModel);
+			_gameManager.addTerget(KuzurisEvent.playerUpdate, updatePlayerListener);
 			playerInfo = _gameManager.getPlayerInfo(_playerIndex);
 		}
 		
@@ -65,28 +60,25 @@
 			control.update(_gameModel.getControlOmino(), _gameModel.shockSave);
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, true);
 			obstacle.update();
-			_gameModel.addEventListener(GameEvent.updateField, updateFieldListener);
-			_gameModel.addEventListener(GameEvent.updateControl, updateControlListener);
-			_gameModel.addEventListener(GameEvent.updateNext, updateNextListener);
-			_gameModel.addEventListener(GameEvent.firstUpdateNext, updateNextListener);
-			_gameModel.obstacleManager.addEventListener(GameEvent.updateObstacle, updateObstacleLestener);
-			_gameModel.obstacleManager.addEventListener(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
-			_gameModel.addEventListener(BreakLineEvent.breakLine, breakLineListener);
-			_gameModel.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
-			_gameModel.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
-			_gameModel.addEventListener(ShockBlockEvent.shockDamage, shockBlockListener);
-			_gameModel.addEventListener(ShockBlockEvent.clearSpecialUnion, shockBlockListener);
-			_gameModel.addEventListener(LevelClearEvent.levelClear, levelClearListener);
-			_gameModel.addEventListener(GameEvent.blockAllClear, allClearListener);
-			_gameModel.addEventListener(GameEvent.gameOver, function():void { currentState = "gameOver" } );
-			_gameModel.addEventListener(GameEvent.gameClear, function():void { currentState = "gameClear"  } );
+			breakLineContainer.removeAllElements();
+			_gameModel.addTerget(GameEvent.forwardGame, updateFieldListener);
+			_gameModel.addTerget(GameEvent.forwardGame, updateControlListener);
+			_gameModel.addTerget(GameEvent.updateNext, updateNextListener);
+			_gameModel.addTerget(GameEvent.firstUpdateNext, updateNextListener);
+			_gameModel.addTerget(GameEvent.forwardGame, updateBreakLineListener);
+			_gameModel.obstacleManager.addTerget(GameEvent.updateObstacle, updateObstacleLestener);
+			_gameModel.obstacleManager.addTerget(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
+			_gameModel.addTerget(BreakLineEvent.breakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.sectionBreakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.totalBreakLine, breakLineListener);
+			_gameModel.addTerget(GameEvent.gameOver, function():void { currentState = "gameOver" }, false);
+			_gameModel.addTerget(GameEvent.gameClear, function():void { currentState = "gameClear"  }, false);
 		}
 		
 		private function init():void
 		{
 			blockGraphics = Main.compactBlockGraphics;
 			breakLineGraphics = Main.compactBreakLineGraphics;
-			shockEffectHelper = new ShockEffectHelper();
 		}
 		
 		private function updatePlayerListener(e:KuzurisEvent):void
@@ -118,30 +110,25 @@
 			obstacle.update();
 		}
 		
+		private function updateBreakLineListener(e:GameEvent):void
+		{
+			for (var i:int = 0; i < breakLineContainer.numElements; i++)
+			{
+				var a:BreakLineEffect = BreakLineEffect(breakLineContainer.getElementAt(i));
+				a.update();
+			}
+		}
+		
 		private function breakLineListener(e:BreakLineEvent):void
 		{
-			line = e;
-			lineEffect.stop();
-			lineEffect.play();
-			obstacleRecordEffect.stop();
-			obstacleRecordEffect.play();
-			if (e.comboCount > 0)
-			{
-				comboEffect.stop();
-				comboEffect.play();
-			}
-			else
-			{
-				comboScore.visible = false;
-			}
 			if (e.type == BreakLineEvent.breakLine)
 			{
 				var ble:BreakLineEffect = new BreakLineEffect();
 				ble.lineEvent = e;
 				ble.breakLineGraphics = breakLineGraphics;
 				ble.y = e.position * blockGraphics.blockHeight - 144;
-				breakLineContainer.addElement(ble);
 				ble.addEventListener(EffectEvent.EFFECT_END, function(e:EffectEvent):void { breakLineContainer.removeElement(ble); } );
+				breakLineContainer.addElement(ble);
 			}
 			else if (e.type == BreakLineEvent.sectionBreakLine)
 			{
@@ -152,24 +139,6 @@
 					a.powerLevel = powerLevel;
 				}
 			}
-		}
-		
-		private function shockBlockListener(e:ShockBlockEvent):void
-		{
-			shockEffectHelper.registerShockBlockEvent(e);
-		}
-		
-		private function levelClearListener(e:LevelClearEvent):void
-		{
-			levelClear = e;
-			levelUpEffect.stop();
-			levelUpEffect.play();
-		}
-		
-		private function allClearListener(e:GameEvent):void
-		{
-			allClearEffect.stop();
-			allClearEffect.play();
 		}
 		]]>
 	</fx:Script>
@@ -187,42 +156,6 @@
 		<v:GameSoundEffect gameModel="{_gameModel}"/>
 		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
 		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
-		<s:Sequence id="lineEffect">
-			<s:SetAction property="visible" value="true" target="{lineRecord}"/>
-			<s:SetAction property="visible" value="false" target="{lineRecord}" startDelay="4000" />
-		</s:Sequence>
-		<s:Sequence id="comboEffect">
-			<s:SetAction property="visible" value="true" target="{comboScore}"/>
-			<s:SetAction property="visible" value="false" target="{comboScore}" startDelay="4000" />
-		</s:Sequence>
-		<s:Sequence id="lineScoreEffect">
-			<s:SetAction property="visible" value="true" target="{lineScore}"/>
-			<s:SetAction property="visible" value="false" target="{lineScore}" startDelay="4000" />
-		</s:Sequence>
-		<s:Sequence id="obstacleRecordEffect">
-			<s:SetAction property="visible" value="true" target="{obstacleRecord}"/>
-			<s:SetAction property="visible" value="false" target="{obstacleRecord}" startDelay="4000" />
-		</s:Sequence>
-		<s:Parallel id="levelUpEffect">
-			<s:Sequence>
-				<s:Move xFrom="80" xTo="0" duration="250" target="{levelUpRecord}"/>
-				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500" target="{levelUpRecord}"/>
-			</s:Sequence>
-			<s:Sequence>
-				<s:Fade alphaFrom="0" alphaTo="1" duration="250" target="{levelUpRecord}"/>
-				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500" target="{levelUpRecord}"/>
-			</s:Sequence>
-		</s:Parallel>
-		<s:Parallel id="allClearEffect">
-			<s:Sequence>
-				<s:Move xFrom="80" xTo="0" duration="250" target="{allClear}"/>
-				<s:Move xFrom="0" xTo="-80" duration="250" startDelay="500" target="{allClear}"/>
-			</s:Sequence>
-			<s:Sequence>
-				<s:Fade alphaFrom="0" alphaTo="1" duration="250" target="{allClear}"/>
-				<s:Fade alphaFrom="1" alphaTo="0" duration="250" startDelay="500" target="{allClear}"/>
-			</s:Sequence>
-		</s:Parallel>
 	</fx:Declarations>
 	
 	<s:Group x="{reverse ? 36 : 0}" y="0">
@@ -235,14 +168,6 @@
 			</s:stroke>
 		</s:Rect>
 		<s:Image x="0" y="16" source="@Embed('../graphic/frame.png')" scaleX="0.5" scaleY="0.5" />
-		<s:Group id="recordFieldView" x="0" y="16">
-			<s:Label id="levelUpRecord" styleName="field-record level-up" y="0" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
-			<s:Label id="allClear" styleName="field-record all-clear" y="0" width="192" text="オールクリア！" visible="false"/>
-			<s:Label id="comboScore" styleName="break-combo-score" y="24" width="192" text="{line.comboCount}コンボ" visible="false"/>
-			<s:Label id="lineRecord" styleName="field-record break-line" y="36" width="192" text="{line.line}ライン" visible="false"/>
-			<s:Label id="lineScore" styleName="break-line-score" y="60" width="192" text="+{line.plusScore}pt" visible="false"/>
-			<s:Label id="obstacleRecord" styleName="obstacle-record" y="60" width="192" text="+{line.occurObstacle()}obs[×{nf.format(line.powerScale())}]" visible="false"/>
-		</s:Group>
 		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" visible.pause="false" 
 			x="{_gameModel.cox * blockGraphics.blockWidth + 8}" y="{_gameModel.goy * blockGraphics.blockHeight - 144}" showSpecial="true" alpha="0.5"/>
 		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" visible.pause="false" 
@@ -259,9 +184,6 @@
 			</s:layout>
 			<s:Label text="{playerInfo.getName()}" textAlign="center" />
 		</s:BorderContainer>
-		<s:Label styleName="ready" x="0" y="180" width="192" text="レディ" visible="false" visible.ready="true" />
-		<s:Label id="gameOver" styleName="game-over" x="0" y="64" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>
-		<s:Label id="gameClear" styleName="game-clear" x="0" y="64" width="192" text="ゲームクリア！" visible="false"  visible.gameClear="true"/>
 	</s:Group>
 	<v:NextOminoView id="next" x="{reverse ? 0 : 96}" y="16" circleWidth="32" circleHeight="24" gap="2" blockGraphics="{blockGraphics}" pause="false" pause.pause="true"/>
 </s:Group>

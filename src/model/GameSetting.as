@@ -25,19 +25,20 @@ package model
 		public const blockAllClearBonusScore:int = 25000;
 		public const blockAllClearBonusObstacle:int = 100;
 		public const excellentBonusScore:int = 25000;
-		public const excellentBonusObstacle:int = 25;
+		public const excellentBonusObstacle:int = 20;
 		public const obstacleLineMax:int = 10;
 		public const obstacleLineBlockMax:int = 5;
 		public const towerLineBlockMax:int = 6;
-		public const obstacleColor1:uint = Color.lightgray;
-		public const obstacleColor2:uint = Color.gray;
+		public const obstacleColor1:uint = Color.toIndex(Color.lightgray);
+		public const obstacleColor2:uint = Color.toIndex(Color.gray);
 		
 		public var version:uint = alpha1;
-		public var gameMode:String = classicBattle;
+		public var gameMode:String = free;
 		public var startLevel:int = 1;
 		public var endless:Boolean = true;
 		public var levelClearLine:int = int.MIN_VALUE;
 		public var gameClearLevel:int = 20;
+		public var handicap:Number;
 		
 		public const hitPointMax:Number = 10;
 		public var naturalFallSpeed:Number;
@@ -83,6 +84,23 @@ package model
 			return ret;
 		}
 		
+		public static function createBattleSetting(gameModeIndex:int):GameSetting
+		{
+			var ret:GameSetting = new GameSetting();
+			switch (gameModeIndex)
+			{
+				case 0:
+					ret.gameMode = classicBattle;
+					break;
+				case 1:
+					ret.gameMode = digBattle;
+					break;
+				default: 
+					throw new Error();
+			}
+			return ret;
+		}
+		
 		public function clone():GameSetting
 		{
 			var ret:GameSetting = new GameSetting();
@@ -91,6 +109,7 @@ package model
 			ret.endless = endless;
 			ret.levelClearLine = levelClearLine;
 			ret.gameClearLevel = gameClearLevel;
+			ret.handicap = handicap;
 			return ret;
 		}
 		
@@ -123,7 +142,7 @@ package model
 		{
 			if (levelClearLine == int.MIN_VALUE) return 0;
 			var up:int = int(breakLine / levelClearLine) - (level - startLevel);
-			return Math.min(up, (startLevel + gameClearLevel) - level);
+			return endless ? up : Math.min(up, (startLevel + gameClearLevel) - level);
 		}
 		
 		public function timeBonus(clearTime:int, upCount:int):int

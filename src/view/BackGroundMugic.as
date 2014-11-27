@@ -22,7 +22,10 @@ package view
 		
 		public function play(continuation:Boolean):void
 		{
-			if (mugicChannel != null) stop();
+			if (mugicChannel != null)
+			{
+				stop();
+			}
 			if (!continuation) position = 0;
 			mugicChannel = mugic.play(position);
 			mugicChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
@@ -31,6 +34,7 @@ package view
 		public function stop():void
 		{
 			if (mugicChannel == null) return;
+			mugicChannel.removeEventListener(Event.SOUND_COMPLETE, onSoundComplete);
 			position = mugicChannel.position;
 			mugicChannel.stop();
 			mugicChannel = null;

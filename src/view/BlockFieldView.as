@@ -35,14 +35,11 @@ package view
 		{
 			if (field == null)
 			{
-				for (var i:int = 0; i < blocks.length; i++)
-				{
-					blocks[i].visible = false;
-				}
+				reset();
 				return;
 			}
-			var w:int = field.width;
-			var h:int = field.height;
+			var w:int = field.maxWidth;
+			var h:int = field.maxHeight;
 			var blockIndex:int = 0;
 			var effectIndex:int = 0;
 			for (var x:int = 0; x < w; x++)
@@ -50,57 +47,62 @@ package view
 				for (var y:int = 0; y < h; y++)
 				{
 					if (!field.isExistBlock(x, y)) continue;
-					if (blockIndex >= blocks.length)
-					{
-						var add:Bitmap = new Bitmap();
-						blocks.push(add);
-						addChildAt(add, 0);
-						add = new Bitmap();
-						effects.push(add);
-						addChild(add);
-					}
+					if (blockIndex >= blocks.length) addBlock();
 					var bbm:Bitmap = blocks[blockIndex++];
-					var state:BlockState = field.getState(x, y);
 					var effectDamageRest:Number = 0;
 					if (shockEffectHelper != null)
 					{
-						effectDamageRest = shockEffectHelper.getDamageRest(state);
-						effectIndex = updateEffects(state, x, y, effectIndex);
+						var id:uint = field.getId(x, y);
+						effectDamageRest = shockEffectHelper.getDamageRest(id);
+						effectIndex = updateEffects(id, x, y, effectIndex);
 					}
-					var graphicIndex:int = Math.min(blockGraphics.blockLength, Math.ceil(field.getHitPoint(x, y) + effectDamageRest));
-					graphicIndex = Math.max(graphicIndex, 0);
-					graphicIndex = Math.min(graphicIndex, blockGraphics.blockLength - 1);
-					var color:uint = field.getColor(x, y);
+					updateBlock(bbm, x, y, effectDamageRest, field);
 					var specialUnion:Boolean = field.getSpecialUnion(x, y);
-					bbm.visible = true;
-					bbm.bitmapData = blockGraphics[color][graphicIndex];
-					bbm.x = x * blockGraphics.blockWidth;
-					bbm.y = y * blockGraphics.blockHeight;
-					var tedr:Number = Math.min(1, effectDamageRest / ShockEffectState.hitPointMax);
-					var multi:Number = 1 - tedr;
-					var offset:int = 0xFF * tedr;
-					var colorTransform:ColorTransform = new ColorTransform(multi, multi, multi, 1, offset, offset, offset, 0);
-					if (showSpecial && specialUnion)
-					{
-						if (shockSave)
-						{
-							colorTransform.concat(blackTransform);
-						}
-						else
-						{
-							colorTransform.concat(whiteTransform);
-						}
-					}
-					bbm.transform.colorTransform = colorTransform;
+					bbm.transform.colorTransform = createColorTransform(effectDamageRest, field, specialUnion, shockSave);
 				}
 			}
-			while (blockIndex < blocks.length) blocks[blockIndex++].visible = false;
-			while (effectIndex < effects.length) effects[effectIndex++].visible = false;
+			postHidden(blockIndex, effectIndex);
 		}
 		
-		private function updateEffects(state:BlockState, x:int, y:int, effectIndex:int):int
+		private function updateBlock(bbm:Bitmap, x:int, y:int, effectDamageRest:Number, field:BlockField):void
 		{
-			var effectStates:Vector.<ShockEffectState> = shockEffectHelper.getEffectState(state);
+			var type:uint = field.getType(x, y);
+			var color:uint = field.getColor(x, y);
+			var hitPoint:Number = field.getHitPoint(x, y);
+			var reviseHitPoint:Number = Math.ceil(hitPoint + effectDamageRest);
+			var graphicIndex:int = Math.min(blockGraphics.blockLength, reviseHitPoint);
+			graphicIndex = Math.max(graphicIndex, 0);
+			graphicIndex = Math.min(graphicIndex, blockGraphics.blockLength - 1);
+			bbm.visible = true;
+			bbm.x = x * blockGraphics.blockWidth;
+			bbm.y = y * blockGraphics.blockHeight;
+			switch(type)
+			{
+				case BlockState.normal:
+					if (hitPoint > 0)
+					{
+						bbm.bitmapData = blockGraphics.union[color][graphicIndex];
+					}
+					else
+					{
+						bbm.bitmapData = blockGraphics.split[color][graphicIndex];
+					}
+					break;
+				case BlockState.nonBreak:
+					bbm.bitmapData = blockGraphics.nonBreak[color];	
+					break;
+				case BlockState.gem:
+					bbm.bitmapData = blockGraphics.gem[color];	
+					break;
+				default:
+					bbm.bitmapData = null;	
+					break;
+			}
+		}
+		
+		private function updateEffects(id:uint, x:int, y:int, effectIndex:int):int
+		{
+			var effectStates:Vector.<ShockEffectState> = shockEffectHelper.getEffectState(id);
 			if (effectStates == null) return effectIndex;
 			for (var i:int = 0; i < effectStates.length; i++)
 			{
@@ -113,15 +115,9 @@ package view
 				}
 				es.frameCount++;
 				if (es.isNonVisible()) continue;
-				if (effectIndex >= effects.length)
-				{
-					var add:Bitmap = new Bitmap();
-					effects.push(add);
-					addChild(add);
-				}
+				if (effectIndex >= effects.length) addEffect();
 				var ebm:Bitmap = effects[effectIndex++];
 				ebm.visible = true;
-				ebm.alpha = 0.7;
 				if (es.toSplit)
 				{
 					ebm.bitmapData = shockGraphics.toSplit[reviseFrame];
@@ -136,6 +132,53 @@ package view
 			return effectIndex;
 		}
 		
+		private function createColorTransform(effectDamageRest:Number, field:BlockField, specialUnion:Boolean, shockSave:Boolean):ColorTransform
+		{
+			var tedr:Number = Math.min(1, effectDamageRest / ShockEffectState.hitPointMax);
+			var multi:Number = 1 - tedr;
+			var offset:int = 0xFF * tedr;
+			var colorTransform:ColorTransform = new ColorTransform(multi, multi, multi, 1, offset, offset, offset, 0);
+			if (showSpecial && specialUnion)
+			{
+				if (shockSave)
+				{
+					colorTransform.concat(blackTransform);
+				}
+				else
+				{
+					colorTransform.concat(whiteTransform);
+				}
+			}
+			return colorTransform;
+		}
+		
+		private function reset():void
+		{
+			for (var i:int = 0; i < blocks.length; i++)
+			{
+				blocks[i].visible = false;
+			}
+		}
+		
+		private function postHidden(blockIndex:int, effectIndex:int):void
+		{
+			while (blockIndex < blocks.length) blocks[blockIndex++].visible = false;
+			while (effectIndex < effects.length) effects[effectIndex++].visible = false;
+		}
+		
+		private function addBlock():void
+		{
+			var add:Bitmap = new Bitmap();
+			blocks.push(add);
+			addChildAt(add, 0);
+		}
+		
+		private function addEffect():void
+		{
+			var add:Bitmap = new Bitmap();
+			effects.push(add);
+			addChild(add);
+		}
 	}
 
 }

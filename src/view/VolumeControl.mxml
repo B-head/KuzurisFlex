@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   creationComplete="creationCompleteListener()">
+	<fx:Script>
+		<![CDATA[
+		import flash.events.KeyboardEvent;
+		import flash.media.SoundMixer;
+		import flash.media.SoundTransform;
+		
+		private function creationCompleteListener():void
+		{
+			var st:SoundTransform = SoundMixer.soundTransform;
+			sld.value = st.volume;
+			addEventListener(KeyboardEvent.KEY_DOWN, keyCancelListener, false, 0, true);
+		}
+		
+		private function muteChangeListener():void
+		{
+			var st:SoundTransform = SoundMixer.soundTransform;
+			if (currentState == "normal")
+			{
+				st.volume = 0;
+				sld.enabled = false;
+				currentState = "mute";
+			}
+			else if (currentState == "mute")
+			{
+				st.volume = sld.value;
+				sld.enabled = true;
+				currentState = "normal";
+			}
+			SoundMixer.soundTransform = st;
+		}
+		
+		private function volumeChangeListener():void
+		{
+			if (currentState == "mute") return;
+			var st:SoundTransform = SoundMixer.soundTransform;
+			st.volume = sld.value;
+			SoundMixer.soundTransform = st;
+		}
+		
+		private function keyCancelListener(e:KeyboardEvent):void
+		{
+			e.stopPropagation();
+		}
+		]]>
+	</fx:Script>
+
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="mute" />
+	</s:states>
+	
+	<s:Button id="btn" width="21" height="21" buttonDown="muteChangeListener()"
+		icon.normal="@Embed(source='../graphic/volume.png')" icon.mute="@Embed(source='../graphic/mute.png')" />
+	<s:HSlider id="sld" width="101" height="21" minimum="0" maximum="1" snapInterval="0.01" change="volumeChangeListener()" />
+</s:HGroup>

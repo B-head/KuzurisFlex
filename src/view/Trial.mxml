@@ -15,16 +15,27 @@
 		private var mode:String;
 		[Bindable]
 		private var input:GameControl;
+		[Bindable]
+		private var replayContainer:GameReplayContainer;
+		[Bindable]
+		private var isRankingView:Boolean;
 		
 		public function init(mode:String):void
 		{
 			this.mode = mode;
-			parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener);
+			parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener, false, 0, true);
 			manager = new GameManager(1);
 			input = SharedObjectHelper.input;
-			manager.addEventListener(KuzurisEvent.gameStart, startListener);
-			manager.addEventListener(KuzurisEvent.gameEnd, endListener);
+			manager.addTerget(KuzurisEvent.gameStart, startListener);
+			manager.addTerget(KuzurisEvent.gameEnd, endListener);
 			prepare();
+		}
+		
+		private function close():void
+		{
+			parentApplication.removeEventListener(KuzurisEvent.pressPauseKey, pauseListener);
+			manager.dispose();
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack));
 		}
 		
 		private function prepare():void
@@ -32,7 +43,14 @@
 			parentApplication.bgm.stop();
 			manager.endGame();
 			manager.initialize();
+			isRankingView = false;
 			currentState = "prepare";
+		}
+		
+		private function ranking():void
+		{
+			isRankingView = true;
+			currentState = 'ranking'
 		}
 		
 		private function start():void
@@ -44,23 +62,36 @@
 			setFocus();
 		}
 		
-		private function replayStart():void
+		private function replayStart(replay:GameReplayContainer):void
 		{
+			replayContainer = replay;
 			manager.initialize();
-			manager.startReplay();
+			manager.startReplay(replay);
 			currentState = "hidden";
 			setFocus();
 		}
 		
 		private function restart():void
 		{
-			if (manager.isReplayMode())
+			if (isRankingView)
 			{
-				replayStart();
+				replayStart(replayContainer);
 			}
 			else
 			{
 				start();
+			}
+		}
+		
+		private function end():void
+		{
+			if (isRankingView)
+			{
+				ranking();
+			}
+			else
+			{
+				prepare();
 			}
 		}
 		
@@ -109,17 +140,20 @@
 			currentState = "result";
 			parentApplication.bgm.stop();
 			manager.endGame();
-			var ranking:GameRanking = SharedObjectHelper.getRanking(mode, endless.selected);
-			var record:GameRecord = manager.getRecord(0);
-			recordView.record = record;
-			if (!manager.isReplayMode()) ranking.entry(record);
-			SharedObjectHelper.shared.flush();
+			recordView.record = manager.getRecord(0);
+			if (!manager.isReplayMode())
+			{
+				var ranking:GameRanking = SharedObjectHelper.getRanking(mode, endless.selected);
+				replayContainer = manager.makeReplayContainer();
+				ranking.entry(replayContainer);
+				SharedObjectHelper.shared.flush();
+			}
+			rankingView.update();
 		}
 		
 		private function requestReplayListener(e:RequestReplayEvent):void
 		{
-			manager.setPlayer(0, e.data);
-			replayStart();
+			replayStart(e.data);
 		}
 		]]>
 	</fx:Script>
@@ -139,7 +173,7 @@
 
 	<v:GameView id="main" x="227" y="24" battle="false" playerIndex="0" gameManager="{manager}" />
 	<v:DetailedRecordView id="recordView" includeIn="result" x="0" y="0" width="223" height="480" battle="false" />
-	<v:ResultRankingView includeIn="result" x="631" y="0" width="223" height="480" gameMode="{mode}" endless="{endless.selected}" />
+	<v:ResultRankingView id="rankingView" includeIn="result" x="631" y="0" width="223" height="480" gameMode="{mode}" endless="{endless.selected}" currentRecord="{replayContainer}" />
 	<v:RankingViewer includeIn="ranking" x="24" y="24" gameMode="{mode}" endless="{endless.selected}" navigateBack="currentState = 'prepare'" requestReplay="requestReplayListener(event)" />
 	<v:KeyConfig includeIn="keyConfig" x="227" y="88" input="{input as UserInput}" navigateBack="currentState = 'prepare'"/>
 	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
@@ -148,18 +182,18 @@
 		<s:Label styleName="menu-label" text="開始レベル{level.value}" />
 		<s:HSlider id="level" width="150" minimum="1" maximum="20" showDataTip="false" />
 		<s:CheckBox id="endless" label="エンドレス" />
-		<s:Button width="150" label="ランキング" buttonDown="currentState = 'ranking'"/>
+		<s:Button width="150" label="ランキング" buttonDown="ranking()"/>
 		<s:Button width="150" label="キーコンフィグ" buttonDown="currentState = 'keyConfig'"/>
-		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" />
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="close()" />
 	</s:VGroup>
 	<s:VGroup includeIn="pause" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button width="100" label="つづける" buttonDown="resume()" />
 		<s:Button width="100" label="はじめから" buttonDown="restart()" />
-		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
 	</s:VGroup>
 	<s:VGroup includeIn="result" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button width="100" label="もういちど" buttonDown="restart()" />
-		<s:Button width="100" label="リプレイ" buttonDown="replayStart()" />
-		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
+		<s:Button width="100" label="リプレイ" visible="{!isRankingView}" buttonDown="replayStart(replayContainer)" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
 	</s:VGroup>
 </s:Group>

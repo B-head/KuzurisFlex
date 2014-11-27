@@ -31,13 +31,21 @@ package model.network {
 			this.networkManager = networkManager;
 			this.roomManager = roomManager;
 			roomGroup = networkManager.roomGroup;
-			roomGroup.addEventListener(NotifyEvent.notify, notifyListener);
-			roomGroup.addEventListener(KuzurisEvent.disposed, disposedListener);
+			roomGroup.addTerget(NotifyEvent.notify, notifyListener);
+			roomGroup.addTerget(KuzurisEvent.disposed, disposedListener);
 			currentRoom = roomManager.currentRoom;
-			currentRoom.entrant.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener);
+			currentRoom.entrant.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener, false, 0, true);
 			//selfControl = networkManager.getSelfGameControl(roomManager.selfInput);
 			selfControl = networkManager.getSelfGameControl(GameAIManager.createDefaultAI());
 			selfPlayerInfo = roomManager.selfPlayerInfo;
+		}
+		
+		override public function dispose():void 
+		{
+			super.dispose();
+			roomGroup.removeTerget(NotifyEvent.notify, notifyListener);
+			roomGroup.removeTerget(KuzurisEvent.disposed, disposedListener);
+			currentRoom.entrant.removeEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener);
 		}
 		
 		public function syncState():void
@@ -53,7 +61,7 @@ package model.network {
 			}
 		}
 		
-		private function setReplyState(execution:Boolean, gameModel:Vector.<GameModel>, replay:Vector.<GameReplay>):void
+		private function setReplyState(execution:Boolean, gameModel:Vector.<GameModel>, replay:Vector.<GameReplayControl>):void
 		{
 			this.execution = execution;
 			for (var i:int = 0; i < maxPlayer; i++)
@@ -96,13 +104,18 @@ package model.network {
 			if (playerInfo.isAI) return GameAIManager.createDefaultAI();
 			var ret:NetworkRemoteControl = networkManager.getRemoteGameControl(index, playerInfo.peerID);
 			if (ret == null) return null;
-			if (!ret.hasEventListener(NetworkGameReadyEvent.networkGameReady))
-			{
-				ret.addEventListener(KuzurisEvent.gameSync, createGameSyncListener(index));
-				ret.addEventListener(KuzurisEvent.gameSyncReply, createGameSyncReplayListener(index));
-				ret.addEventListener(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
-				ret.addEventListener(KuzurisErrorEvent.notEqualHash, createNotEqualHashListener(index));
-			}
+			ret.removeAll();
+			ret.addTerget(KuzurisEvent.gameSync, createGameSyncListener(index), false);
+			ret.addTerget(KuzurisEvent.gameSyncReply, createGameSyncReplayListener(index), false);
+			ret.addTerget(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
+			ret.addTerget(KuzurisErrorEvent.notEqualHash, createNotEqualHashListener(index), false);
+			return ret;
+		}
+		
+		override public function makeReplayContainer():GameReplayContainer 
+		{
+			var ret:GameReplayContainer = super.makeReplayContainer();
+			ret.roomName = currentRoom.name;
 			return ret;
 		}
 		
@@ -204,6 +217,7 @@ package model.network {
 					if (currentRoom.entrant.getItemAt(i) == null) continue;
 					if (sendDelayTimes[i] == 0) return;
 				}
+				var setting:GameSetting = GameSetting.createBattleSetting(0);
 				var seed:XorShift128 = new XorShift128();
 				seed.RandomSeed();
 				for (i = 0; i < maxPlayer; i++)
@@ -211,13 +225,13 @@ package model.network {
 					if (i == selfPlayerIndex)
 					{
 						selfControl.sendReady(-1, null, seed, 120);
-						dispatchEvent(new NetworkGameReadyEvent(NetworkGameReadyEvent.networkGameReady, i, null, seed, 120));
+						dispatchEvent(new NetworkGameReadyEvent(NetworkGameReadyEvent.networkGameReady, i, setting, seed, 120));
 					}
 					else
 					{
 						if (currentRoom.entrant.getItemAt(i) == null) continue;
 						var delay:int = 120 - sendDelayTimes[i] * 60 / 1000;
-						selfControl.sendReady(i, null, seed, delay);
+						selfControl.sendReady(i, setting, seed, delay);
 					}
 				}
 			}

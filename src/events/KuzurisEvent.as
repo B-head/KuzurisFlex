@@ -26,7 +26,6 @@ package events {
 		public static const playerUpdate:String = "playerUpdate";
 		public static const gameSync:String = "gameSync";
 		public static const gameSyncReply:String = "gameSyncReply";
-		public static const updateChat:String = "updateChat";
 		public static const navigateBack:String = "navigateBack";
 		public static const pressPauseKey:String = "pressPauseKey";
 		

@@ -25,7 +25,7 @@
     <option benchmark="False" />
     <option es="False" />
     <option inline="False" />
-    <option locale="ja_JP" />
+    <option locale="" />
     <option loadConfig="" />
     <option optimize="True" />
     <option omitTraces="False" />
@@ -42,7 +42,7 @@
     <option linkReport="" />
     <option loadExterns="" />
     <option staticLinkRSL="True" />
-    <option additional="" />
+    <option additional="-advanced-telemetry" />
     <option compilerConstants="" />
     <option minorVersion="" />
   </build>

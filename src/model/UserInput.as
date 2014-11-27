@@ -221,8 +221,8 @@ package model
 		public function initialize(gameModel:GameModel):void
 		{
 			this.gameModel = gameModel;
-			gameModel.addEventListener(ControlEvent.setOmino, setOminoListener);
-			gameModel.addEventListener(ControlEvent.fixOmino, fixOminoListener);
+			gameModel.addTerget(ControlEvent.setOmino, setOminoListener);
+			gameModel.addTerget(ControlEvent.fixOmino, fixOminoListener);
 			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
 			lastControl = new GameCommand();
 			moveDelay = 0;

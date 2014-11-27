@@ -13,7 +13,12 @@
 			public function init(netGroup:NetworkGroupManager, selfPlayerInfo:PlayerInformation):void
 			{
 				textChat = new TextChat(netGroup, selfPlayerInfo);
-				textChat.addEventListener(KuzurisEvent.updateChat, updateChatListener);
+				textChat.addEventListener(UpdateChatEvent.appendChat, appendChatListener);
+			}
+			
+			public function isFocus():Boolean
+			{
+				return utterText === focusManager.getFocus();
 			}
 			
 			private function utter():void
@@ -24,9 +29,10 @@
 				utterText.text = "";
 			}
 			
-			private function updateChatListener(e:KuzurisEvent):void
+			private function appendChatListener(e:UpdateChatEvent):void
 			{
-				chatText.text = textChat.toText();
+				var text:String = e.utterance.playerInfo.getName() + ":" + e.utterance.text + "\r";
+				chatText.appendText(text);
 			}
 		]]>
 	</fx:Script>

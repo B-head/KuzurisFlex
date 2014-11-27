@@ -11,7 +11,7 @@
 			
 			private function buttonDownListener():void
 			{
-				receiver(data.replay);
+				receiver(data);
 			}
 		]]>
 	</fx:Script>

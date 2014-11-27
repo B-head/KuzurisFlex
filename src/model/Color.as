@@ -1,6 +1,7 @@
 package model 
 {
 	import flash.geom.ColorTransform;
+	import flash.utils.Dictionary;
 	/**
 	 * ...
 	 * @author B_head
@@ -29,6 +30,22 @@ package model
 		public static const lightgray:uint = rgb(200, 200, 203);
 		public static const gray:uint = rgb(127, 135, 143);
 		public static const black:uint = rgb(0, 0, 0);
+		
+		private static const indexArray:Array = [
+			red, yellow, green, blue, skyblue, pink, orange, purple, brown,
+			lightpink, cream, lightpeagreen, lightskyblue, beige, lightgreen, lightpurple,
+			white, lightgray, gray, black
+		];
+		
+		public static function toColor(index:int):uint
+		{
+			return indexArray[index];
+		}
+		
+		public static function toIndex(color:uint):int
+		{
+			return indexArray.indexOf(color);
+		}
 		
 		public static function rgb(r:uint, g:uint, b:uint):uint
 		{

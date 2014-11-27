@@ -14,7 +14,7 @@ package model.network {
 	[Event(name="connectFailed", type="events.KuzurisErrorEvent")]
 	[Event(name="ioError", type="events.KuzurisErrorEvent")]
 	[Event(name="asyncError", type="events.KuzurisErrorEvent")]
-	public class NetworkSelfControl extends EventDispatcher implements GameControl 
+	public class NetworkSelfControl extends EventDispatcherEX implements GameControl 
 	{
 		private static const gameCommnadHandlerName:String = "onGameCommnad";
 		private static const gameRequestCommnadHandlerName:String = "onGameRequestCommnad";
@@ -39,12 +39,12 @@ package model.network {
 			hashRecord = new Vector.<uint>();
 			_peerID = networkManager.selfPeerID;
 			this.networkManager = networkManager;
-			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
 			netStream = networkManager.createNetStream(NetStream.DIRECT_CONNECTIONS);
-			netStream.addEventListener(NetStatusEvent.NET_STATUS, netStreamListener);
-			netStream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
-			netStream.addEventListener(IOErrorEvent.IO_ERROR, ioErrorListener);
-			netStream.addEventListener(NetDataEvent.MEDIA_TYPE_DATA, mediaTypeDataListener);
+			netStream.addEventListener(NetStatusEvent.NET_STATUS, netStreamListener, false, 0, true);
+			netStream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener, false, 0, true);
+			netStream.addEventListener(IOErrorEvent.IO_ERROR, ioErrorListener, false, 0, true);
+			netStream.addEventListener(NetDataEvent.MEDIA_TYPE_DATA, mediaTypeDataListener, false, 0, true);
 			netStream.client = this;
 			netStream.dataReliable = true;
 			netStream.publish(_peerID);
@@ -58,6 +58,12 @@ package model.network {
 		
 		public function dispose():void
 		{
+			networkManager.removeEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			netStream.removeEventListener(NetStatusEvent.NET_STATUS, netStreamListener);
+			netStream.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
+			netStream.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorListener);
+			netStream.removeEventListener(NetDataEvent.MEDIA_TYPE_DATA, mediaTypeDataListener);
+			removeAll();
 			netStream.close();
 			netStream.dispose();
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.disposed));

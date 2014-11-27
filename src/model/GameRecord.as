@@ -12,7 +12,7 @@ package model
 		[Bindable] 
 		public var breakLine:int;
 		[Bindable] 
-		public var chainLines:ArrayCollection;
+		public var chainLines:Array;
 		[Bindable] 
 		public var blockDamage:int;
 		[Bindable] 
@@ -28,22 +28,36 @@ package model
 		[Bindable] 
 		public var controlTime:int;
 		
-		[Bindable] 
-		public var playerName:String;
-		[Bindable] 
-		public var replay:GameReplay;
-		public var gameClear:Boolean;
-		
 		private const minuteFrame:int = 3600;
 		
 		public function GameRecord()
 		{
-			var arr:Array = new Array();
-			for (var i:int = 0; i < 21; i++)
+			chainLines = new Array();
+		}
+		
+		public function clone():GameRecord
+		{
+			var ret:GameRecord = new GameRecord();
+			ret.level = level;
+			ret.breakLine = breakLine;
+			ret.chainLines = chainLines.slice();
+			ret.blockDamage = blockDamage;
+			ret.fixOmino = fixOmino;
+			ret.occurObstacle = occurObstacle;
+			ret.receivedObstacle = receivedObstacle;
+			ret.gameScore = gameScore;
+			ret.gameTime = gameTime;
+			ret.controlTime = controlTime;
+			return ret;
+		}
+		
+		public function incrementChainLines(line:int):void
+		{
+			if (chainLines.length <= line)
 			{
-				arr.push(0);
+				chainLines.length = line + 1;
 			}
-			chainLines = new ArrayCollection(arr);
+			chainLines[line] = int(chainLines[line]) + 1;
 		}
 		
 		public function ominoPerMinute():Number

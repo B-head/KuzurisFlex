@@ -1,12 +1,13 @@
 package model.network {
 	import events.*;
 	import flash.events.EventDispatcher;
+	import model.EventDispatcherEX;
 	/**
 	 * ...
 	 * @author B_head
 	 */
-	[Event(name="updateChat", type="events.KuzurisEvent")]
-	public class TextChat extends EventDispatcher
+	[Event(name="appendChat", type="events.UpdateChatEvent")]
+	public class TextChat extends EventDispatcherEX
 	{
 		private static const chatUtter:String = "chatUtter";
 		
@@ -19,8 +20,15 @@ package model.network {
 			utterances = new Vector.<Utterance>();
 			this.netGroup = netGroup;
 			this.selfPlayerInfo = selfPlayerInfo;
-			netGroup.addEventListener(KuzurisEvent.firstConnectNeighbor, connectNeighborListener);
-			netGroup.addEventListener(NotifyEvent.notify, notifyListener);
+			netGroup.addTerget(KuzurisEvent.firstConnectNeighbor, connectNeighborListener);
+			netGroup.addTerget(NotifyEvent.notify, notifyListener);
+		}
+		
+		public function dispose():void
+		{
+			netGroup.removeTerget(KuzurisEvent.firstConnectNeighbor, connectNeighborListener);
+			netGroup.removeTerget(NotifyEvent.notify, notifyListener);
+			removeAll();
 		}
 		
 		public function utter(text:String):void
@@ -31,19 +39,7 @@ package model.network {
 			u.date = new Date();
 			netGroup.post(chatUtter, { utterance:u } );
 			utterances.push(u);
-			dispatchEvent(new KuzurisEvent(KuzurisEvent.updateChat));
-		}
-		
-		public function toText():String
-		{
-			var ret:String = "";
-			for (var i:int = 0; i < utterances.length; i++)
-			{
-				if (i > 0) ret += "\r\n";
-				ret += utterances[i].playerInfo.name + ":" +
-					utterances[i].text;
-			}
-			return ret;
+			dispatchEvent(new UpdateChatEvent(UpdateChatEvent.appendChat, u));
 		}
 		
 		private function connectNeighborListener(e:KuzurisEvent):void
@@ -57,7 +53,7 @@ package model.network {
 			{
 				case chatUtter:
 					utterances.push(e.message.obj.utterance as Utterance);
-					dispatchEvent(new KuzurisEvent(KuzurisEvent.updateChat));
+					dispatchEvent(new UpdateChatEvent(UpdateChatEvent.appendChat, e.message.obj.utterance));
 					break;
 			}
 		}

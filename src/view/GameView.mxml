@@ -41,12 +41,12 @@
 		public function set gameManager(value:GameManager):void
 		{
 			_gameManager = value;
-			_gameManager.addEventListener(KuzurisEvent.gameReady, function():void { currentState = "ready" } );
-			_gameManager.addEventListener(KuzurisEvent.gameStart, function():void { currentState = "normal" } );
-			_gameManager.addEventListener(KuzurisEvent.gamePause, function():void { currentState = "pause" } );
-			_gameManager.addEventListener(KuzurisEvent.gameResume, function():void { currentState = "normal" } );
-			_gameManager.addEventListener(KuzurisEvent.initializeGameModel, setGameModel);
-			_gameManager.addEventListener(KuzurisEvent.playerUpdate, updatePlayerListener);
+			_gameManager.addTerget(KuzurisEvent.gameReady, function():void { currentState = "ready" }, false);
+			_gameManager.addTerget(KuzurisEvent.gameStart, function():void { currentState = "normal" }, false);
+			_gameManager.addTerget(KuzurisEvent.gamePause, function():void { currentState = "pause" }, false);
+			_gameManager.addTerget(KuzurisEvent.gameResume, function():void { currentState = "normal" }, false);
+			_gameManager.addTerget(KuzurisEvent.initializeGameModel, setGameModel);
+			_gameManager.addTerget(KuzurisEvent.playerUpdate, updatePlayerListener);
 			playerInfo = _gameManager.getPlayerInfo(_playerIndex);
 		}
 		
@@ -63,7 +63,17 @@
 		
 		public function setGameModel(e:KuzurisEvent):void
 		{
-			_gameModel = _gameManager.getGameModel(_playerIndex);;
+			_gameModel = _gameManager.getGameModel(_playerIndex);
+			comboScore.visible = false;
+			lineRecord.visible = false;
+			lineScore.visible = false;
+			obstacleRecord.visible = false;
+			levelUpRecord.visible = false;
+			levelUpBonus.visible = false;
+			technicalSpinRecord.visible = false;
+			technicalSpinBonus.visible = false;
+			allClear.visible = false;
+			allClearBonus.visible = false;
 			main.update(_gameModel.getMainField(), _gameModel.shockSave);
 			fall.update(_gameModel.getFallField(), _gameModel.shockSave);
 			ghost.update(_gameModel.getControlOmino(), _gameModel.shockSave);
@@ -71,23 +81,22 @@
 			next.update(_gameModel.getNextOmino(), _gameModel.shockSave, true);
 			obstacle.update();
 			breakLineContainer.removeAllElements();
-			_gameModel.addEventListener(GameEvent.forwardGame, updateFieldListener);
-			_gameModel.addEventListener(GameEvent.forwardGame, updateControlListener);
-			_gameModel.addEventListener(GameEvent.updateNext, updateNextListener);
-			_gameModel.addEventListener(GameEvent.firstUpdateNext, updateNextListener);
-			_gameModel.addEventListener(GameEvent.forwardGame, updateBreakLineListener);
-			_gameModel.obstacleManager.addEventListener(GameEvent.updateObstacle, updateObstacleLestener);
-			_gameModel.obstacleManager.addEventListener(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
-			_gameModel.addEventListener(BreakLineEvent.breakLine, breakLineListener);
-			_gameModel.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
-			_gameModel.addEventListener(BreakLineEvent.totalBreakLine, breakLineListener);
-			_gameModel.addEventListener(BreakLineEvent.technicalSpin, technicalSpinListener);
-			_gameModel.addEventListener(ShockBlockEvent.shockDamage, shockBlockListener);
-			_gameModel.addEventListener(ShockBlockEvent.clearSpecialUnion, shockBlockListener);
-			_gameModel.addEventListener(LevelClearEvent.levelClear, levelClearListener);
-			_gameModel.addEventListener(GameEvent.blockAllClear, allClearListener);
-			_gameModel.addEventListener(GameEvent.gameOver, function():void { currentState = "gameOver" } );
-			_gameModel.addEventListener(GameEvent.gameClear, function():void { currentState = "gameClear"  } );
+			_gameModel.addTerget(GameEvent.forwardGame, updateFieldListener);
+			_gameModel.addTerget(GameEvent.forwardGame, updateControlListener);
+			_gameModel.addTerget(GameEvent.updateNext, updateNextListener);
+			_gameModel.addTerget(GameEvent.firstUpdateNext, updateNextListener);
+			_gameModel.addTerget(GameEvent.forwardGame, updateBreakLineListener);
+			_gameModel.obstacleManager.addTerget(GameEvent.updateObstacle, updateObstacleLestener);
+			_gameModel.obstacleManager.addTerget(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
+			_gameModel.addTerget(BreakLineEvent.breakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.sectionBreakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.totalBreakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.technicalSpin, technicalSpinListener);
+			_gameModel.addTerget(ShockBlockEvent.shockDamage, shockBlockListener);
+			_gameModel.addTerget(LevelClearEvent.levelClear, levelClearListener);
+			_gameModel.addTerget(GameEvent.blockAllClear, allClearListener);
+			_gameModel.addTerget(GameEvent.gameOver, function():void { currentState = "gameOver" }, false);
+			_gameModel.addTerget(GameEvent.gameClear, function():void { currentState = "gameClear"  }, false);
 		}
 		
 		private function init():void
@@ -264,6 +273,7 @@
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label text="{playerInfo.getName()}" textAlign="center" />
+			<s:Label text="{playerInfo.grade} 勝ち数{playerInfo.winCount}" textAlign="center" />
 		</s:BorderContainer>
 		<s:Label styleName="ready" x="0" y="212" width="192" text="レディ" visible="false" visible.ready="true" />
 		<s:Label id="gameOver" styleName="game-over" x="0" y="96" width="192" text="ゲームオーバー" visible="false"  visible.gameOver="true"/>

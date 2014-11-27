@@ -13,33 +13,27 @@ package events {
 		[Bindable] 
 		public var total:Number;
 		public var coefficient:Number;
-		public var newState:BlockState;
-		public var oldState:BlockState;
+		public var id:uint;
+		public var toSplit:Boolean;
 		
 		public static const shockDamage:String = "shockDamage";
 		public static const sectionDamage:String = "sectionDamage";
 		public static const totalDamage:String = "totalDamage";
-		public static const clearSpecialUnion:String = "clearSpecialUnion";
 		
-		public function ShockBlockEvent(type:String, gameTime:int, plusScore:int, damage:Number, total:Number, coefficient:Number = Number.NaN, newState:BlockState = null, oldState:BlockState = null) 
+		public function ShockBlockEvent(type:String, gameTime:int, plusScore:int, damage:Number, total:Number, coefficient:Number = Number.NaN, id:uint = 0, toSplit:Boolean = false) 
 		{
 			super(type, gameTime, plusScore);
 			this.damage = damage;
 			this.total = total;
 			this.coefficient = coefficient;
-			this.newState = newState;
-			this.oldState = oldState;
+			this.id = id;
+			this.toSplit = toSplit;
 		}
 		
 		public override function clone():Event 
 		{ 
-			return new ShockBlockEvent(type, gameTime, plusScore, damage, total, coefficient, newState, oldState);
+			return new ShockBlockEvent(type, gameTime, plusScore, damage, total, coefficient, id);
 		} 
-		
-		public function isToSplit():Boolean
-		{
-			return newState.hitPoint <= 0 && oldState.hitPoint > 0;
-		}
 	}
 	
 }

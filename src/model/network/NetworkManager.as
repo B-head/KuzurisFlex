@@ -18,7 +18,7 @@ package model.network {
 	[Event(name="loungeConnectFailed", type="events.KuzurisErrorEvent")]
 	[Event(name="roomConnectFailed", type="events.KuzurisErrorEvent")]
 	[Event(name="NET_STATUS", type="flash.events..NetStatusEvent")]
-	public class NetworkManager extends EventDispatcher
+	public class NetworkManager extends EventDispatcherEX
 	{
 		private const CirrusAddress:String = "rtmfp://p2p.rtmfp.net/";
 		private const DeveloperKey:String = "89a898b4b7869bbd1232dabe-41cb09d77e52";
@@ -38,14 +38,18 @@ package model.network {
 		{
 			netConnection = new NetConnection();
 			netConnection.maxPeerConnections = 1024;
-			netConnection.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
-			netConnection.addEventListener(IOErrorEvent.IO_ERROR, ioErrorLintener);
-			netConnection.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
+			netConnection.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
+			netConnection.addEventListener(IOErrorEvent.IO_ERROR, ioErrorLintener, false, 0, true);
+			netConnection.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener, false, 0, true);
 			netConnection.connect(CirrusAddress + DeveloperKey);
 		}
 		
 		public function disconnect():void
 		{
+			netConnection.removeEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			netConnection.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorLintener);
+			netConnection.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
+			removeAll();
 			disconnectRoomGroup();
 			if (_loungeGroup != null)
 			{

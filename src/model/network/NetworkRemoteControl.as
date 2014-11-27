@@ -18,7 +18,7 @@ package model.network {
 	[Event(name="ioError", type="events.KuzurisErrorEvent")]
 	[Event(name="asyncError", type="events.KuzurisErrorEvent")]
 	[Event(name="networkGameReady", type="events.NetworkGameReadyEvent")]
-	public class NetworkRemoteControl extends EventDispatcher implements GameControl 
+	public class NetworkRemoteControl extends EventDispatcherEX implements GameControl 
 	{		
 		private var _enable:Boolean;
 		private var _peerID:String;
@@ -40,21 +40,21 @@ package model.network {
 			hashRecord = new Vector.<uint>();
 			_peerID = peerID;
 			this.networkManager = networkManager;
-			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
 			this.selfControl = selfControl;
 			initStream();
 			trace("play", _peerID)
 			reconnectTimer = new Timer(reconnectPeriod, 1);
-			reconnectTimer.addEventListener(TimerEvent.TIMER, reconnectTimerListener);
+			reconnectTimer.addEventListener(TimerEvent.TIMER, reconnectTimerListener, false, 0, true);
 		}
 		
 		private function initStream():void
 		{
 			netStream = networkManager.createNetStream(peerID);
-			netStream.addEventListener(NetStatusEvent.NET_STATUS, netStreamListener);
-			netStream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener);
-			netStream.addEventListener(IOErrorEvent.IO_ERROR, ioErrorListener);
-			netStream.addEventListener(NetDataEvent.MEDIA_TYPE_DATA, mediaTypeDataListener);
+			netStream.addEventListener(NetStatusEvent.NET_STATUS, netStreamListener, false, 0, true);
+			netStream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener, false, 0, true);
+			netStream.addEventListener(IOErrorEvent.IO_ERROR, ioErrorListener, false, 0, true);
+			netStream.addEventListener(NetDataEvent.MEDIA_TYPE_DATA, mediaTypeDataListener, false, 0, true);
 			netStream.client = this;
 			netStream.dataReliable = true;
 			netStream.play(_peerID);
@@ -63,6 +63,9 @@ package model.network {
 		public function dispose():void
 		{
 			reconnectTimer.stop();
+			removeAll();
+			networkManager.removeEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			reconnectTimer.removeEventListener(TimerEvent.TIMER, reconnectTimerListener);
 			streamDispose()
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.disposed));
 		}

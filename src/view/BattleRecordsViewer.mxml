@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
+			   creationComplete="creationCompleteListaener()">
+	<fx:Script>
+		<![CDATA[
+			import events.RequestReplayEvent;
+			import model.*;
+			import flash.events.*; 
+			import events.*;
+			import mx.collections.*;
+			import mx.core.ClassFactory;
+			
+			[Bindable]
+			public var battleRecords:BattleRecords;
+			[Bindable]
+			private var collection:ArrayCollection;
+			
+			private function creationCompleteListaener():void
+			{
+				var factory:ClassFactory = new ClassFactory(ExecuteReplayRenderer);
+				factory.properties = { receiver:requestReplayReceiver };
+				replayColumn.itemRenderer = factory;
+				collection = new ArrayCollection(battleRecords.records);
+				collection.refresh();
+			}
+			
+			private function requestReplayReceiver(data:GameReplayContainer):void
+			{
+				if (data.playerCount > 2)
+				{
+					currentState = "battleMulti";
+					battleMulti.replayStart(data);
+				}
+				else
+				{
+					currentState = "battleDuel";
+					battleDuel.replayStart(data);
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Metadata>
+		[Event(name="navigateBack", type="events.KuzurisEvent")]
+	</fx:Metadata>
+	
+	<fx:Declarations>
+		<v:FrameTimeFormatter id="ft" frameRate="60"/>
+		<s:DateTimeFormatter id="dt" />
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="battleDuel" />
+		<s:State name="battleMulti" />
+	</s:states>
+	
+	<s:BorderContainer includeIn="normal" x="24" y="24" width="806" height="432">
+		<s:layout>
+			<s:VerticalLayout verticalAlign="middle" horizontalAlign="center"/>
+		</s:layout>
+		<s:HGroup horizontalAlign="center" verticalAlign="middle">
+			<s:Label text="対戦履歴"/>
+		</s:HGroup>
+		<s:DataGrid dataProvider="{collection}" width="798" height="350" selectionMode="none" sortableColumns="false" >
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn dataField="roomName" headerText="ルーム名" />
+					<s:GridColumn dataField="timeStamp" headerText="対戦時刻" formatter="{dt}" />
+					<s:GridColumn id="replayColumn" headerText="" width="100" />
+				</s:ArrayList>
+			</s:columns>
+		</s:DataGrid>
+		<s:HGroup horizontalAlign="center" verticalAlign="middle">
+			<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" />
+		</s:HGroup>
+	</s:BorderContainer>
+	<v:BattleDuel id="battleDuel" includeIn="battleDuel" itemDestructionPolicy="auto" navigateBack="currentState = 'normal'" />
+	<v:BattleMulti id="battleMulti" includeIn="battleMulti" itemDestructionPolicy="auto" navigateBack="currentState = 'normal'" />
+	
+</s:Group>

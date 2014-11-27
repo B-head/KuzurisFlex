@@ -18,15 +18,18 @@
 			private var networkManager:NetworkManager;
 			[Bindable]
 			private var roomManager:RoomManager;
+			[Bindable]
+			private var battleRecords:BattleRecords;
 			
 			private function init():void
 			{
+				battleRecords = SharedObjectHelper.battleRecords;
 				networkManager = new NetworkManager();
-				networkManager.addEventListener(KuzurisEvent.connectClosed, disconnectedListener);
-				networkManager.addEventListener(KuzurisEvent.connectIdleTimeout, connectIdleTimeoutListener);
-				networkManager.addEventListener(KuzurisEvent.loungeConnectSuccess, loungeConnectSuccessListener);
-				networkManager.addEventListener(KuzurisErrorEvent.ioError, loungeConnectErrorListener);
-				networkManager.addEventListener(KuzurisErrorEvent.loungeConnectFailed, loungeConnectErrorListener);
+				networkManager.addTerget(KuzurisEvent.connectClosed, disconnectedListener);
+				networkManager.addTerget(KuzurisEvent.connectIdleTimeout, connectIdleTimeoutListener);
+				networkManager.addTerget(KuzurisEvent.loungeConnectSuccess, loungeConnectSuccessListener);
+				networkManager.addTerget(KuzurisErrorEvent.ioError, loungeConnectErrorListener);
+				networkManager.addTerget(KuzurisErrorEvent.loungeConnectFailed, loungeConnectErrorListener);
 				networkManager.connect();
 				stateText.text = "ラウンジに接続中…";
 				currentState = "loungeConnecting";
@@ -41,9 +44,9 @@
 			private function loungeConnectSuccessListener(e:KuzurisEvent):void
 			{
 				roomManager = new RoomManager(networkManager);
-				roomManager.addEventListener(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
-				roomManager.addEventListener(KuzurisErrorEvent.differPassword, roomConnectErrorListener);
-				roomManager.addEventListener(KuzurisErrorEvent.roomConnectFailed, roomConnectErrorListener);
+				roomManager.addTerget(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
+				roomManager.addTerget(KuzurisErrorEvent.differPassword, roomConnectErrorListener);
+				roomManager.addTerget(KuzurisErrorEvent.roomConnectFailed, roomConnectErrorListener);
 				currentState = "selectRoom";
 			}
 			
@@ -69,6 +72,11 @@
 			{
 				stateText.text = e.text;
 				currentState = "loungeError";
+			}
+		
+			private function requestReplayListener(e:RequestReplayEvent):void
+			{
+				return;
 			}
 			
 			private function createRoom():void
@@ -107,6 +115,11 @@
 				currentState = 'selectRoom';
 				parentApplication.bgm.stop();
 			}
+			
+			private function playerNameChangeListener():void
+			{
+				roomManager.selfPlayerInfo.name = playerName.text;
+			}
 		]]>
 	</fx:Script>
 
@@ -122,22 +135,27 @@
 		<s:State name="loungeError" stateGroups="lounge, state, ok" />
 		<s:State name="selectRoom" stateGroups="lounge" />
 		<s:State name="createRoom" stateGroups="lounge" />
-		<s:State name="battleLog" stateGroups="lounge" />
 		<s:State name="keyConfig" stateGroups="lounge" />
+		<s:State name="battleRecords" />
 		<s:State name="duel" />
 		<s:State name="multi" />
 	</s:states>
 	
-	<s:BorderContainer includeIn="lounge" verticalCenter="0" horizontalCenter="0" enabled="false" enabled.selectRoom="true">
+	<s:BorderContainer includeIn="lounge" x="24" y="24" width="806" height="432" enabled="false" enabled.selectRoom="true">
 		<s:layout>
 			<s:VerticalLayout verticalAlign="middle" horizontalAlign="center" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4"/>
 		</s:layout>
 		<s:HGroup verticalAlign="justify">
+			<s:VGroup horizontalAlign="center" verticalAlign="middle">
+				<s:Label text="プレイヤー名"/>
+				<s:TextInput id="playerName" widthInChars="10" maxChars="10" change="playerNameChangeListener()"
+					text="{roomManager.selfPlayerInfo.name}" prompt="{roomManager.selfPlayerInfo.makeDefaultName()}"/>
+			</s:VGroup>
 			<s:Button styleName="start" label="おまかせ6人部屋" buttonDown="quickEnterRoom(true)" />
 			<s:Button styleName="start" label="おまかせ2人部屋" buttonDown="quickEnterRoom(false)"/>
 			<s:TileGroup requestedRowCount="2" requestedColumnCount="2" orientation="columns">
 				<s:Button label="ルーム作成" buttonDown="currentState='createRoom'" />
-				<s:Button label="対戦履歴" buttonDown="currentState='battleLog'" enabled="false" />
+				<s:Button label="対戦履歴" buttonDown="currentState='battleRecords'" />
 				<s:Button label="キーコンフィグ" buttonDown="currentState='keyConfig'" />
 				<s:Button styleName="back" label="おわる" buttonDown="close()" />
 			</s:TileGroup>
@@ -171,8 +189,9 @@
 		</s:HGroup>
 	</s:BorderContainer>
 	<v:KeyConfig includeIn="keyConfig" verticalCenter="0" horizontalCenter="0" input="{roomManager.selfInput}" navigateBack="currentState = 'selectRoom'"/>
-	<v:NetworkDuel includeIn="duel" itemDestructionPolicy="auto" networkManager="{networkManager}" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
-	<v:NetworkMulti includeIn="multi" itemDestructionPolicy="auto" networkManager="{networkManager}" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
+	<v:BattleRecordsViewer includeIn="battleRecords" battleRecords="{battleRecords}" navigateBack="currentState = 'selectRoom'"/>
+	<v:NetworkBattleDuel includeIn="duel" itemDestructionPolicy="auto" networkManager="{networkManager}" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
+	<v:NetworkBattleMulti includeIn="multi" itemDestructionPolicy="auto" networkManager="{networkManager}" roomManager="{roomManager}" navigateBack="leaveRoom()"/>
 	<s:BorderContainer includeIn="state" verticalCenter="0" horizontalCenter="0">
 		<s:layout>
 			<s:VerticalLayout verticalAlign="middle" horizontalAlign="center" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4"/>

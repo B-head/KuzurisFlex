@@ -98,15 +98,15 @@ package view
 		{
 			_gameModel = value;
 			var st:SoundTransform = new SoundTransform(0.5);
-			value.addEventListener(BreakLineEvent.sectionBreakLine, breakLineListener);
-			value.addEventListener(LevelClearEvent.levelClear, function(e:LevelClearEvent):void { levelUp.play(); } );
-			value.addEventListener(ShockBlockEvent.sectionDamage, shockBlockListener);
-			value.addEventListener(ControlEvent.fallShockSave, function(e:ControlEvent):void { shockSave.play(); } );
-			value.addEventListener(ControlEvent.moveOK, function(e:ControlEvent):void { cMove.play(0, 0, st); } );
-			value.addEventListener(ControlEvent.rotationOK, function(e:ControlEvent):void { cRotation.play(0, 0, st); } );
-			value.addEventListener(ControlEvent.startFall, function(e:ControlEvent):void { cMove.play(0, 0, st); } );
-			value.addEventListener(ControlEvent.shockSaveON, function(e:ControlEvent):void { shift.play(0, 0, st); } );
-			value.addEventListener(ControlEvent.shockSaveOFF, function(e:ControlEvent):void { shift.play(0, 0, st); } );
+			value.addTerget(BreakLineEvent.sectionBreakLine, breakLineListener);
+			value.addTerget(LevelClearEvent.levelClear, function(e:LevelClearEvent):void { levelUp.play(); }, false);
+			value.addTerget(ShockBlockEvent.sectionDamage, shockBlockListener);
+			value.addTerget(ControlEvent.fallShockSave, function(e:ControlEvent):void { shockSave.play(); }, false);
+			value.addTerget(ControlEvent.moveOK, function(e:ControlEvent):void { cMove.play(0, 0, st); }, false);
+			value.addTerget(ControlEvent.rotationOK, function(e:ControlEvent):void { cRotation.play(0, 0, st); }, false);
+			value.addTerget(ControlEvent.startFall, function(e:ControlEvent):void { cMove.play(0, 0, st); }, false);
+			value.addTerget(ControlEvent.shockSaveON, function(e:ControlEvent):void { shift.play(0, 0, st); }, false);
+			value.addTerget(ControlEvent.shockSaveOFF, function(e:ControlEvent):void { shift.play(0, 0, st); }, false);
 		}
 		
 		public function shockBlockListener(e:ShockBlockEvent):void

@@ -16,14 +16,17 @@ package model
 	[Event(name="gameResume", type="events.KuzurisEvent")]
 	[Event(name="initializeGameModel", type="events.KuzurisEvent")]
 	[Event(name="playerUpdate", type="events.KuzurisEvent")]
-	public class GameManager extends EventDispatcher
+	public class GameManager extends EventDispatcherEX
 	{
 		protected var maxPlayer:int;
 		protected var playerInfo:Vector.<PlayerInformation>;
+		protected var handicap:Vector.<Number>;
 		protected var control:Vector.<GameControl>;
 		protected var gameModel:Vector.<GameModel>;
-		protected var replay:Vector.<GameReplay>;
+		protected var replay:Vector.<GameReplayControl>;
+		protected var seed:XorShift128;
 		protected var execution:Boolean;
+		private var startTimeStamp:Date;
 		private var replayMode:Boolean;
 		private var readyDelay:int;
 		private var prevFrameCount:int;
@@ -32,10 +35,20 @@ package model
 		{
 			this.maxPlayer = maxPlayer;
 			playerInfo = new Vector.<PlayerInformation>(maxPlayer);
+			handicap = new Vector.<Number>(maxPlayer);
 			control = new Vector.<GameControl>(maxPlayer);
 			gameModel = new Vector.<GameModel>(maxPlayer);
-			replay = new Vector.<GameReplay>(maxPlayer);
+			replay = new Vector.<GameReplayControl>(maxPlayer);
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				handicap[i] = 0;
+			}
 			initialize();
+		}
+		
+		public function dispose():void
+		{
+			removeAll();
 		}
 		
 		public function isBattle():Boolean
@@ -65,6 +78,11 @@ package model
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
 		}
 		
+		public function setHandicap(index:int, handi:Number):void
+		{
+			handicap[index] = handi; 
+		}
+		
 		public function setAILevel(index:int, level:int):void
 		{
 			var ai:GameAIManager = control[index] as GameAIManager;
@@ -81,15 +99,21 @@ package model
 		[Bindable(event="initializeGameModel")]
 		public function getRecord(index:int):GameRecord
 		{
-			var ret:GameRecord = gameModel[index].record;
-			ret.replay = replay[index];
-			return ret;
+			return gameModel[index].record;
 		}
 		
 		[Bindable(event="gameEnd")]
 		public function getRank(index:int):int
 		{
-			return 0;
+			var st:int = gameModel[index].record.gameTime;
+			var vt:Vector.<int> = new Vector.<int>();
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				if (gameModel[i] == null) continue;
+				vt.push(gameModel[i].record.gameTime);
+			}
+			vt = vt.sort(function(x:int, y:int):Number { return y - x; } );
+			return vt.lastIndexOf(st) + 1;
 		}
 		
 		[Bindable(event="playerUpdate")]
@@ -113,10 +137,14 @@ package model
 		
 		protected function registerGameModel(index:int, gm:GameModel):void
 		{
+			if (gameModel[index] != null)
+			{
+				gameModel[index].dispose();
+			}
 			gameModel[index] = gm;
-			gameModel[index].addEventListener(GameEvent.gameOver, GameEndListener);
-			gameModel[index].addEventListener(GameEvent.gameClear, GameEndListener);
-			gameModel[index].obstacleManager.addEventListener(GameEvent.enabledObstacle, createOccurObstacleListener(index));
+			gameModel[index].addTerget(GameEvent.gameOver, GameEndListener);
+			gameModel[index].addTerget(GameEvent.gameClear, GameEndListener);
+			gameModel[index].obstacleManager.addTerget(GameEvent.enabledObstacle, createOccurObstacleListener(index), false);
 		}
 		
 		protected function appendOutsideManager(index:int):void
@@ -139,14 +167,17 @@ package model
 				seed = new XorShift128();
 				seed.RandomSeed();
 			}
+			this.seed = seed;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
 				if (control[i] == null) continue;
-				replay[i] = new GameReplay(setting, seed);
+				replay[i] = new GameReplayControl();
+				setting.handicap = handicap[i];
 				gameModel[i].startGame(setting, seed);
 				control[i].initialize(gameModel[i]);
 				control[i].enable = true;
 			}
+			startTimeStamp = new Date();
 			replayMode = false;
 			readyDelay = delay;
 			execution = true;
@@ -154,30 +185,49 @@ package model
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameReady));
 		}
 		
-		public function startReplay():void
+		public function startReplay(replayContainer:GameReplayContainer):void
 		{
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				if (control[i] == null) continue;
-				var r:GameReplay = control[i] as GameReplay;
-				if (r == null) r = replay[i];
+				playerInfo[i] = replayContainer.playerInfo[i];
+				control[i] = replayContainer.replayControl[i];
 				replay[i] = null;
-				gameModel[i].startGame(r.setting, r.seed);
-				control[i] = r;
+				gameModel[i].startGame(replayContainer.setting[i], replayContainer.seed);
 				control[i].initialize(gameModel[i]);
 				control[i].enable = true;
 			}
 			replayMode = true;
+			readyDelay = 0;
 			execution = true;
 			resetFrameCount();
 		}
 		
+		public function makeReplayContainer():GameReplayContainer
+		{
+			var ret:GameReplayContainer = new GameReplayContainer();
+			ret.timeStamp = startTimeStamp;
+			ret.roomName = "ローカル対戦";
+			ret.seed = seed.clone();
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				var pi:PlayerInformation = playerInfo[0] == null ? null : playerInfo[i].clone();
+				ret.playerInfo.push(pi);
+				ret.replayControl.push(replay[i].clone());
+				ret.setting.push(gameModel[i].setting);
+				ret.record.push(gameModel[i].record);
+			}
+			return ret;
+		}
+		
 		public function endGame():void
 		{
+			if (execution == false) return;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
 				if (control[i] == null) continue;
 				control[i].enable = false;
+				if (playerInfo[i] == null) continue;
+				playerInfo[i].appendRate(gameModel[i].record);
 			}
 			execution = false;
 		}

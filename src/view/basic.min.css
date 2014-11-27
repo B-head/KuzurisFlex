@@ -1,4 +1,4 @@
-@namespace s "library://ns.adobe.com/flex/spark";@namespace mx "library://ns.adobe.com/flex/mx";*{font-family:sans-serif;chrome-color:rgb(53,161,107);}
+@namespace s "library://ns.adobe.com/flex/spark";@namespace mx "library://ns.adobe.com/flex/mx";*{font-family:sans-serif;locale:"ja-JP";chrome-color:rgb(53,161,107);}
 s|Label{color:rgb(255,255,255);}
 s|Button{corner-radius:4;}
 s|ButtonBar{corner-radius:4;}
@@ -6,7 +6,8 @@ s|SkinnableContainer{background-color:rgb(0,0,0);background-alpha:0.8;}
 s|BorderContainer{background-color:rgb(0,0,0);background-alpha:0.8;border-color:rgb(53,161,107);corner-radius:4;}
 s|HGroup{padding-top:4px;padding-right:4px;padding-bottom:4px;padding-left:4px;}
 s|VGroup{padding-top:4px;padding-right:4px;padding-bottom:4px;padding-left:4px;}
-s|DataGrid{content-background-color:rgb(0,0,0);content-background-alpha:0.8;}
+s|DataGrid{background-color:rgb(53,161,107);border-color:rgb(53,161,107);content-background-color:rgb(0,0,0);content-background-alpha:0.8;}
+s|DefaultGridItemRenderer{color:rgb(255,255,255);}
 .current-record{color:rgb(255,153,0);}
 .main-title{color:rgb(53,161,107);font-size:60px;font-weight:bold;text-align:center;}
 .sub-title{font-size:24px;text-align:center;}
@@ -16,7 +17,7 @@ s|DataGrid{content-background-color:rgb(0,0,0);content-background-alpha:0.8;}
 .start{font-size:24px;chrome-color:rgb(255,153,0);}
 .menu-label{background-color:rgb(0,0,0);background-alpha:0.8;}
 .enterButton{font-size:24px;corner-radius:40;}
-.field-record{font-size:18px;font-weight:bold;text-align:center;}
+.field-record{font-size:24px;font-weight:bold;text-align:center;}
 .technical-spin{color:rgb(154,0,121);text-align:center;}
 .level-up{color:rgb(102,204,255);text-align:center;}
 .all-clear{color:rgb(250,245,0);text-align:center;}

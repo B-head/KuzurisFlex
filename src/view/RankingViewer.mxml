@@ -63,7 +63,7 @@
 				return String(i + 1) + "位";
 			}
 			
-			private function requestReplayReceiver(data:GameReplay):void
+			private function requestReplayReceiver(data:GameReplayContainer):void
 			{
 				dispatchEvent(new RequestReplayEvent(RequestReplayEvent.requestReplay, data));
 			}
@@ -94,10 +94,10 @@
 		<s:columns>
 			<s:ArrayList>
 				<s:GridColumn headerText="順位" labelFunction="{rankLabel}" />
-				<s:GridColumn dataField="level" headerText="レベル" />
-				<s:GridColumn dataField="breakLine" headerText="ライン" />
-				<s:GridColumn dataField="gameScore" headerText="スコア" />
-				<s:GridColumn dataField="gameTime" headerText="タイム" formatter="{ft}" />
+				<s:GridColumn dataField="trialLevel" headerText="レベル" />
+				<s:GridColumn dataField="trialBreakLine" headerText="ライン" />
+				<s:GridColumn dataField="trialGameScore" headerText="スコア" />
+				<s:GridColumn dataField="trialGameTime" headerText="タイム" formatter="{ft}" />
 				<s:GridColumn id="replayColumn" headerText="" width="100" />
 			</s:ArrayList>
 		</s:columns>

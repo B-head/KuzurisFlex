@@ -15,6 +15,7 @@ package model
 		public static var inputVersus2:UserInput;
 		public static var normalRanking:Object;
 		public static var endlessRanking:Object;
+		public static var battleRecords:BattleRecords;
 		
 		public static function init():void
 		{
@@ -26,8 +27,10 @@ package model
 			registerClassAlias("ObstacleManager", ObstacleManager);
 			registerClassAlias("ObstacleRecord", ObstacleRecord);
 			registerClassAlias("GameRaking", GameRanking);
+			registerClassAlias("BattleRecords", BattleRecords);
 			registerClassAlias("GameRecord", GameRecord);
-			registerClassAlias("GameReplay", GameReplay);
+			registerClassAlias("GameReplayContainer", GameReplayContainer);
+			registerClassAlias("GameReplayControl", GameReplayControl);
 			registerClassAlias("GameCommand", GameCommand);
 			registerClassAlias("GameSetting", GameSetting);
 			registerClassAlias("XorShift128", XorShift128);
@@ -77,7 +80,11 @@ package model
 		
 		private static function initBattleReplays():void
 		{
-			
+			if (shared.data.battleRecords == null)
+			{
+				shared.data.battleRecords = new BattleRecords();
+			}
+			battleRecords = shared.data.battleRecords;
 		}
 		
 		public static function getRanking(gameMode:String, endless:Boolean):GameRanking

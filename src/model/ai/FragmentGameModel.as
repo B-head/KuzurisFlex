@@ -8,10 +8,17 @@ package model.ai {
 	{
 		public var comboTotalLine:int;
 		public var comboCount:int;
+		private var ominoCache:OminoField;
 		
 		public function FragmentGameModel() 
 		{
-			super(false);
+			super();
+			_controlOmino = new OminoField(GameModelBase.ominoSize);
+			ominoCache = new OminoField(GameModelBase.ominoSize);
+			for (var i:int = 0; i < nextLength; i++)
+			{
+				_nextOmino[i] = new OminoField(GameModelBase.ominoSize);
+			}
 		}
 		
 		public function get mainField():MainField
@@ -49,43 +56,29 @@ package model.ai {
 		{
 			_nextOmino = value;
 		}
-			
-		public function clone():FragmentGameModel
-		{
-			var result:FragmentGameModel = new FragmentGameModel();
-			result.mainField = _mainField.clone();
-			result.fallField = _fallField.clone();
-			result.controlOmino = _controlOmino.clone();
-			result.nextOmino = new Vector.<OminoField>(nextLength, true);
-			for (var i:int = 0; i < nextLength; i++)
-			{
-				result.nextOmino[i] = _nextOmino[i].clone();
-			}
-			return result;
-		}
 		
 		public function forwardNext(way:ControlWay):ForwardResult
 		{
-			var cache:OminoField = new OminoField(GameModelBase.ominoSize);
+			ominoCache.clearAll();
 			switch(way.dir)
 			{
 				case 0:
-					cache = _controlOmino;
+					ominoCache = _controlOmino;
 					break;
 				case 1: 
-					_controlOmino.rotationLeft(cache); 
+					_controlOmino.rotationLeft(ominoCache); 
 					break;
 				case 2: 
-					_controlOmino.rotationLeft(cache);
-					_controlOmino = cache;
-					cache = new OminoField(GameModelBase.ominoSize);
-					_controlOmino.rotationLeft(cache); 
+					_controlOmino.rotationLeft(ominoCache);
+					ominoCache.copyTo(_controlOmino);
+					ominoCache.clearAll();
+					_controlOmino.rotationLeft(ominoCache); 
 					break;
 				case 3: 
-					_controlOmino.rotationRight(cache); 
+					_controlOmino.rotationRight(ominoCache); 
 					break;
 			}
-			_controlOmino = cache;
+			ominoCache.copyTo(_controlOmino);
 			var rect:Rect = _controlOmino.getRect();
 			var cox:int = way.lx - rect.left;
 			var coy:int = init_coy(rect);
@@ -100,9 +93,10 @@ package model.ai {
 				ret.breakLine += breakLines();
 				extractFallBlocks();
 			}
-			while (_fallField.countBlock() > 0);
+			while (_fallField.blockCount > 0);
 			_mainField.clearSpecialUnion();
-			rotateNext(null);
+			_controlOmino.clearAll();
+			rotateNext(_controlOmino);
 			rect = _controlOmino.getRect();
 			cox = init_cox(rect);
 			coy = init_coy(rect);
@@ -122,7 +116,7 @@ package model.ai {
 				{
 					shockDamage(_controlOmino, cox, i, 1);
 				}
-				_mainField.fix(_controlOmino, cox, i);
+				_controlOmino.fix(_mainField, cox, i);
 				break;
 			}
 		}

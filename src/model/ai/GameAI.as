@@ -10,6 +10,12 @@ package model.ai {
 		public var level:int;
 		protected var rootModel:FragmentGameModel;
 		protected var treeRoot:AppraiseTree;
+		private var nextModel:FragmentGameModel;
+		
+		public function GameAI()
+		{
+			nextModel = new FragmentGameModel();
+		}
 		
 		public function setCurrentModel(currentModel:FragmentGameModel):void
 		{
@@ -48,23 +54,23 @@ package model.ai {
 					if (ps == true && (dir == 2 || dir == 3)) continue;
 					if (p90s == true && dir == 1) continue;
 					var way:ControlWay = new ControlWay(lx, dir, false);
-					var nm:FragmentGameModel = current.clone();
-					var fr:ForwardResult = nm.forwardNext(way);
+					current.copyTo(nextModel);
+					var fr:ForwardResult = nextModel.forwardNext(way);
 					if (fr == null) continue;
 					if (ps && way.dir == 1 && fr.rightDir) way.dir = 3;
 					var nt:AppraiseTree = new AppraiseTree(way);
 					nt.fr = fr;
-					nt.marks = appraise(nm, current, fr);
+					nt.marks = appraise(nextModel, current, fr);
 					tree.next.push(nt);
 					if (fr.lossTime == 0 || fr.breakLine > 0) continue;
 					way = new ControlWay(lx, dir, true);
-					nm = current.clone();
-					fr = nm.forwardNext(way);
+					current.copyTo(nextModel);
+					fr = nextModel.forwardNext(way);
 					if (fr == null) continue;
 					if (ps && way.dir == 1 && fr.rightDir) way.dir = 3;
 					nt = new AppraiseTree(way);
 					nt.fr = fr;
-					nt.marks = appraise(nm, current, fr);
+					nt.marks = appraise(nextModel, current, fr);
 					tree.next.push(nt);
 				}
 			}

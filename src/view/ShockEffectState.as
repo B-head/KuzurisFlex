@@ -18,7 +18,7 @@ package view
 		{
 			gameTime = e.gameTime;
 			damage = e.damage;
-			toSplit = e.isToSplit();
+			toSplit = e.toSplit;
 			frameCount = 0;
 		}
 		

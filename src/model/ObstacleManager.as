@@ -11,7 +11,7 @@ package model
 	 */
 	[Event(name="updateObstacle", type="events.GameEvent")]
 	[Event(name="enabledObstacle", type="events.GameEvent")]
-	public class ObstacleManager extends EventDispatcher implements IExternalizable
+	public class ObstacleManager extends EventDispatcherEX implements IExternalizable
 	{
 		private var setting:GameSetting;
 		private var records:Vector.<ObstacleRecord>;
@@ -20,7 +20,7 @@ package model
 		private var trialSequence:int;
 		private var _decisionSequence:int;
 		private var outsideEnabledSequence:Vector.<int>;
-		private var noticePrintCount:int;
+		private var _noticePrintCount:int;
 		private var noticePrintReady:Boolean;
 		
 		public function ObstacleManager()
@@ -28,6 +28,11 @@ package model
 			records = new Vector.<ObstacleRecord>();
 			outsideManager = new Vector.<ObstacleManager>(8);
 			outsideEnabledSequence = new Vector.<int>(8);
+		}
+		
+		public function dispose():void
+		{
+			removeAll();
 		}
 		
 		public function get decisionSequence():int
@@ -44,7 +49,9 @@ package model
 				if (outsideManager[i] == null) continue;
 				if (outsideManager[i] == this) continue;
 				var seq:int = outsideEnabledSequence[i];
-				otherMax = Math.max(otherMax, outsideManager[i].getOccurCount(seq, false));
+				var count:int = outsideManager[i].getOccurCount(seq, false);
+				var handiCount:int = count * Math.pow(2, handicap - outsideManager[i].handicap);
+				otherMax = Math.max(otherMax, handiCount);
 			}
 			return Math.max(0, otherMax - self);
 		}
@@ -58,9 +65,22 @@ package model
 				if (outsideManager[i] == null) continue;
 				if (outsideManager[i] == this) continue;
 				var seq:int = outsideEnabledSequence[i];
-				otherMax = Math.max(otherMax, outsideManager[i].getOccurSaveCount(seq, false));
+				var count:int = outsideManager[i].getOccurSaveCount(seq, false);
+				var handiCount:int = count * Math.pow(2, handicap - outsideManager[i].handicap);
+				otherMax = Math.max(otherMax, handiCount);
 			}
 			return Math.max(0, otherMax - self);
+		}
+		
+		public function get noticePrintCount():int
+		{
+			return _noticePrintCount;
+		}
+		
+		public function get handicap():Number
+		{
+			if (setting == null) return 0;
+			return setting.handicap;
 		}
 		
 		public function getOccurCount(sequence:int, self:Boolean):int
@@ -113,7 +133,7 @@ package model
 		
 		public function isActiveNotice():Boolean
 		{
-			return noticePrintCount > 0;
+			return _noticePrintCount > 0;
 		}
 		
 		public function isStandOutsideEnabled():Boolean
@@ -138,7 +158,7 @@ package model
 		public function appendOutsideManager(index:int, manager:ObstacleManager):void
 		{
 			outsideManager[index] = manager;
-			manager.addEventListener(GameEvent.updateObstacle, outsideUpdateListener);
+			manager.addTerget(GameEvent.updateObstacle, outsideUpdateListener);
 		}
 		
 		private function outsideUpdateListener(e:GameEvent):void
@@ -170,6 +190,7 @@ package model
 		
 		public function occurObstacle(gameTime:int, comboTotalLine:int, comboCount:int, blockAllClearCount:int, excellentCount:int):int
 		{
+			if (!setting.isBattle()) return 0;
 			var r:ObstacleRecord = getOccurRecord(gameTime);
 			var count:int = setting.occurObstacleCount(comboTotalLine, comboCount);
 			count += blockAllClearCount * setting.blockAllClearBonusObstacle;
@@ -204,7 +225,7 @@ package model
 		
 		public function receivedNotice(gameTime:int):int
 		{
-			var count:int = Math.min(setting.receiveObstacleCount(), noticePrintCount);
+			var count:int = Math.min(setting.receiveObstacleCount(), _noticePrintCount);
 			appendRecord(ObstacleRecord.received, count, gameTime);
 			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			return count;
@@ -215,7 +236,7 @@ package model
 			if (noticePrintReady)
 			{
 				noticePrintReady = false;
-				noticePrintCount = noticeCount;
+				_noticePrintCount = noticeCount;
 				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
 			if (setting.isObstacleAddition())
@@ -229,6 +250,7 @@ package model
 			if (trialLastAddition == 0)
 			{
 				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, int.MIN_VALUE, int.MIN_VALUE);
+				_noticePrintCount = noticeCount;
 				trialLastAddition = gameTime;
 				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
@@ -253,7 +275,7 @@ package model
 			output.writeInt(trialSequence);
 			output.writeInt(_decisionSequence);
 			output.writeObject(outsideEnabledSequence);
-			output.writeInt(noticePrintCount);
+			output.writeInt(_noticePrintCount);
 			output.writeBoolean(noticePrintReady);
 		}
 		
@@ -265,7 +287,7 @@ package model
 			trialSequence = input.readInt();
 			_decisionSequence = input.readInt();
 			outsideEnabledSequence = input.readObject();
-			noticePrintCount = input.readInt();
+			_noticePrintCount = input.readInt();
 			noticePrintReady = input.readBoolean();
 		}
 	}

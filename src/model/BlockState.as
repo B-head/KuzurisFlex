@@ -9,16 +9,21 @@ package model
 	 */
 	public final class BlockState implements IExternalizable
 	{
-		public static const normal:uint = 0;
-		public static const unbreak:uint = 1;
-		public static const strong:uint = 2;
-		public static const float:uint = 3;
-		public static const strongFloat:uint = 4;
+		public static const empty:uint = 0;
+		public static const normal:uint = 1;
+		public static const nonBreak:uint = 2;
+		public static const strong:uint = 3;
+		public static const float:uint = 4;
+		public static const strongFloat:uint = 5;
+		public static const gem:uint = 6;
+		
+		private static var nextId:uint = 0;
 		
 		public var type:uint;
-		public var color:uint;
+		public var color:int;
 		public var hitPoint:Number;
 		public var specialUnion:Boolean;
+		public var id:uint;
 		
 		public function BlockState(type:uint = 0, color:uint = 0, hitPoint:Number = 0, specialUnion:Boolean = false)
 		{
@@ -28,9 +33,14 @@ package model
 			this.specialUnion = specialUnion;
 		}
 		
-		public function clone():BlockState
+		public function setId():void
 		{
-			return new BlockState(type, color, hitPoint, specialUnion);
+			id = nextId++;
+		}
+		
+		public function isEmpty():Boolean
+		{
+			return type == empty;
 		}
 		
 		public function hash():uint
@@ -57,6 +67,7 @@ package model
 			color = input.readUnsignedInt();
 			hitPoint = input.readDouble();
 			specialUnion = input.readBoolean();
+			setId();
 		}
 	}
 }

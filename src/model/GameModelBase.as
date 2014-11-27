@@ -7,7 +7,7 @@ package model
 	 * ...
 	 * @author B_head
 	 */
-	public class GameModelBase extends EventDispatcher 
+	public class GameModelBase extends EventDispatcherEX 
 	{
 		public static const fieldWidth:int = 10;
 		public static const fieldHeight:int = 40;
@@ -23,36 +23,45 @@ package model
 		
 		protected var _mainField:MainField;
 		protected var _fallField:MainField;
+		protected var _tempField:MainField;
 		protected var _controlOmino:OminoField;
 		protected var _nextOmino:Vector.<OminoField>;
 		
-		public function GameModelBase(create:Boolean) 
+		public function GameModelBase() 
 		{
-			if (!create)
-			{
-				return;
-			}
 			_mainField = new MainField(fieldWidth, fieldHeight);
 			_fallField = new MainField(fieldWidth, fieldHeight);
+			_tempField = new MainField(fieldWidth, fieldHeight);
 			_nextOmino = new Vector.<OminoField>(nextLength, true);
+		}
+			
+		public function copyTo(to:GameModelBase):void
+		{
+			_mainField.copyTo(to._mainField);
+			_fallField.copyTo(to._fallField);
+			_controlOmino.copyTo(to._controlOmino);
+			for (var i:int = 0; i < nextLength; i++)
+			{
+				_nextOmino[i].copyTo(to._nextOmino[i]);
+			}
 		}
 		
 		public function getMainField():MainField
 		{
 			if (_mainField == null) return null;
-			return _mainField.clone();
+			return _mainField;
 		}
 		
 		public function getFallField():MainField
 		{
 			if (_fallField == null) return null;
-			return _fallField.clone();
+			return _fallField;
 		}
 		
 		public function getControlOmino():OminoField
 		{
 			if (_controlOmino == null) return null;
-			return _controlOmino.clone();
+			return _controlOmino;
 		}
 		
 		public function getNextOmino():Vector.<OminoField>
@@ -61,9 +70,14 @@ package model
 			for (var i:int = 0; i < nextLength; i++)
 			{
 				if (_nextOmino[i] == null) continue;
-				ret[i] = _nextOmino[i].clone();
+				ret[i] = _nextOmino[i];
 			}
 			return ret;
+		}
+		
+		public function dispose():void
+		{
+			removeAll();
 		}
 		
 		protected function onBreakLine(y:int, colors:Vector.<uint>):void
@@ -76,7 +90,7 @@ package model
 			return;
 		}
 		
-		protected function onBlockDamage(damage:Number, newState:BlockState, oldState:BlockState):void
+		protected function onBlockDamage(damage:Number, id:uint, toSplit:Boolean):void
 		{
 			return;
 		}
@@ -89,7 +103,7 @@ package model
 		protected function breakLines():int
 		{
 			var count:int = 0;
-			for (var y:int = fieldHeight - 1; y >= 0; y--)
+			for (var y:int = _mainField.bottom; y >= _mainField.top; y--)
 			{
 				if (_mainField.isFillLine(y))
 				{
@@ -99,7 +113,6 @@ package model
 					onBreakLine(y, colors);
 				}
 			}
-			onSectionBreakLine(count);
 			return count;
 		}
 		
@@ -116,16 +129,15 @@ package model
 		
 		protected function fallingField(from:int, to:int, fast:Boolean):int
 		{
-			var tempField:MainField = new MainField(fieldWidth, fieldHeight);
-			var blockscCount:int = _fallField.countBlock();
+			var blockscCount:int = _fallField.blockCount;
 			if (blockscCount <= 0) return fallingLossTime[0];
 			for (var i:int = from; i <= to; i++)
 			{
-				blockscCount -= collideFallingBlocks(i, tempField);
+				blockscCount -= collideFallingBlocks(i, _tempField);
 				var coefficient:Number = getNaturalShockDamage(i, fast);
-				var damage:Number = shockDamage(tempField, 0, i, coefficient)
+				var damage:Number = shockDamage(_tempField, 0, i, coefficient)
 				onSectionDamage(damage, shockDamageCoefficient * coefficient);
-				_mainField.fix(tempField, 0, i);
+				_tempField.fix(_mainField, 0, i);
 				if (blockscCount <= 0) break;
 			}
 			return fallingLossTime[i];
@@ -134,11 +146,11 @@ package model
 		protected function collideFallingBlocks(dy:int, to:MainField):int
 		{
 			var count:int = 0;
-			for (var y:int = 0; y < fieldHeight; y++)
+			for (var y:int = _fallField.top; y <= _fallField.bottom; y++)
 			{
 				var ty:int = y + dy + 1;
 				if (ty > fieldHeight) break;
-				for (var x:int = 0; x < fieldWidth; x++)
+				for (var x:int = _fallField.left; x <= _fallField.right; x++)
 				{
 					if (!_fallField.isExistBlock(x, y)) continue;
 					if (ty < fieldHeight && !_mainField.isExistBlock(x, ty)) continue;
@@ -150,16 +162,14 @@ package model
 		
 		protected function shockDamage(field:BlockField, dx:Number, dy:Number, damageCoefficient:Number):Number
 		{
-			var blockCount:int = field.countBlock();
 			var area:int = field.blocksHitChack(_mainField, dx, dy + 1, true);
+			var blockCount:int = field.blockCount;
 			var shockDamage:Number = shockDamageCoefficient * damageCoefficient * blockCount / area;
 			var indirectShockDamage:Number = indirectShockDamageCoefficient * damageCoefficient * blockCount / area;
-			var w:int = field.width;
-			var h:int = field.height;
 			var result:Number = 0;
-			for (var x:int = 0; x < w; x++)
+			for (var x:int = field.left; x <= field.right; x++)
 			{
-				for (var y:int = 0; y < h; y++)
+				for (var y:int = field.top; y <= field.bottom; y++)
 				{
 					var tx:int = int(x + dx);
 					var ty:int = int(y + dy + 1);

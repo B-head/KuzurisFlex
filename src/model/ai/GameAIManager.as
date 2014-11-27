@@ -39,7 +39,8 @@ package model.ai {
 		public function GameAIManager(ai:GameAI):void
 		{
 			this.ai = ai;
-			setAILevel(levelAsterisk);
+			setAILevel(20);
+			currentModel = new FragmentGameModel();
 		}
 		
 		public static function createDefaultAI():GameAIManager
@@ -52,8 +53,8 @@ package model.ai {
 		
 		public function setAILevel(level:int):void
 		{
-			if (level == 1) level = levelAsterisk;
-			if (level == 2) level = levelDoubleAsterisk;
+			//if (level == 1) level = levelAsterisk;
+			//if (level == 2) level = levelDoubleAsterisk;
 			ai.level = level;
 			if (level == levelAsterisk || level == levelDoubleAsterisk)
 			{
@@ -95,13 +96,12 @@ package model.ai {
 		public function initialize(gameModel:GameModel):void
 		{
 			this.gameModel = gameModel;
-			gameModel.addEventListener(ControlEvent.setOmino, setOminoListener);
-			gameModel.addEventListener(ControlEvent.fixOmino, fixOminoListener);
-			gameModel.addEventListener(ControlEvent.setOmino, updateModelListener);
-			gameModel.obstacleManager.addEventListener(GameEvent.updateObstacle, updateObstacleLestener);
-			gameModel.obstacleManager.addEventListener(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
+			gameModel.addTerget(ControlEvent.setOmino, setOminoListener);
+			gameModel.addTerget(ControlEvent.fixOmino, fixOminoListener);
+			gameModel.addTerget(ControlEvent.setOmino, updateModelListener);
+			gameModel.obstacleManager.addTerget(GameEvent.updateObstacle, updateObstacleLestener);
+			gameModel.obstacleManager.addTerget(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
 			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
-			currentModel = null;
 			notice = 0;
 			currentWay = null;
 			targetWay = null;
@@ -127,7 +127,7 @@ package model.ai {
 		
 		private function updateModelListener(e:GameEvent):void
 		{
-			currentModel = gameModel.getLightModel();
+			gameModel.copyToFragmentModel(currentModel);
 			currentWay = ControlWay.getCurrent(currentModel);
 			currentWay.shift = pressShift;
 			targetWay = null;

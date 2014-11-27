@@ -64,9 +64,16 @@ package view
 		{
 			var n:int = obstacleManager.noticeSaveCount;
 			visible = n > 0;
-			if (obstacleManager.isActiveNotice())
+			if (obstacleManager.noticeCount > 0)
 			{
-				borderStroke = new SolidColorStroke(Color.orange, 3);
+				if (obstacleManager.isActiveNotice())
+				{
+					borderStroke = new SolidColorStroke(Color.orange, 3);
+				}
+				else
+				{
+					borderStroke = new SolidColorStroke(Color.green, 2);
+				}
 			}
 			else
 			{

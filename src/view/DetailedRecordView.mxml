@@ -37,26 +37,5 @@
 		<s:Label text="MPCM {nf.format(record.ominoPerControlMinute())}"/>
 		<s:Label text="OPM {nf.format(record.occurPerMinute())}" includeInLayout="{battle}" visible="{battle}" />
 		<s:Label text="OPCM {nf.format(record.occurPerControlMinute())}" includeInLayout="{battle}" visible="{battle}" />
-		<mx:Spacer/>
-		<s:Label text="1ライン {record.chainLines.getItemAt(1)}" includeInLayout="{record.chainLines.getItemAt(1) > 0}" visible="{record.chainLines.getItemAt(1) > 0}"/>
-		<s:Label text="2ライン {record.chainLines.getItemAt(2)}" includeInLayout="{record.chainLines.getItemAt(2) > 0}" visible="{record.chainLines.getItemAt(2) > 0}"/>
-		<s:Label text="3ライン {record.chainLines.getItemAt(3)}" includeInLayout="{record.chainLines.getItemAt(3) > 0}" visible="{record.chainLines.getItemAt(3) > 0}"/>
-		<s:Label text="4ライン {record.chainLines.getItemAt(4)}" includeInLayout="{record.chainLines.getItemAt(4) > 0}" visible="{record.chainLines.getItemAt(4) > 0}"/>
-		<s:Label text="5ライン {record.chainLines.getItemAt(5)}" includeInLayout="{record.chainLines.getItemAt(5) > 0}" visible="{record.chainLines.getItemAt(5) > 0}"/>
-		<s:Label text="6ライン {record.chainLines.getItemAt(6)}" includeInLayout="{record.chainLines.getItemAt(6) > 0}" visible="{record.chainLines.getItemAt(6) > 0}"/>
-		<s:Label text="7ライン {record.chainLines.getItemAt(7)}" includeInLayout="{record.chainLines.getItemAt(7) > 0}" visible="{record.chainLines.getItemAt(7) > 0}"/>
-		<s:Label text="8ライン {record.chainLines.getItemAt(8)}" includeInLayout="{record.chainLines.getItemAt(8) > 0}" visible="{record.chainLines.getItemAt(8) > 0}"/>
-		<s:Label text="9ライン {record.chainLines.getItemAt(9)}" includeInLayout="{record.chainLines.getItemAt(9) > 0}" visible="{record.chainLines.getItemAt(9) > 0}"/>
-		<s:Label text="10ライン {record.chainLines.getItemAt(10)}" includeInLayout="{record.chainLines.getItemAt(10) > 0}" visible="{record.chainLines.getItemAt(10) > 0}"/>
-		<s:Label text="11ライン {record.chainLines.getItemAt(11)}" includeInLayout="{record.chainLines.getItemAt(11) > 0}" visible="{record.chainLines.getItemAt(11) > 0}"/>
-		<s:Label text="12ライン {record.chainLines.getItemAt(12)}" includeInLayout="{record.chainLines.getItemAt(12) > 0}" visible="{record.chainLines.getItemAt(12) > 0}"/>
-		<s:Label text="13ライン {record.chainLines.getItemAt(13)}" includeInLayout="{record.chainLines.getItemAt(13) > 0}" visible="{record.chainLines.getItemAt(13) > 0}"/>
-		<s:Label text="14ライン {record.chainLines.getItemAt(14)}" includeInLayout="{record.chainLines.getItemAt(14) > 0}" visible="{record.chainLines.getItemAt(14) > 0}"/>
-		<s:Label text="15ライン {record.chainLines.getItemAt(15)}" includeInLayout="{record.chainLines.getItemAt(15) > 0}" visible="{record.chainLines.getItemAt(15) > 0}"/>
-		<s:Label text="16ライン {record.chainLines.getItemAt(16)}" includeInLayout="{record.chainLines.getItemAt(16) > 0}" visible="{record.chainLines.getItemAt(16) > 0}"/>
-		<s:Label text="17ライン {record.chainLines.getItemAt(17)}" includeInLayout="{record.chainLines.getItemAt(17) > 0}" visible="{record.chainLines.getItemAt(17) > 0}"/>
-		<s:Label text="18ライン {record.chainLines.getItemAt(18)}" includeInLayout="{record.chainLines.getItemAt(18) > 0}" visible="{record.chainLines.getItemAt(18) > 0}"/>
-		<s:Label text="19ライン {record.chainLines.getItemAt(19)}" includeInLayout="{record.chainLines.getItemAt(19) > 0}" visible="{record.chainLines.getItemAt(19) > 0}"/>
-		<s:Label text="20ライン {record.chainLines.getItemAt(20)}" includeInLayout="{record.chainLines.getItemAt(20) > 0}" visible="{record.chainLines.getItemAt(20) > 0}"/>
 	</s:VGroup>
 </s:SkinnableContainer>

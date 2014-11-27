@@ -22,7 +22,7 @@ package model
 			records = new Array();
 		}
 		
-		public function entry(record:GameRecord):void
+		public function entry(record:GameReplayContainer):void
 		{
 			records.push(record);
 			sortScore();
@@ -35,7 +35,12 @@ package model
 		
 		public function sortScore():void
 		{
-			records.sort(function(a:GameRecord, b:GameRecord):Number { return b.gameScore - a.gameScore; } );
+			records.sort(compScore);
+		}
+		
+		private function compScore(a:GameReplayContainer, b:GameReplayContainer):Number
+		{
+			return b.record[0].gameScore - a.record[0].gameScore;
 		}
 		
 		public function sortTime():void
@@ -43,15 +48,15 @@ package model
 			records.sort(compTime);
 		}
 		
-		private function compTime(a:GameRecord, b:GameRecord):Number
+		private function compTime(a:GameReplayContainer, b:GameReplayContainer):Number
 		{
-			if (a.gameClear && b.gameClear)
+			if (a.isGameClear() && b.isGameClear())
 			{
-				return a.gameTime - b.gameTime;
+				return a.record[0].gameTime - b.record[0].gameTime;
 			}
 			else
 			{
-				return b.breakLine - a.breakLine;
+				return b.record[0].breakLine - a.record[0].breakLine;
 			}
 		}
 		

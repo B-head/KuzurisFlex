@@ -3,6 +3,7 @@ package model.network {
 	import flash.events.*;
 	import flash.net.*;
 	import flash.utils.*;
+	import model.EventDispatcherEX;
 	
 	/**
 	 * ...
@@ -17,7 +18,7 @@ package model.network {
 	[Event(name="addedUser", type="events.UpdateUserEvent")]
 	[Event(name="removedUser", type="events.UpdateUserEvent")]
 	[Event(name="notify", type="events.NotifyEvent")]
-	public class NetworkGroupManager extends EventDispatcher
+	public class NetworkGroupManager extends EventDispatcherEX
 	{
 		private var _peerID:String;
 		private var _isConnected:Boolean;
@@ -37,18 +38,22 @@ package model.network {
 		{
 			_peerID = networkManager.selfPeerID;
 			this.networkManager = networkManager;
-			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
 			this._specifier = specifier;
 			netGroup = networkManager.createNetGroup(specifier);
-			netGroup.addEventListener(NetStatusEvent.NET_STATUS, netGroupListener);
+			netGroup.addEventListener(NetStatusEvent.NET_STATUS, netGroupListener, false, 0, true);
 			users = new Dictionary();
 			timer = new Timer(announcePeriod);
-			timer.addEventListener(TimerEvent.TIMER, timerListener);
+			timer.addEventListener(TimerEvent.TIMER, timerListener, false, 0, true);
 		}
 		
 		public function dispose():void
 		{
 			timer.stop();
+			removeAll();
+			networkManager.removeEventListener(NetStatusEvent.NET_STATUS, netConnectionListener);
+			netGroup.removeEventListener(NetStatusEvent.NET_STATUS, netGroupListener);
+			timer.removeEventListener(TimerEvent.TIMER, timerListener);
 			post(disconnected); //TODO 有効に働かないので別の方法を考える。
 			netGroup.close();
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.disposed));

@@ -13,16 +13,17 @@ package model
 		
 		public function clone():MainField
 		{
-			var ret:MainField = new MainField(_width, _height);
+			var ret:MainField = new MainField(_maxWidth, _maxHeight);
 			copyTo(ret);
 			return ret;
 		}
 		
 		public function isFillLine(y:int):Boolean
 		{
-			for (var x:int = 0; x < _width; x++)
+			if (_left != 0 || _right != maxWidth - 1) return false;
+			for (var x:int = _left; x <= _right; x++)
 			{
-				if (value[x][y] == null)
+				if (value[x][y].isEmpty())
 				{
 					return false;
 				}
@@ -32,30 +33,27 @@ package model
 		
 		public function clearLine(y:int):Vector.<uint>
 		{
-			var colors:Vector.<uint> = new Vector.<uint>(_width, true);
-			for (var x:int = 0; x < _width; x++)
+			var colors:Vector.<uint> = new Vector.<uint>(_maxWidth, true);
+			for (var x:int = _left; x <= _right; x++)
 			{
 				colors[x] = value[x][y].color;
-				value[x][y] = null;
+				clearState(x, y);
 			}
 			return colors;
 		}
 		
-		public function clearSpecialUnion(onClearSpecialUnion:Function = null):void
+		public function clearSpecialUnion():void
 		{
-			for (var x:int = 0; x < _width; x++)
+			for (var x:int = _left; x <= _right; x++)
 			{
-				for (var y:int = 0; y < _height; y++)
+				for (var y:int = _top; y <= _bottom; y++)
 				{
-					var old:BlockState = value[x][y];
-					if (old == null || old.specialUnion == false)
+					var v:BlockState = value[x][y];
+					if (v.isEmpty() || v.specialUnion == false)
 					{
 						continue;
 					}
-					var v:BlockState = old.clone();
 					v.specialUnion = false;
-					value[x][y] = v;
-					if (onClearSpecialUnion != null) onClearSpecialUnion(v, old);
 				}
 			}
 		}
@@ -63,12 +61,21 @@ package model
 		public function extractConnection(to:MainField, x:int, y:int, 
 			upperConnect:Boolean, specialUnion:Boolean = false, first:Boolean = true):int
 		{
+			var ret:int = extractConnectionPart(to, x, y, upperConnect, specialUnion, true)
+			setRect();
+			to.setRect();
+			return ret;
+		}
+		
+		public function extractConnectionPart(to:MainField, x:int, y:int, 
+			upperConnect:Boolean, specialUnion:Boolean, first:Boolean):int
+		{
 			if (x < 0) return 0;
-			if (x >= _width) return 0;
+			if (x >= _maxWidth) return 0;
 			if (y < 0) return 0;
-			if (y >= _height) return 0;
+			if (y >= _maxHeight) return 0;
 			var v:BlockState = value[x][y];
-			if (v == null) return 0;
+			if (v.isEmpty()) return 0;
 			if (first == true)
 			{
 				specialUnion = v.specialUnion;
@@ -76,21 +83,21 @@ package model
 			var count:int = 1;
 			if (v.hitPoint > 0 && specialUnion == v.specialUnion)
 			{
-				to.value[x][y] = v;
-				value[x][y] = null;
-				count += extractConnection(to, x + 1, y, upperConnect, specialUnion, false);
-				count += extractConnection(to, x - 1, y, upperConnect, specialUnion, false);
-				count += extractConnection(to, x, y + 1, upperConnect, specialUnion, false);
-				count += extractConnection(to, x, y - 1, upperConnect, specialUnion, upperConnect ? true : false);
+				to.setState(x, y, v);
+				clearState(x, y);
+				count += extractConnectionPart(to, x + 1, y, upperConnect, specialUnion, false);
+				count += extractConnectionPart(to, x - 1, y, upperConnect, specialUnion, false);
+				count += extractConnectionPart(to, x, y + 1, upperConnect, specialUnion, false);
+				count += extractConnectionPart(to, x, y - 1, upperConnect, specialUnion, upperConnect ? true : false);
 			}
 			else
 			{
 				if (first == false) return 0;
-				to.value[x][y] = v;
-				value[x][y] = null;
+				to.setState(x, y, v);
+				clearState(x, y);
 				if (upperConnect == true)
 				{
-					count += extractConnection(to, x, y - 1, upperConnect, specialUnion, true);
+					count += extractConnectionPart(to, x, y - 1, upperConnect, specialUnion, true);
 				}
 			}
 			return count;
@@ -98,50 +105,53 @@ package model
 		
 		public function setLine(line:int, blocks:Vector.<BlockState>):void
 		{
-			for (var i:int = 0; i < width; i++)
+			for (var i:int = 0; i < maxWidth; i++)
 			{
-				value[i][line] = blocks[i];
+				blocks[i].setId();
+				setState(i, line, blocks[i]);
 			}
+			setRect();
 		}
 		
 		public function shiftUp(line:int):void
 		{
 			for (var y:int = 1; y <= line; y++)
 			{
-				for (var x:int = 0; x < _width; x++)
+				for (var x:int = 0; x < _maxWidth; x++)
 				{
-					value[x][y - 1] = value[x][y];
+					setState(x, y - 1, value[x][y]);
 				}
 			}
-			for (x = 0; x < _width; x++)
+			for (x = 0; x < _maxWidth; x++)
 			{
-				value[x][line] = null;
+				clearState(x, line);
 			}
+			setRect();
 		}
 		
 		public function getHeight():int
 		{
-			for (var y:int = 0; y < _height; y++)
+			for (var y:int = 0; y < _maxHeight; y++)
 			{
-				for (var x:int = 0; x < _width; x++)
+				for (var x:int = 0; x < _maxWidth; x++)
 				{
-					if (value[x][y] != null) return y;
+					if (!value[x][y].isEmpty()) return y;
 				}
 			}
-			return _height;
+			return _maxHeight;
 		}
 		
 		public function getColorHeight(color:uint):int
 		{
-			for (var y:int = 0; y < _height; y++)
+			for (var y:int = 0; y < _maxHeight; y++)
 			{
-				for (var x:int = 0; x < _width; x++)
+				for (var x:int = 0; x < _maxWidth; x++)
 				{
-					if (value[x][y] == null) continue;
+					if (value[x][y].isEmpty()) continue;
 					if (value[x][y].color == color) return y;
 				}
 			}
-			return _height;
+			return _maxHeight;
 		}
 	}
 

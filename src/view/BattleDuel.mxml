@@ -21,32 +21,31 @@
 		[Bindable]
 		private var input2:GameControl;
 		[Bindable]
+		private var battleRecords:BattleRecords;
+		[Bindable]
 		private var isResult:Boolean;
 		private var autoStart:Boolean;
+		private var replayContainer:GameReplayContainer;
 		
 		private function init():void
 		{
-			parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener);
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener, false, 0, true);
 			manager = new GameManager(2);
-			manager.addEventListener(KuzurisEvent.gameStart, startListener);
-			manager.addEventListener(KuzurisEvent.gameEnd, endListener);
+			manager.addTerget(KuzurisEvent.gameStart, startListener);
+			manager.addTerget(KuzurisEvent.gameEnd, endListener);
 			input1 = SharedObjectHelper.input;
 			input2 = GameAIManager.createDefaultAI();
+			battleRecords = SharedObjectHelper.battleRecords;
 			manager.initialize();
 			prepare();
 		}
 		
-		private function onKeyDown(e:KeyboardEvent):void
+		private function close():void
 		{
-			if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.A)
-			{
-				autoStart = !autoStart;
-				if (autoStart && currentState == "prepare")
-				{
-					start();
-				}
-			}
+			parentApplication.bgm.stop();
+			parentApplication.removeEventListener(KuzurisEvent.pressPauseKey, pauseListener);
+			manager.dispose();
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack));
 		}
 		
 		private function changePlayer():void
@@ -80,7 +79,7 @@
 			parentApplication.bgm.stop();
 			manager.endGame();
 			currentState = "prepare";
-			if (autoStart)
+			if (parentApplication.autoBattleRepeat)
 			{
 				start();
 			}
@@ -91,21 +90,54 @@
 			manager.initialize();
 			manager.setPlayer(0, input1);
 			manager.setPlayer(1, input2);
+			manager.setHandicap(0, handicap1.value);
+			manager.setHandicap(1, handicap2.value);
 			manager.setAILevel(0, aiLevel1.value);
 			manager.setAILevel(1, aiLevel2.value);
-			manager.startGame();
+			manager.startGame(GameSetting.createBattleSetting(battleMode.selectedIndex));
 			currentState = "hidden";
 			setFocus();
 			isResult = false;
 		}
 		
-		private function replayStart():void
+		public function replayStart(replay:GameReplayContainer):void
 		{
+			replayContainer = replay;
 			manager.initialize();
-			manager.startReplay();
+			manager.startReplay(replay);
 			currentState = "hidden";
 			setFocus();
 			isResult = false;
+		}
+		
+		private function restart():void
+		{
+			if (manager.isReplayMode())
+			{
+				replayStart(replayContainer);
+			}
+			else
+			{
+				start();
+			}
+		}
+		
+		private function end():void
+		{
+			if (manager.isReplayMode())
+			{
+				close();
+			}
+			else
+			{
+				prepare();
+			}
+		}
+		
+		private function replayResult():void
+		{
+			parentApplication.bgm.stop();
+			currentState = "replayResult";
 		}
 		
 		private function pauseing():void
@@ -150,7 +182,17 @@
 			recordView1.record = manager.getRecord(0);
 			recordView2.record = manager.getRecord(1);
 			isResult = true;
-			prepare();
+			if (manager.isReplayMode())
+			{
+				replayResult();
+			}
+			else
+			{
+				prepare();
+			}
+			if (manager.isReplayMode()) return;
+			replayContainer = manager.makeReplayContainer();
+			battleRecords.entry(replayContainer);
 		}
 		]]>
 	</fx:Script>
@@ -163,38 +205,53 @@
 		<s:State name="hidden" />
 		<s:State name="prepare" />
 		<s:State name="pause" />
+		<s:State name="replayResult" />
 		<s:State name="keyConfig" />
+		<s:State name="battleRecords" />
 	</s:states>
 	
-	<v:GameView id="player1" x="18" y="24" battle="true" reverse="false" playerIndex="0" gameManager="{manager}"/>
-	<v:GameView id="player2" x="436" y="24" battle="true" reverse="true" playerIndex="1" gameManager="{manager}" />
-	<v:DetailedRecordView id="recordView1" includeIn="prepare" x="0" y="0" width="118" height="480" battle="true" visible="{isResult}" />
-	<v:DetailedRecordView id="recordView2" includeIn="prepare" x="736" y="0" width="118" height="480" battle="true" visible="{isResult}" />
+	<v:GameView id="player1" x="18" y="24" battle="true" reverse="false" visible.battleRecords="false" playerIndex="0" gameManager="{manager}"/>
+	<v:GameView id="player2" x="436" y="24" battle="true" reverse="true" visible.battleRecords="false" playerIndex="1" gameManager="{manager}" />
+	<v:DetailedRecordView id="recordView1" x="0" y="0" width="118" height="480" battle="true" visible="{isResult}" />
+	<v:DetailedRecordView id="recordView2" x="736" y="0" width="118" height="480" battle="true" visible="{isResult}" />
 	<v:KeyConfig includeIn="keyConfig" x="18" y="88" input="{input1 as UserInput}" visible="{input1 is UserInput}" navigateBack="currentState = 'prepare'"/>
 	<v:KeyConfig includeIn="keyConfig" x="436" y="88" input="{input2 as UserInput}" visible="{input2 is UserInput}" navigateBack="currentState = 'prepare'"/>
-	<s:VGroup includeIn="prepare" x="143" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+	<v:BattleRecordsViewer includeIn="battleRecords" battleRecords="{battleRecords}" navigateBack="currentState = 'prepare'"/>
+	<s:VGroup includeIn="prepare" x="143" y="88" width="150" height="200" verticalAlign="middle" horizontalAlign="center">
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()" />
-		<s:Button width="150" label="対戦履歴" enabled="false" />
+		<s:Label styleName="menu-label" text="対戦モード" />
+		<s:ButtonBar id="battleMode" width="150" requireSelection="true" selectedIndex="0">  
+			<mx:ArrayCollection source="['クラシック', 'ディグ']"/>
+		</s:ButtonBar>
+		<s:Button width="150" label="対戦履歴" buttonDown="currentState = 'battleRecords'" />
 		<s:Button width="150" label="キーコンフィグ" enabled="{input1 is UserInput || input2 is UserInput}" buttonDown="currentState = 'keyConfig'"/>
-		<s:Button styleName="back" width="100" label="もどる" buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack))" />
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="close()" />
 	</s:VGroup>
-	<s:VGroup includeIn="prepare" x="143" y="340" width="150" horizontalAlign="center">
+	<s:VGroup includeIn="prepare" x="143" y="288" width="150" height="120" verticalAlign="middle" horizontalAlign="center">
 		<s:ButtonBar id="playerType1" width="150" requireSelection="true" selectedIndex="0" changing="changePlayer()">  
 			<mx:ArrayCollection source="['人間', 'AI']"/>
 		</s:ButtonBar>
+		<s:Label styleName="menu-label" text="ハンデキャップ{handicap1.value}" />
+		<s:HSlider id="handicap1" width="150" minimum="0" maximum="4" snapInterval="0.2" showDataTip="false" />
 		<s:Label styleName="menu-label" text="AIレベル{aiLevel1.value}" visible="{playerType1.selectedIndex == 1}" />
 		<s:HSlider id="aiLevel1" width="150" minimum="1" maximum="20" showDataTip="false" visible="{playerType1.selectedIndex == 1}" />
 	</s:VGroup>
-	<s:VGroup includeIn="prepare" x="561" y="340" width="150" horizontalAlign="center">
+	<s:VGroup includeIn="prepare" x="561" y="288" width="150" height="120" verticalAlign="middle" horizontalAlign="center">
 		<s:ButtonBar id="playerType2" width="150" requireSelection="true" selectedIndex="1" changing="changePlayer()">  
 			<mx:ArrayCollection source="['人間', 'AI']"/>
 		</s:ButtonBar>
+		<s:Label styleName="menu-label" text="ハンデキャップ{handicap2.value}" />
+		<s:HSlider id="handicap2" width="150" minimum="0" maximum="4" snapInterval="0.2" showDataTip="false" />
 		<s:Label styleName="menu-label" text="AIレベル{aiLevel2.value}" visible="{playerType2.selectedIndex == 1}" />
 		<s:HSlider id="aiLevel2" width="150" minimum="1" maximum="20" showDataTip="false" visible="{playerType2.selectedIndex == 1}" />
 	</s:VGroup>
 	<s:VGroup includeIn="pause" x="143" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button width="100" label="つづける" buttonDown="resume()" />
-		<s:Button width="100" label="はじめから" buttonDown="start()" />
-		<s:Button styleName="back" width="100" label="おわる" buttonDown="prepare()" />
+		<s:Button width="100" label="はじめから" buttonDown="restart()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
+	</s:VGroup>
+	<s:VGroup includeIn="replayResult" x="143" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button width="100" label="もういちど" buttonDown="restart()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
 	</s:VGroup>
 </s:Group>

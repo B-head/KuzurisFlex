@@ -18,13 +18,13 @@ package model.ai
 			var tops:Vector.<int> = getTops(current);
 			var rMinTops:int = GameModelBase.fieldHeight - vectorMin(tops);
 			var countOverTops:int = vectorCount(tops, function(i:int):Boolean { return i <= GameModelBase.gameOverHeight; });
-			var vertical:Vector.<int> = verticalBlockCount(current);
+			var vertical:Vector.<int> = current.mainField.verticalBlockCount;
 			var minVertical:int = vectorMin(vertical);
 			var roughness:int = appraiseRoughness(vertical);
-			var horizontal:Vector.<int> = horizontalBlockCount(current);
+			var horizontal:Vector.<int> = current.mainField.horizontalBlockCount;
 			var blockCount:int = vectorSum(horizontal); 
 			var semiBreak:int = semiBreakLines(horizontal);
-			var coveredSemiBreak:int = coveredSemiBreakLines(current, horizontal);
+			//var coveredSemiBreak:int = coveredSemiBreakLines(current, horizontal);
 			var chasm:Vector.<int> = appraiseChasm(current, horizontal);
 			var sumChasm:int = vectorSum(chasm);
 			var ret:int = 0;
@@ -47,7 +47,7 @@ package model.ai
 		{
 			var blockCountLimitBase:int = (GameModelBase.fieldWidth - 1) * GameModelBase.fieldHeight / 2;
 			var blockCountLimit:int = Math.min(blockCountLimitBase, blockCountLimitBase * level / 20);
-			var blockCount:int = current.mainField.countBlock();
+			var blockCount:int = current.mainField.blockCount;
 			var over:int = Math.max(0, (blockCount + notice * 3) - (blockCountLimit + fr.breakLine * 30));
 			return over * -50;
 		}
@@ -55,47 +55,16 @@ package model.ai
 		private function getTops(gameModel:FragmentGameModel):Vector.<int>
 		{
 			var ret:Vector.<int> = new Vector.<int>(GameModelBase.fieldWidth);
+			var m:MainField = gameModel.mainField;
 			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
 			{
 				ret[x] = GameModelBase.fieldHeight;
-				for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
+				for (var y:int = m.top; y <= m.bottom; y++)
 				{
-					if (gameModel.mainField.isExistBlock(x, y))
+					if (m.isExistBlock(x, y))
 					{
 						ret[x] = y;
 						break;
-					}
-				}
-			}
-			return ret;
-		}
-		
-		private function verticalBlockCount(gameModel:FragmentGameModel):Vector.<int>
-		{
-			var ret:Vector.<int> = new Vector.<int>(GameModelBase.fieldWidth);
-			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
-			{
-				for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
-				{
-					if (gameModel.mainField.isExistBlock(x, y))
-					{
-						ret[x]++;
-					}
-				}
-			}
-			return ret;
-		}
-		
-		private function horizontalBlockCount(gameModel:FragmentGameModel):Vector.<int>
-		{
-			var ret:Vector.<int> = new Vector.<int>(GameModelBase.fieldHeight);
-			for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
-			{
-				for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
-				{
-					if (gameModel.mainField.isExistBlock(x, y))
-					{
-						ret[y]++;
 					}
 				}
 			}
@@ -197,18 +166,19 @@ package model.ai
 		private function appraiseChasm(gameModel:FragmentGameModel, horizontal:Vector.<int>):Vector.<int>
 		{
 			var ret:Vector.<int> = new Vector.<int>(GameModelBase.fieldWidth);
+			var m:MainField = gameModel.mainField;
 			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
 			{
 				var cc:int = 0;
 				var smhp:Number = 0;
 				var first:Boolean = true;
-				for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
+				for (var y:int = m.top; y <= m.bottom; y++)
 				{
-					if (gameModel.mainField.isExistBlock(x, y))
+					if (m.isExistBlock(x, y))
 					{
-						if (gameModel.mainField.isUnionSideBlock(x, y))
+						if (m.isUnionSideBlock(x, y))
 						{
-							var hp:Number = gameModel.mainField.getHitPoint(x, y);
+							var hp:Number = m.getHitPoint(x, y);
 							if (first) hp /= GameModelBase.shockDamageCoefficient;
 							smhp = Math.max(smhp, hp);
 						}

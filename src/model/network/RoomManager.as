@@ -13,7 +13,7 @@ package model.network {
 	[Event(name="roomConnectSuccess", type="events.KuzurisEvent")]
 	[Event(name="differPassword", type="events.KuzurisErrorEvent")]
 	[Event(name="roomConnectFailed", type="events.KuzurisErrorEvent")]
-	public class RoomManager extends EventDispatcher
+	public class RoomManager extends EventDispatcherEX
 	{
 		private static const collectRoom:String = "collectRoom";
 		private static const offerRoom:String = "offerRoom";
@@ -44,13 +44,24 @@ package model.network {
 			selfInput = SharedObjectHelper.input;
 			timeoutTimer = new Timer(timeoutPeriod);
 			this.networkManager = networkManager;
-			networkManager.addEventListener(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
-			networkManager.addEventListener(KuzurisErrorEvent.roomConnectFailed, roomConnectFailedListener);
+			networkManager.addTerget(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
+			networkManager.addTerget(KuzurisErrorEvent.roomConnectFailed, roomConnectFailedListener);
 			loungeGroup = networkManager.loungeGroup;
-			loungeGroup.addEventListener(KuzurisEvent.firstConnectNeighbor, connectNeighborListener);
-			loungeGroup.addEventListener(KuzurisEvent.announceClock, announceClockListener);
-			loungeGroup.addEventListener(UpdateUserEvent.removedUser, removedUserListener);
-			loungeGroup.addEventListener(NotifyEvent.notify, notifyListener);
+			loungeGroup.addTerget(KuzurisEvent.firstConnectNeighbor, connectNeighborListener);
+			loungeGroup.addTerget(KuzurisEvent.announceClock, announceClockListener);
+			loungeGroup.addTerget(UpdateUserEvent.removedUser, removedUserListener);
+			loungeGroup.addTerget(NotifyEvent.notify, notifyListener);
+		}
+		
+		public function dispose():void
+		{
+			networkManager.removeTerget(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
+			networkManager.removeTerget(KuzurisErrorEvent.roomConnectFailed, roomConnectFailedListener);
+			loungeGroup.removeTerget(KuzurisEvent.firstConnectNeighbor, connectNeighborListener);
+			loungeGroup.removeTerget(KuzurisEvent.announceClock, announceClockListener);
+			loungeGroup.removeTerget(UpdateUserEvent.removedUser, removedUserListener);
+			loungeGroup.removeTerget(NotifyEvent.notify, notifyListener);
+			removeAll();
 		}
 			
 		public function makeDefaultName(quick:Boolean):String

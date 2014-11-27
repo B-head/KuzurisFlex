@@ -6,11 +6,13 @@
 		<![CDATA[
 			import events.*;
 			import flash.display.*;
+			import flash.events.MouseEvent;
 			import flash.media.*;
 			import flash.net.*;
 			import flash.ui.*;
 			import model.*;
 			import mx.core.*;
+			import mx.events.FlexEvent;
 			import net.hires.debug.*;
 			import spark.core.*;
 			
@@ -20,18 +22,15 @@
 			public static var compactBlockGraphics:BlockGraphics;
 			public static var compactBreakLineGraphics:BreakLineGraphics;
 			
+			public var autoBattleRepeat:Boolean;
 			public var pause:Vector.<uint>;
 			private var stats:SpriteVisualElement;
 			
 			private function applicationCompleteListener():void
 			{
 				SharedObjectHelper.init();
-				stage.quality = StageQuality.BEST;
-				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-				var st:SoundTransform = SoundMixer.soundTransform
-				st.volume = 0.1;
-				SoundMixer.soundTransform = st;
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
+				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true);
 				blockGraphics = new BlockGraphics(16, 16);
 				breakLineGraphics = new BreakLineGraphics(160, 16);
 				shockGraphics = new ShockEffectGraphics(16, 16);
@@ -63,6 +62,14 @@
 						stats = null;
 					}
 				}
+				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.A)
+				{
+					autoBattleRepeat = !autoBattleRepeat;
+				}
+				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.M && currentState == "top")
+				{
+					currentState = "battleMulti";
+				}
 			}
 			
 			private function onKeyUp(e:KeyboardEvent):void
@@ -70,6 +77,18 @@
 				SharedObjectHelper.input.keyUp(e.keyCode);
 				SharedObjectHelper.inputVersus1.keyUp(e.keyCode);
 				SharedObjectHelper.inputVersus2.keyUp(e.keyCode);
+			}
+			
+			private function fullScreenChangeListener(e:MouseEvent):void
+			{
+				if (fullScreen.selected)
+				{
+					stage.displayState = StageDisplayState.FULL_SCREEN;
+				}
+				else
+				{
+					stage.displayState = StageDisplayState.NORMAL;
+				}
 			}
 			
 			private function decideTlial(mode:String):void
@@ -94,7 +113,8 @@
 		<s:State name="preTrial" stateGroups="title" />
 		<s:State name="preBattle" stateGroups="title" />
 		<s:State name="trial" />
-		<s:State name="battle" />
+		<s:State name="battleDuel" />
+		<s:State name="battleMulti" />
 		<s:State name="network" />
 		<s:State name="howToPlay" />
 	</s:states>
@@ -122,7 +142,7 @@
 			<s:Button styleName="title-menu" width="300" label="トライアル"
 					  buttonDown="currentState = 'preTrial'" />
 			<s:Button styleName="title-menu" width="300" label="ローカル対戦"
-					  buttonDown="currentState = 'battle'" />
+					  buttonDown="currentState = 'battleDuel'" />
 			<s:Button styleName="title-menu" width="300" label="インターネット対戦"
 					  buttonDown="currentState = 'network'" />
 			<s:Button styleName="title-menu" width="300" label="あそびかた"
@@ -136,7 +156,7 @@
 			<s:Button styleName="title-menu" width="300"
 					  label="{GameSetting.modeToText(GameSetting.obstacleAttack)}"
 					  buttonDown="decideTlial(GameSetting.obstacleAttack)" />
-			<s:Button styleName="title-menu" width="300"
+			<s:Button styleName="title-menu" width="300" visible="false"
 					  label="{GameSetting.modeToText(GameSetting.polyOmino)}"
 					  buttonDown="decideTlial(GameSetting.polyOmino)" />
 			<s:Button styleName="title-menu hard-mode" width="300"
@@ -145,7 +165,7 @@
 			<s:Button styleName="title-menu hard-mode" width="300"
 					  label="{GameSetting.modeToText(GameSetting.obstacleFight)}"
 					  buttonDown="decideTlial(GameSetting.obstacleFight)" />
-			<s:Button styleName="title-menu hard-mode" width="300"
+			<s:Button styleName="title-menu hard-mode" width="300" visible="false"
 					  label="{GameSetting.modeToText(GameSetting.bigOmino)}"
 					  buttonDown="decideTlial(GameSetting.bigOmino)" />
 			<s:Button styleName="title-menu" width="300"
@@ -155,10 +175,11 @@
 					  buttonDown="currentState = 'top'" />
 		</s:VGroup>
 	</s:Group>
-	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto"
-			 navigateBack="currentState = 'preTrial'" />
-	<v:Battle id="battle" includeIn="battle" itemDestructionPolicy="auto"
-			  navigateBack="currentState = 'top'" />
-	<v:NetworkLounge id="network" includeIn="network" itemDestructionPolicy="auto"
-					 navigateBack="currentState = 'top'" />
+	<v:Trial id="trial" includeIn="trial" itemDestructionPolicy="auto" navigateBack="currentState = 'preTrial'" />
+	<v:BattleDuel id="battleDuel" includeIn="battleDuel" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
+	<v:BattleMulti id="battleMulti" includeIn="battleMulti" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
+	<v:NetworkLounge id="network" includeIn="network" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
+	<v:VolumeControl bottom="0" left="0" />
+	<s:ToggleButton id="fullScreen" bottom="0" right="0" label="フルスクリーン" visible="false" click="fullScreenChangeListener(event)" 
+		icon="@Embed(source='../graphic/full_screen.png')" />
 </s:Application>

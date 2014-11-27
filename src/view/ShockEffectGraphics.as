@@ -15,7 +15,7 @@ package view
 		public var blockWidth:Number;
 		public var blockHeight:Number;
 		
-		public static const frameMax:int = 15;
+		public static const frameMax:int = 30;
 		
 		public function ShockEffectGraphics(width:Number, height:Number) 
 		{

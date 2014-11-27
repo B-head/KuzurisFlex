@@ -1,15 +1,20 @@
 package model.network {
+	import events.KuzurisEvent;
+	import model.EventDispatcherEX;
+	import model.GameRecord;
 	/**
 	 * ...
 	 * @author B_head
-	 */
-	public class PlayerInformation 
+	 */ 
+	public class PlayerInformation extends EventDispatcherEX
 	{
 		public var peerID:String;
+		[Bindable]
 		public var name:String;
 		public var isAI:Boolean;
-		public var rate:Number;
-		public var winCount:int; 
+		public var recentRate:Vector.<Number>;
+		[Bindable]
+		public var winCount:int;
 		public var currentRoomID:String;
 		public var currentBattleIndex:int;
 		public var hostPriority:int;
@@ -24,20 +29,19 @@ package model.network {
 			this.peerID = peerID;
 			this.name = name;
 			this.isAI = isAI;
+			recentRate = new Vector.<Number>();
+		}
+		
+		public function clone():PlayerInformation
+		{
+			return new PlayerInformation(peerID, name, isAI);
 		}
 		
 		public function getName():String
 		{
 			if (name == null || name == "")
 			{
-				if (isAI)
-				{
-					return "コンピューター";
-				}
-				else
-				{
-					return "ゲスト" + peerID.slice(0, 5);
-				}
+				return makeDefaultName();
 			}
 			else
 			{
@@ -45,8 +49,38 @@ package model.network {
 			}
 		}
 		
+		public function makeDefaultName():String
+		{
+			if (isAI)
+			{
+				return "コンピューター";
+			}
+			else
+			{
+				return "ゲスト" + peerID.slice(0, 5);
+			}
+		}
+		
+		public function appendRate(record:GameRecord):void
+		{
+			var rate:Number = 0;
+			rate += record.ominoPerControlMinute() * 10;
+			rate += record.occurPerControlMinute();
+			rate /= 150;
+			trace(rate);
+			recentRate.push(rate);
+			if (recentRate.length > 10) recentRate.shift();
+			dispatchEvent(new KuzurisEvent("updateRate"));
+		}
+		
+		[Bindable(event="updateRate")]
 		public function get grade():String
 		{
+			var rate:Number = 0;
+			for (var i:int = 0; i < recentRate.length; i++)
+			{
+				rate = Math.max(rate, recentRate[i]);
+			}
 			var a:int = Math.max(0, Math.min(rate, 20));
 			return gradeList[a];
 		}

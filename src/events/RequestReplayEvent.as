@@ -1,6 +1,7 @@
 package events {
 	import flash.events.Event;
-	import model.GameReplay;
+	import model.GameReplayContainer;
+	import model.GameReplayControl;
 	
 	/**
 	 * ...
@@ -8,11 +9,11 @@ package events {
 	 */
 	public class RequestReplayEvent extends Event 
 	{
-		public var data:GameReplay;
+		public var data:GameReplayContainer;
 		
 		public static const requestReplay:String = "requestReplay";
 		
-		public function RequestReplayEvent(type:String, data:GameReplay) 
+		public function RequestReplayEvent(type:String, data:GameReplayContainer) 
 		{ 
 			super(type, false, false);
 			this.data = data;

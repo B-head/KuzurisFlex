@@ -18,17 +18,15 @@ package view
 		
 		public function registerShockBlockEvent(e:ShockBlockEvent):void
 		{
-			if (shockDictionary[e.oldState] == undefined)
+			if (shockDictionary[e.id] == undefined)
 			{
 				var n:Vector.<ShockEffectState> = new Vector.<ShockEffectState>();
 				n.push(new ShockEffectState(e));
-				shockDictionary[e.newState] = n;
+				shockDictionary[e.id] = n;
 			}
 			else
 			{
-				var v:Vector.<ShockEffectState> = shockDictionary[e.oldState];
-				shockDictionary[e.newState] = v;
-				delete shockDictionary[e.oldState];
+				var v:Vector.<ShockEffectState> = shockDictionary[e.id];
 				var s:ShockEffectState = findState(v, e.gameTime);
 				if (s == null)
 				{
@@ -38,19 +36,19 @@ package view
 				else
 				{
 					s.damage += e.damage;
-					if (e.isToSplit() == true) s.toSplit = true;
+					if (e.toSplit == true) s.toSplit = true;
 				}
 			}
 		}
 		
-		public function getEffectState(state:BlockState):Vector.<ShockEffectState>
+		public function getEffectState(id:uint):Vector.<ShockEffectState>
 		{
-			return shockDictionary[state];
+			return shockDictionary[id];
 		}
 		
-		public function getDamageRest(state:BlockState):Number
+		public function getDamageRest(id:uint):Number
 		{
-			var v:Vector.<ShockEffectState> = shockDictionary[state];
+			var v:Vector.<ShockEffectState> = shockDictionary[id];
 			if (v == null) return 0;
 			var ret:Number = 0;
 			for (var i:int = 0; i < v.length; i++)

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   xmlns:v="view.*"
+		   initialize="init()"
+		   frameConstructed ="manager.frameConstructedListener()">
+	<fx:Script>
+		<![CDATA[
+		import events.*;
+		import flash.events.*;
+		import flash.ui.*;
+		import model.*;
+		import model.ai.*;
+		
+		[Bindable]
+		private var manager:GameManager;
+		[Bindable]
+		private var battleRecords:BattleRecords;
+		[Bindable]
+		private var isResult:Boolean;
+		private var replayContainer:GameReplayContainer;
+		
+		private function init():void
+		{
+			parentApplication.addEventListener(KuzurisEvent.pressPauseKey, pauseListener, false, 0, true);
+			manager = new GameManager(6);
+			manager.addTerget(KuzurisEvent.gameStart, startListener);
+			manager.addTerget(KuzurisEvent.gameEnd, endListener);
+			battleRecords = SharedObjectHelper.battleRecords;
+			manager.initialize();
+			prepare();
+		}
+		
+		private function close():void
+		{
+			parentApplication.bgm.stop();
+			parentApplication.removeEventListener(KuzurisEvent.pressPauseKey, pauseListener);
+			manager.dispose();
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.navigateBack));
+		}
+		
+		private function prepare():void
+		{
+			parentApplication.bgm.stop();
+			manager.endGame();
+			currentState = "prepare";
+			if (parentApplication.autoBattleRepeat)
+			{
+				start();
+			}
+		}
+		
+		private function start():void
+		{
+			manager.initialize();
+			manager.setPlayer(0, GameAIManager.createDefaultAI());
+			manager.setPlayer(1, GameAIManager.createDefaultAI());
+			manager.setPlayer(2, GameAIManager.createDefaultAI());
+			manager.setPlayer(3, GameAIManager.createDefaultAI());
+			manager.setPlayer(4, GameAIManager.createDefaultAI());
+			manager.setPlayer(5, GameAIManager.createDefaultAI());
+			manager.startGame(GameSetting.createBattleSetting(battleMode.selectedIndex));
+			currentState = "hidden";
+			setFocus();
+			isResult = false;
+		}
+		
+		public function replayStart(replay:GameReplayContainer):void
+		{
+			replayContainer = replay;
+			manager.initialize();
+			manager.startReplay(replay);
+			currentState = "hidden";
+			setFocus();
+			isResult = false;
+		}
+		
+		private function restart():void
+		{
+			if (manager.isReplayMode())
+			{
+				replayStart(replayContainer);
+			}
+			else
+			{
+				start();
+			}
+		}
+		
+		private function end():void
+		{
+			if (manager.isReplayMode())
+			{
+				close();
+			}
+			else
+			{
+				prepare();
+			}
+		}
+		
+		private function replayResult():void
+		{
+			parentApplication.bgm.stop();
+			currentState = "replayResult";
+		}
+		
+		private function pauseing():void
+		{
+			if (!manager.isExecution()) return;
+			parentApplication.bgm.stop();
+			manager.phaseGame();
+			currentState = "pause";
+		}
+		
+		private function resume():void
+		{
+			parentApplication.bgm.play(true);
+			manager.resumeGame();
+			currentState = "hidden";
+			setFocus();
+		}
+		
+		private function pauseListener(e:KuzurisEvent):void
+		{
+			switch(currentState)
+			{
+				case "prepare":
+					start();
+					break;
+				case "pause":
+					resume();
+					break;
+				case "hidden":
+					pauseing();
+					break;
+			}
+		}
+		
+		private function startListener(e:KuzurisEvent):void
+		{
+			parentApplication.bgm.play(false);
+		}
+		
+		private function endListener(e:KuzurisEvent):void
+		{
+			isResult = true;
+			if (manager.isReplayMode())
+			{
+				replayResult();
+			}
+			else
+			{
+				prepare();
+			}
+			if (manager.isReplayMode()) return;
+			replayContainer = manager.makeReplayContainer();
+			battleRecords.entry(replayContainer);
+		}
+		]]>
+	</fx:Script>
+
+	<fx:Metadata>
+		[Event(name="navigateBack", type="events.KuzurisEvent")]
+	</fx:Metadata>
+	
+	<s:states>
+		<s:State name="hidden" />
+		<s:State name="prepare" />
+		<s:State name="pause" />
+		<s:State name="replayResult" />
+		<s:State name="battleRecords" />
+	</s:states>
+	
+	<s:Group x="227" y="8">
+		<v:CompactGameView x="0" y="0" z="-2" visible.battleRecords="false" playerIndex="0" gameManager="{manager}" />
+		<v:CompactGameView x="133" y="0" z="-2" visible.battleRecords="false" playerIndex="1" gameManager="{manager}" />
+		<v:CompactGameView x="266" y="0" z="-2" visible.battleRecords="false" playerIndex="2" gameManager="{manager}" />
+		<v:CompactGameView x="0" y="204" z="-1" visible.battleRecords="false" playerIndex="3" gameManager="{manager}" />
+		<v:CompactGameView x="133" y="204" z="-1" visible.battleRecords="false" playerIndex="4" gameManager="{manager}" />
+		<v:CompactGameView x="266" y="204" z="-1" visible.battleRecords="false" playerIndex="5" gameManager="{manager}" />
+	</s:Group>
+	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()" />
+		<s:Label styleName="menu-label" text="対戦モード" />
+		<s:ButtonBar id="battleMode" width="150" requireSelection="true" selectedIndex="0">  
+			<mx:ArrayCollection source="['クラシック', 'ディグ']"/>
+		</s:ButtonBar>
+		<s:Button width="150" label="対戦履歴" buttonDown="currentState = 'battleRecords'" />
+		<s:Button styleName="back" width="100" label="もどる" buttonDown="close()" />
+	</s:VGroup>
+	<s:VGroup includeIn="pause" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button width="100" label="つづける" buttonDown="resume()" />
+		<s:Button width="100" label="はじめから" buttonDown="restart()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
+	</s:VGroup>
+	<s:VGroup includeIn="replayResult" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
+		<s:Button width="100" label="もういちど" buttonDown="restart()" />
+		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
+	</s:VGroup>
+	<v:BattleRecordsViewer includeIn="battleRecords" battleRecords="{battleRecords}" navigateBack="currentState = 'prepare'"/>
+</s:Group>

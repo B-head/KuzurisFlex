@@ -2,8 +2,7 @@
 <s:SkinnableContainer  xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/mx"
-			   xmlns:v="view.*"
-			   creationComplete="creationCompleteListaener()">
+			   xmlns:v="view.*">
 	<fx:Script>
 		<![CDATA[
 			import model.*;
@@ -17,9 +16,9 @@
 			[Bindable]
 			public var endless:Boolean;
 			[Bindable]
-			public var currentRecord:GameRecord;
+			public var currentRecord:GameReplayContainer;
 			
-			private function creationCompleteListaener():void
+			public function update():void
 			{
 				var ranking:GameRanking = SharedObjectHelper.getRanking(gameMode, endless);
 				ranking.sortScore();
@@ -32,31 +31,36 @@
 				if (ti != -1) timeList.ensureCellIsVisible(ti, 0);
 			}
 			
-			private function scoreRankLabel(item:Object, column:GridColumn):String
+			private function scoreRankLabel(item:GameReplayContainer, column:GridColumn):String
 			{
 				var i:int = scoreList.dataProvider.getItemIndex(item);
 				return String(i + 1) + "位";
 			}
 			
-			private function timeRankLabel(item:Object, column:GridColumn):String
+			private function timeRankLabel(item:GameReplayContainer, column:GridColumn):String
 			{
 				var i:int = timeList.dataProvider.getItemIndex(item);
 				return String(i + 1) + "位";
 			}
 			
-			private function timeLabel(item:Object, column:GridColumn):String
+			private function scoreLabel(item:GameReplayContainer, column:GridColumn):String
 			{
-				if (item.gameClear)
+				return String(item.record[0].gameScore);
+			}
+			
+			private function timeLabel(item:GameReplayContainer, column:GridColumn):String
+			{
+				if (item.isGameClear())
 				{
-					return ft.format(item.gameTime);
+					return ft.format(item.record[0].gameTime);
 				}
 				else
 				{
-					return String(item.breakLine) + "ライン";
+					return String(item.record[0].breakLine) + "ライン";
 				}
 			}
 			
-			private function itemRenderer(item:Object, column:GridColumn):IFactory
+			private function itemRenderer(item:GameReplayContainer, column:GridColumn):IFactory
 			{
 				var ret:ClassFactory = new ClassFactory(DefaultGridItemRenderer);
 				if (item == currentRecord)
@@ -86,13 +90,13 @@
 		<s:columns>
 			<s:ArrayList>
 				<s:GridColumn headerText="順位" labelFunction="{scoreRankLabel}" itemRendererFunction="{itemRenderer}"/>
-				<s:GridColumn dataField="gameScore" headerText="スコア" itemRendererFunction="{itemRenderer}"/>
+				<s:GridColumn headerText="スコア" labelFunction="{scoreLabel}" itemRendererFunction="{itemRenderer}"/>
 			</s:ArrayList>
 		</s:columns>
 	</s:DataGrid>
 	<mx:Spacer/>
-	<s:Label text="タイムランキング"/>
-	<s:DataGrid id="timeList" width="200" height="180" selectionMode="none" sortableColumns="false">
+	<s:Label text="タイムランキング" includeInLayout="{!endless}" visible="{!endless}"/>
+	<s:DataGrid id="timeList" width="200" height="180" includeInLayout="{!endless}" visible="{!endless}" selectionMode="none" sortableColumns="false">
 		<s:columns>
 			<s:ArrayList>
 				<s:GridColumn headerText="順位" labelFunction="{timeRankLabel}" itemRendererFunction="{itemRenderer}"/>

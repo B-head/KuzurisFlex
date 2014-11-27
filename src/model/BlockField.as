@@ -10,88 +10,234 @@ package model
 	public class BlockField implements IExternalizable
 	{
 		protected var value:Vector.<Vector.<BlockState>>;
-		protected var _width:int;
-		protected var _height:int;
+		protected var _verticalBlockCount:Vector.<int>;
+		protected var _horizontalBlockCount:Vector.<int>;
+		protected var _blockCount:int;
+		protected var _left:int;
+		protected var _top:int;
+		protected var _right:int;
+		protected var _bottom:int;
+		protected var _maxWidth:int;
+		protected var _maxHeight:int;
 		
 		public function BlockField(w:int = 0, h:int = 0)
 		{
 			value = generateValue(w, h);
-			_width = w;
-			_height = h;
+			_verticalBlockCount = new Vector.<int>(w);
+			_horizontalBlockCount = new Vector.<int>(h);
+			_blockCount = 0;
+			_left = w;
+			_top = h;
+			_right = -1;
+			_bottom = -1;
+			_maxWidth = w;
+			_maxHeight = h;
 		}
 		
-		private function generateValue(w:int, h:int):Vector.<Vector.<BlockState>>
+		private static function generateValue(w:int, h:int):Vector.<Vector.<BlockState>>
 		{
 			var result:Vector.<Vector.<BlockState>> = new Vector.<Vector.<BlockState>>(w, true);
 			for (var x:int = 0; x < w; x++)
 			{
 				result[x] = new Vector.<BlockState>(h, true);
+				for (var y:int = 0; y < h; y++)
+				{
+					result[x][y] = new BlockState();
+				}
 			}
 			return result;
 		}
 		
-		public function get width():int
+		public final function get verticalBlockCount():Vector.<int>
 		{
-			return _width;
+			return _verticalBlockCount.slice();
 		}
 		
-		public function get height():int
+		public final function get horizontalBlockCount():Vector.<int>
 		{
-			return _height;
+			return _horizontalBlockCount.slice();
 		}
 		
-		public function getState(x:int, y:int):BlockState
+		public final function get blockCount():int
 		{
-			return value[x][y];
+			return _blockCount;
 		}
 		
-		public function getHitPoint(x:int, y:int):Number
+		public final function get left():int
+		{
+			return _left;
+		}
+		
+		public final function get top():int
+		{
+			return _top;
+		}
+		
+		public final function get right():int
+		{
+			return _right;
+		}
+		
+		public final function get bottom():int
+		{
+			return _bottom;
+		}
+		
+		public final function get maxWidth():int
+		{
+			return _maxWidth;
+		}
+		
+		public final function get maxHeight():int
+		{
+			return _maxHeight;
+		}
+		
+		public final function get blockWidth():int
+		{
+			return right - left + 1;
+		}
+		
+		public final function get blockHeight():int
+		{
+			return bottom - top + 1;
+		}
+		
+		public final function get centerX():int
+		{
+			return (right + left) / 2;
+		}
+		
+		public final function get centerY():int
+		{
+			return (bottom + top) / 2;
+		}
+		
+		protected final function setState(x:int, y:int, state:BlockState):void
+		{
+			var v:BlockState = value[x][y];
+			if (v.isEmpty() && !state.isEmpty())
+			{
+				_verticalBlockCount[x]++;
+				_horizontalBlockCount[y]++;
+				_blockCount++;
+			}
+			else if (!v.isEmpty() && state.isEmpty())
+			{
+				_verticalBlockCount[x]--;
+				_horizontalBlockCount[y]--;
+				_blockCount--;
+			}
+			v.type = state.type;
+			v.hitPoint = state.hitPoint;
+			v.color = state.color;
+			v.specialUnion = state.specialUnion;
+			v.id = state.id;
+		}
+		
+		protected final function clearState(x:int, y:int):void
+		{
+			var v:BlockState = value[x][y];
+			if (!v.isEmpty())
+			{
+				_verticalBlockCount[x]--;
+				_horizontalBlockCount[y]--;
+				_blockCount--;
+				v.type = BlockState.empty;
+			}
+		}
+		
+		protected final function setRect():void
+		{
+			for (_left = 0; _left < _maxWidth; _left++)
+			{
+				if (_verticalBlockCount[_left] > 0) break;
+			}
+			for (_right = _maxWidth - 1; _right >= 0; _right--)
+			{
+				if (_verticalBlockCount[_right] > 0) break;
+			}
+			for (_top = 0; _top < _maxHeight; _top++)
+			{
+				if (_horizontalBlockCount[_top] > 0) break;
+			}
+			for (_bottom = _maxHeight - 1; _bottom >= 0; _bottom--)
+			{
+				if (_horizontalBlockCount[_bottom] > 0) break;
+			}
+		}
+		
+		public final function getType(x:int, y:int):Number
+		{
+			return value[x][y].type;
+		}
+		
+		public final function getHitPoint(x:int, y:int):Number
 		{
 			return value[x][y].hitPoint;
 		}
 		
-		public function getColor(x:int, y:int):uint
+		public final function getColor(x:int, y:int):uint
 		{
 			return value[x][y].color;
 		}
 		
-		public function getSpecialUnion(x:int, y:int):Boolean
+		public final function getSpecialUnion(x:int, y:int):Boolean
 		{
 			return value[x][y].specialUnion;
 		}
 		
-		public function isExistBlock(x:int, y:int):Boolean
+		public final function getId(x:int, y:int):uint
 		{
-			return value[x][y] != null;
+			return value[x][y].id;
 		}
 		
-		public function isUnionSideBlock(x:int, y:int):Boolean
+		public final function isExistBlock(x:int, y:int):Boolean
+		{
+			return !value[x][y].isEmpty();
+		}
+		
+		public final function isUnionSideBlock(x:int, y:int):Boolean
 		{
 			var px:int = x + 1;
-			if (px < _width && value[px][y] != null && value[px][y].hitPoint > 0) return true;
+			if (px < _maxWidth && !value[px][y].isEmpty() && value[px][y].hitPoint > 0) return true;
 			var mx:int = x - 1;
-			if (mx >= 0 && value[mx][y] != null && value[mx][y].hitPoint > 0) return true;
+			if (mx >= 0 && !value[mx][y].isEmpty() && value[mx][y].hitPoint > 0) return true;
 			return false;
 		}
 		
 		public function copyTo(to:BlockField):void
 		{
-			for (var x:int = 0; x < _width; x++)
+			to.clearAll();
+			for (var x:int = _left; x <= _right; x++)
 			{
-				for (var y:int = 0; y < _height; y++)
+				for (var y:int = _top; y <= _bottom; y++)
 				{
-					to.value[x][y] = value[x][y];
+					to.setState(x, y, value[x][y]);
 				}
 			}
+			to.setRect();
+		}
+		
+		public function clearAll():void
+		{
+			for (var x:int = _left; x <= _right; x++)
+			{
+				for (var y:int = _top; y <= _bottom; y++)
+				{
+					clearState(x, y);
+				}
+			}
+			setRect();
 		}
 		
 		public function hash():uint
 		{
 			var ret:uint = 0;
 			var s:int = 0;
-			for (var x:int = 0; x < _width; x++)
+			for (var x:int = _left; x <= _right; x++)
 			{
-				for (var y:int = 0; y < _height; y++)
+				for (var y:int = _top; y <= _bottom; y++)
 				{
 					var v:BlockState = value[x][y];
 					var t:uint = v == null ? 0 : v.hash();
@@ -112,33 +258,33 @@ package model
 		
 		public function fix(from:BlockField, rx:int, ry:int):void
 		{
-			var w:int = from._width;
-			var h:int = from._height;
-			for (var x:int = 0; x < w; x++)
+			for (var x:int = _left; x <= _right; x++)
 			{
-				for (var y:int = 0; y < h; y++)
+				for (var y:int = _top; y <= _bottom; y++)
 				{
-					var v:BlockState = from.value[x][y];
-					if (v == null)
+					var v:BlockState = value[x][y];
+					if (v.isEmpty())
 					{
 						continue;
 					}
-					value[rx + x][ry + y] = v;
-					from.value[x][y] = null;
+					from.setState(rx + x, ry + y, v);
+					clearState(x, y);
 				}
 			}
+			setRect();
+			from.setRect();
 		}
 		
 		public function blocksHitChack(field:BlockField, rx:int, ry:int, wallChack:Boolean):int
 		{
 			var count:int = 0;
-			var w:int = field._width;
-			var h:int = field._height;
-			for (var x:int = 0; x < _width; x++)
+			var w:int = field._maxWidth;
+			var h:int = field._maxHeight;
+			for (var x:int = _left; x <= _right; x++)
 			{
-				for (var y:int = 0; y < _height; y++)
+				for (var y:int = _top; y <= _bottom; y++)
 				{
-					if (value[x][y] == null)
+					if (value[x][y].isEmpty())
 					{
 						continue;
 					}
@@ -152,7 +298,7 @@ package model
 						}
 						continue; 
 					}
-					if (field.value[tx][ty] == null)
+					if (field.value[tx][ty].isEmpty())
 					{
 						continue;
 					}
@@ -165,9 +311,9 @@ package model
 		public function verticalShock(x:int, y:int, shockDamage:Number, indirectShockDamage:Number, onBlockDamageDelegate:Function, up:Boolean):Number
 		{
 			var totalDamage:Number = 0;
-			for (var i:int = y; i >= 0 && i < _height; up ? i-- : i++)
+			for (var i:int = y; i >= _top && i <= _bottom; up ? i-- : i++)
 			{
-				if (value[x][i] == null)
+				if (value[x][i].isEmpty())
 				{
 					break;
 				}
@@ -180,64 +326,30 @@ package model
 		
 		private function blockShock(x:int, y:int, pureDamage:Number, onBlockDamageDelegate:Function):Number
 		{
-			var result:Number = 0;
-			var hitPoint:Number = value[x][y].hitPoint;
-			result = (hitPoint <= pureDamage ? hitPoint : pureDamage);
+			var v:BlockState = value[x][y];
+			var hitPoint:Number = v.hitPoint;
+			var result:Number = (hitPoint <= pureDamage ? hitPoint : pureDamage);
+			var toSplit:Boolean = (hitPoint > 0 && hitPoint <= pureDamage);
 			hitPoint -= pureDamage;
-			var old:BlockState = value[x][y];
-			var v:BlockState = old.clone();
 			v.hitPoint = hitPoint;
-			value[x][y] = v;
-			onBlockDamageDelegate(pureDamage, value[x][y], old);
+			onBlockDamageDelegate(pureDamage, v.id, toSplit);
 			return result;
-		}
-		
-		public function countBlock():int
-		{
-			var count:int = 0;
-			for (var x:int = 0; x < _width; x++)
-			{
-				for (var y:int = 0; y < _height; y++)
-				{
-					if (isExistBlock(x, y))
-					{
-						count++;
-					}
-				}
-			}
-			return count;
 		}
 		
 		public function getRect():Rect
 		{
-			var rect:Rect = new Rect();
-			with (rect) { left = _width - 1; top = _height - 1; right = 0; bottom = 0; }
-			for (var x:int = 0; x < _width; x++)
-			{
-				for (var y:int = 0; y < _height; y++)
-				{
-					if (value[x][y] == null)
-					{
-						continue;
-					}
-					rect.left = Math.min(rect.left, x);
-					rect.top = Math.min(rect.top, y);
-					rect.right = Math.max(rect.right, x);
-					rect.bottom = Math.max(rect.bottom, y);
-				}
-			}
-			return rect;
+			return new Rect(_left, _top, _right, _bottom);
 		}
 		
 		public function writeExternal(output:IDataOutput):void 
 		{
-			output.writeInt(_width);
-			output.writeInt(_height);
-			for (var x:int = 0; x < _width; x++)
+			output.writeInt(_maxWidth);
+			output.writeInt(_maxHeight);
+			for (var x:int = 0; x < _maxWidth; x++)
 			{
-				for (var y:int = 0; y < _height; y++)
+				for (var y:int = 0; y < _maxHeight; y++)
 				{
-					if (value[x][y] == null)
+					if (value[x][y].isEmpty())
 					{
 						output.writeBoolean(false);
 					}
@@ -252,21 +364,16 @@ package model
 		
 		public function readExternal(input:IDataInput):void 
 		{
-			_width = input.readInt();
-			_height = input.readInt();
-			value = generateValue(_width, _height);
-			for (var x:int = 0; x < _width; x++)
+			_maxWidth = input.readInt();
+			_maxHeight = input.readInt();
+			value = generateValue(_maxWidth, _maxHeight);
+			for (var x:int = 0; x < _maxWidth; x++)
 			{
-				for (var y:int = 0; y < _height; y++)
+				for (var y:int = 0; y < _maxHeight; y++)
 				{
-					var b:Boolean = input.readBoolean();
-					if (!b)
+					value[x][y] = new BlockState();
+					if (input.readBoolean())
 					{
-						value[x][y] = null;
-					}
-					else
-					{
-						value[x][y] = new BlockState();
 						value[x][y].readExternal(input);
 					}
 				}

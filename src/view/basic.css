@@ -3,6 +3,7 @@
 
 * {
 	font-family: sans-serif;
+	locale: "ja-JP";
 	chrome-color: rgb(53, 161, 107);
 }
 
@@ -47,8 +48,14 @@ s|VGroup {
 }
 
 s|DataGrid {
+	background-color: rgb(53, 161, 107);
+	border-color: rgb(53, 161, 107);
 	content-background-color: rgb(0, 0, 0);
 	content-background-alpha: 0.8;
+}
+
+s|DefaultGridItemRenderer {
+	color: rgb(255, 255, 255);
 }
 
 .current-record {
