@@ -338,6 +338,7 @@ package model
 		
 		public function rotationLeft(to:OminoField):void
 		{
+			to.clearAll();
 			for (var x:int = _left; x <= _right; x++)
 			{
 				for (var y:int = _top; y <= _bottom; y++)
@@ -350,6 +351,7 @@ package model
 		
 		public function rotationRight(to:OminoField):void
 		{
+			to.clearAll();
 			for (var x:int = _left; x <= _right; x++)
 			{
 				for (var y:int = _top; y <= _bottom; y++)

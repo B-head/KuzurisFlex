@@ -45,7 +45,7 @@
 			parentApplication.bgm.stop();
 			manager.endGame();
 			currentState = "prepare";
-			if (parentApplication.autoBattleRepeat)
+			if (Main.autoBattleRepeat)
 			{
 				start();
 			}
@@ -60,6 +60,12 @@
 			manager.setPlayer(3, GameAIManager.createDefaultAI());
 			manager.setPlayer(4, GameAIManager.createDefaultAI());
 			manager.setPlayer(5, GameAIManager.createDefaultAI());
+			manager.setAILevel(0, aiLevel.value);
+			manager.setAILevel(1, aiLevel.value);
+			manager.setAILevel(2, aiLevel.value);
+			manager.setAILevel(3, aiLevel.value);
+			manager.setAILevel(4, aiLevel.value);
+			manager.setAILevel(5, aiLevel.value);
 			manager.startGame(GameSetting.createBattleSetting(battleMode.selectedIndex));
 			currentState = "hidden";
 			setFocus();
@@ -174,12 +180,12 @@
 	</s:states>
 	
 	<s:Group x="227" y="8">
-		<v:CompactGameView x="0" y="0" z="-2" visible.battleRecords="false" playerIndex="0" gameManager="{manager}" />
-		<v:CompactGameView x="133" y="0" z="-2" visible.battleRecords="false" playerIndex="1" gameManager="{manager}" />
-		<v:CompactGameView x="266" y="0" z="-2" visible.battleRecords="false" playerIndex="2" gameManager="{manager}" />
-		<v:CompactGameView x="0" y="204" z="-1" visible.battleRecords="false" playerIndex="3" gameManager="{manager}" />
-		<v:CompactGameView x="133" y="204" z="-1" visible.battleRecords="false" playerIndex="4" gameManager="{manager}" />
-		<v:CompactGameView x="266" y="204" z="-1" visible.battleRecords="false" playerIndex="5" gameManager="{manager}" />
+		<v:CompactGameView x="0" y="0" z="-1" visible.battleRecords="false" playerIndex="0" gameManager="{manager}" />
+		<v:CompactGameView x="133" y="0" z="-1" visible.battleRecords="false" playerIndex="1" gameManager="{manager}" />
+		<v:CompactGameView x="266" y="0" z="-1" visible.battleRecords="false" playerIndex="2" gameManager="{manager}" />
+		<v:CompactGameView x="0" y="204" z="-2" visible.battleRecords="false" playerIndex="3" gameManager="{manager}" />
+		<v:CompactGameView x="133" y="204" z="-2" visible.battleRecords="false" playerIndex="4" gameManager="{manager}" />
+		<v:CompactGameView x="266" y="204" z="-2" visible.battleRecords="false" playerIndex="5" gameManager="{manager}" />
 	</s:Group>
 	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()" />
@@ -187,6 +193,8 @@
 		<s:ButtonBar id="battleMode" width="150" requireSelection="true" selectedIndex="0">  
 			<mx:ArrayCollection source="['クラシック', 'ディグ']"/>
 		</s:ButtonBar>
+		<s:Label styleName="menu-label" text="AIレベル{aiLevel.value}" />
+		<s:HSlider id="aiLevel" width="150" minimum="1" maximum="20" showDataTip="false"/>
 		<s:Button width="150" label="対戦履歴" buttonDown="currentState = 'battleRecords'" />
 		<s:Button styleName="back" width="100" label="もどる" buttonDown="close()" />
 	</s:VGroup>

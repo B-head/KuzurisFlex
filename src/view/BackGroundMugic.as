@@ -17,11 +17,12 @@ package view
 		
 		public function BackGroundMugic() 
 		{
-			mugic = new Sound(new URLRequest("./tetris-tribe.mp3"));
+			
 		}
 		
 		public function play(continuation:Boolean):void
 		{
+			return;
 			if (mugicChannel != null)
 			{
 				stop();

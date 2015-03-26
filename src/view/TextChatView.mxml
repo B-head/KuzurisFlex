@@ -7,6 +7,7 @@
 			import events.*;
 			import model.*;
 			import model.network.*;
+			import flashx.textLayout.formats.TextLayoutFormat;
 			
 			private var textChat:TextChat;
 			
@@ -18,7 +19,7 @@
 			
 			public function isFocus():Boolean
 			{
-				return utterText === focusManager.getFocus();
+				return utterText == focusManager.getFocus();
 			}
 			
 			private function utter():void
@@ -31,8 +32,18 @@
 			
 			private function appendChatListener(e:UpdateChatEvent):void
 			{
-				var text:String = e.utterance.playerInfo.getName() + ":" + e.utterance.text + "\r";
+				var a:int = chatText.text.length;
+				var text:String = (a == 0 ? "" : "\r");
+				text += e.utterance.playerInfo.getName() + ":";
 				chatText.appendText(text);
+				var b:int = chatText.text.length;
+				var format:TextLayoutFormat = new TextLayoutFormat();
+				format.color = Color.gray;
+				chatText.setFormatOfRange(format, a, b);
+				chatText.appendText(e.utterance.text);
+				format.color = Color.white;
+				chatText.setFormatOfRange(format, b, chatText.text.length);
+				chatText.verticalScrollPosition = chatText.contentHeight - chatText.height;
 			}
 		]]>
 	</fx:Script>
@@ -42,8 +53,8 @@
 	</fx:Declarations>
 	
 	<s:BorderContainer width="100%" top="0" bottom="22">
-		<s:RichEditableText styleName="chat-text" id="chatText" width="100%" height="100%" editable="false" />
-		<s:VScrollBar id="scroll" right="0" height="100%" viewport="{chatText}" />
+		<s:RichEditableText styleName="chat-text" id="chatText" left="0" right="0" height="100%" editable="false" />
+		<s:VScrollBar id="scroll" right="0" height="100%" viewport="{chatText}" visible="false" />
 	</s:BorderContainer>
 	<s:Button right="0" width="55" bottom="0" height="22" label="発言" buttonDown="utter()" />
 	<s:TextInput id="utterText" left="0" right="50" bottom="0" height="22" enter="utter()" />

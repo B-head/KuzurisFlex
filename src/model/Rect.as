@@ -11,7 +11,7 @@ package model
 		public var right:int;
 		public var bottom:int;
 		
-		public function Rect(left:int, top:int, right:int, bottom:int)
+		public function Rect(left:int = int.MAX_VALUE, top:int = int.MAX_VALUE, right:int = int.MIN_VALUE, bottom:int = int.MIN_VALUE)
 		{
 			this.left = left;
 			this.top = top;
@@ -29,14 +29,29 @@ package model
 			return bottom - top + 1;
 		}
 		
-		public function get centerX():int
+		public static function getRotate(rect:Rect, rotation:int, size:int):Rect
 		{
-			return (right + left) / 2;
-		}
-		
-		public function get centerY():int
-		{
-			return (bottom + top) / 2;
+			var ret:Rect = new Rect();
+			var s:int = size - 1;
+			if (rotation == GameCommand.left)
+			{
+				ret.top = s - rect.right;
+				ret.left = rect.top;
+				ret.bottom = s - rect.left;
+				ret.right = rect.bottom;
+			}
+			else if (rotation == GameCommand.right)
+			{
+				ret.top = rect.left;
+				ret.left = s - rect.bottom;
+				ret.bottom = rect.right;
+				ret.right = s - rect.top;
+			}
+			else
+			{
+				throw new Error();
+			}
+			return ret;
 		}
 	}
 

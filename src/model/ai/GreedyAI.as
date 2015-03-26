@@ -17,12 +17,13 @@ package model.ai
 		{
 			var tops:Vector.<int> = getTops(current);
 			var rMinTops:int = GameModelBase.fieldHeight - vectorMin(tops);
-			var countOverTops:int = vectorCount(tops, function(i:int):Boolean { return i <= GameModelBase.gameOverHeight; });
+			var reviseGameOverHeight:int = (prev.isHurryUp ? GameModelBase.gameOverHeight + 1 : GameModelBase.gameOverHeight);
+			var countOverTops:int = vectorCount(tops, function(i:int):Boolean { return i <= reviseGameOverHeight; });
+			var blockCount:int = current.mainField.blockCount; 
 			var vertical:Vector.<int> = current.mainField.verticalBlockCount;
 			var minVertical:int = vectorMin(vertical);
 			var roughness:int = appraiseRoughness(vertical);
 			var horizontal:Vector.<int> = current.mainField.horizontalBlockCount;
-			var blockCount:int = vectorSum(horizontal); 
 			var semiBreak:int = semiBreakLines(horizontal);
 			//var coveredSemiBreak:int = coveredSemiBreakLines(current, horizontal);
 			var chasm:Vector.<int> = appraiseChasm(current, horizontal);
@@ -50,25 +51,6 @@ package model.ai
 			var blockCount:int = current.mainField.blockCount;
 			var over:int = Math.max(0, (blockCount + notice * 3) - (blockCountLimit + fr.breakLine * 30));
 			return over * -50;
-		}
-		
-		private function getTops(gameModel:FragmentGameModel):Vector.<int>
-		{
-			var ret:Vector.<int> = new Vector.<int>(GameModelBase.fieldWidth);
-			var m:MainField = gameModel.mainField;
-			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
-			{
-				ret[x] = GameModelBase.fieldHeight;
-				for (var y:int = m.top; y <= m.bottom; y++)
-				{
-					if (m.isExistBlock(x, y))
-					{
-						ret[x] = y;
-						break;
-					}
-				}
-			}
-			return ret;
 		}
 		
 		private function vectorMax(v:Vector.<int>):int
@@ -111,6 +93,25 @@ package model.ai
 			return ret
 		}
 		
+		private function getTops(gameModel:FragmentGameModel):Vector.<int>
+		{
+			var ret:Vector.<int> = new Vector.<int>(GameModelBase.fieldWidth);
+			var m:MainField = gameModel.mainField;
+			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
+			{
+				ret[x] = GameModelBase.fieldHeight;
+				for (var y:int = m.top; y <= m.bottom; y++)
+				{
+					if (m.isExistBlock(x, y))
+					{
+						ret[x] = y;
+						break;
+					}
+				}
+			}
+			return ret;
+		}
+		
 		private function appraiseRoughness(vertical:Vector.<int>):int
 		{
 			var ret:int = 0;
@@ -140,13 +141,14 @@ package model.ai
 		private function coveredSemiBreakLines(gameModel:FragmentGameModel, horizontal:Vector.<int>):int
 		{
 			var ret:int = 0;
+			var m:MainField = gameModel.mainField;
 			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
 			{
 				var cover:int = 0;
 				var chasm:Boolean = false;
-				for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
+				for (var y:int = m.top; y <= m.bottom; y++)
 				{
-					if (gameModel.mainField.isExistBlock(x, y))
+					if (m.isExistBlock(x, y))
 					{
 						if (chasm) break;
 						cover++;
@@ -172,7 +174,8 @@ package model.ai
 				var cc:int = 0;
 				var smhp:Number = 0;
 				var first:Boolean = true;
-				for (var y:int = m.top; y <= m.bottom; y++)
+				//for (var y:int = m.top; y <= m.bottom; y++)
+				for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
 				{
 					if (m.isExistBlock(x, y))
 					{

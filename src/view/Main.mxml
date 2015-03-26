@@ -14,6 +14,8 @@
 			import mx.core.*;
 			import mx.events.FlexEvent;
 			import net.hires.debug.*;
+			import spark.components.RichEditableText;
+			import spark.components.RichText;
 			import spark.core.*;
 			
 			public static var blockGraphics:BlockGraphics;
@@ -22,9 +24,12 @@
 			public static var compactBlockGraphics:BlockGraphics;
 			public static var compactBreakLineGraphics:BreakLineGraphics;
 			
-			public var autoBattleRepeat:Boolean;
-			public var pause:Vector.<uint>;
-			private var stats:SpriteVisualElement;
+			public static var autoBattleRepeat:Boolean;
+			public static var unstableNetworkTest:Boolean;
+			private static var pause:Vector.<uint>;
+			private static var stats:SpriteVisualElement;
+			private static var logView:RichEditableText;
+			private static var traceLog:Vector.<String>;
 			
 			private function applicationCompleteListener():void
 			{
@@ -36,7 +41,36 @@
 				shockGraphics = new ShockEffectGraphics(16, 16);
 				compactBlockGraphics = new BlockGraphics(8, 8);
 				compactBreakLineGraphics = new BreakLineGraphics(80, 8);
-				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE]
+				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE];
+				resetTraceLog();
+			}
+			
+			public static function resetTraceLog():void
+			{
+				traceLog = new Vector.<String>();
+			}
+			
+			public static function getTraceLog():Vector.<String>
+			{
+				return traceLog.slice();
+			}
+			
+			public static function appendLog(...args):void
+			{
+				var text:String = "";
+				for (var i:int = 0; i < args.length; i++)
+				{
+					if (i > 0) text += " ";
+					text += args[i].toString();
+				}
+				if (logView != null)
+				{
+					if (logView.text.length > 0) logView.appendText("\r");
+					logView.appendText(text);
+					logView.verticalScrollPosition = logView.contentHeight - logView.height;
+				}
+				traceLog.push(text);
+				trace(text);
 			}
 			
 			private function onKeyDown(e:KeyboardEvent):void
@@ -62,9 +96,31 @@
 						stats = null;
 					}
 				}
+				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.L)
+				{
+					if (logView == null)
+					{
+						logView = new RichEditableText();
+						logView.width = stage.width;
+						logView.height = stage.height;
+						logView.mouseEnabled = false;
+						logView.tabEnabled = false;
+						logView.setStyle("color", Color.white);
+						addElement(logView);
+					}
+					else
+					{
+						removeElement(logView);
+						logView = null;
+					}
+				}
 				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.A)
 				{
 					autoBattleRepeat = !autoBattleRepeat;
+				}
+				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.N)
+				{
+					unstableNetworkTest = !unstableNetworkTest;
 				}
 				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.M && currentState == "top")
 				{
@@ -119,7 +175,7 @@
 		<s:State name="howToPlay" />
 	</s:states>
 
-	<s:Image width="854" height="480" source="./photo0000-1251.jpg" scaleMode="zoom" />
+	<s:Image width="854" height="480" source="@Embed(source='../graphic/photo0000-1251.jpg')" scaleMode="zoom" />
 	<s:Group includeIn="title">
 		<s:BorderContainer width="300" x="100" y="200">
 			<s:layout>

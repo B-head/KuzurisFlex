@@ -4,11 +4,13 @@ package model.network {
 	import model.*;
 	import model.ai.*;
 	import mx.events.*;
+	import view.Main;
 	/**
 	 * ...
 	 * @author B_head
 	 */
 	[Event(name="completedSyncState", type="events.KuzurisEvent")]
+	[Event(name="gameAbort", type="events.KuzurisErrorEvent")]
 	[Event(name="networkGameReady", type="events.NetworkGameReadyEvent")]
 	public class NetworkGameManager extends GameManager 
 	{
@@ -22,8 +24,11 @@ package model.network {
 		private var currentRoom:RoomInformation;
 		private var selfPlayerInfo:PlayerInformation;
 		private var selfPlayerIndex:int;
+		private var lastGameForwardTime:int;
 		private var syncTime:int;
 		private var sendDelayTimes:Vector.<int>;
+		
+		private const gameStopLimit:int = 10000;
 		
 		public function NetworkGameManager(maxPlayer:int, networkManager:NetworkManager, roomManager:RoomManager) 
 		{
@@ -89,18 +94,33 @@ package model.network {
 			var maxPlayer:int = currentRoom.entrant.length;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				var playerInfo:PlayerInformation = currentRoom.entrant.getItemAt(i) as PlayerInformation;
-				var control:GameControl = createGameControl(playerInfo, i);
-				if(control == selfControl) selfPlayerIndex = i;
-				setPlayer(i, control, playerInfo);
+				var pi:PlayerInformation = currentRoom.entrant.getItemAt(i) as PlayerInformation;
+				if (!PlayerInformation.containPlayer(pi, playerInfo[i]))
+				{
+					//registerGameModel(i, new GameModel());
+				}
+				var c:GameControl = createGameControl(pi, i);
+				if(c == selfControl) selfPlayerIndex = i;
+				if (!isExecution())
+				{
+					setPlayer(i, c, pi);
+				}
+				else
+				{
+					setPlayerInfo(i, pi);
+				}
 			}
-			if (isExecution()) checkGameEnd();
 		}
 		
 		private function createGameControl(playerInfo:PlayerInformation, index:int):GameControl
 		{
 			if (playerInfo == null) return null;
-			if (playerInfo == selfPlayerInfo) return selfControl;
+			if (playerInfo == selfPlayerInfo)
+			{
+				selfControl.removeAll();
+				selfControl.addTerget(KuzurisErrorEvent.streamDrop, createStreamDropListener(index), false);
+				return selfControl;
+			}
 			if (playerInfo.isAI) return GameAIManager.createDefaultAI();
 			var ret:NetworkRemoteControl = networkManager.getRemoteGameControl(index, playerInfo.peerID);
 			if (ret == null) return null;
@@ -109,14 +129,50 @@ package model.network {
 			ret.addTerget(KuzurisEvent.gameSyncReply, createGameSyncReplayListener(index), false);
 			ret.addTerget(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
 			ret.addTerget(KuzurisErrorEvent.notEqualHash, createNotEqualHashListener(index), false);
+			ret.addTerget(KuzurisErrorEvent.streamDrop, createStreamDropListener(index), false);
 			return ret;
+		}
+		
+		override public function initialize():void 
+		{
+			Main.resetTraceLog();
+			lastGameForwardTime = getTimer();
+			super.initialize();
 		}
 		
 		override public function makeReplayContainer():GameReplayContainer 
 		{
 			var ret:GameReplayContainer = super.makeReplayContainer();
 			ret.roomName = currentRoom.name;
+			ret.traceLog = Main.getTraceLog();
 			return ret;
+		}
+		
+		override protected function checkGameEnd():void 
+		{
+			var count:int = 0;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				if (control[i] == null || gameModel[i].isGameOver) continue;
+				if (control[i].enable == false)
+				{
+					count++;
+				}
+			}
+			if (count > 0)
+			{
+				if (lastGameForwardTime + gameStopLimit < getTimer())
+				{
+					endGame();
+					dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.gameAbort, "10秒以上停止したため、ゲームを終了しました。"));
+					return;
+				}
+			}
+			else
+			{
+				lastGameForwardTime = getTimer();
+			}
+			super.checkGameEnd();
 		}
 		
 		[Bindable(event="playerUpdate")]
@@ -178,6 +234,7 @@ package model.network {
 		
 		public function syncReady():void
 		{
+			if (isExecution()) return;
 			syncTime = getTimer();
 			sendDelayTimes = new Vector.<int>(currentRoom.entrant.length);
 			selfControl.sendSync();
@@ -185,7 +242,6 @@ package model.network {
 		
 		private function collectionChangeListener(e:CollectionEvent):void
 		{
-			if (isExecution()) return;
 			setPlayers();
 		}
 		
@@ -217,7 +273,7 @@ package model.network {
 					if (currentRoom.entrant.getItemAt(i) == null) continue;
 					if (sendDelayTimes[i] == 0) return;
 				}
-				var setting:GameSetting = GameSetting.createBattleSetting(0);
+				var setting:GameSetting = currentRoom.setting;
 				var seed:XorShift128 = new XorShift128();
 				seed.RandomSeed();
 				for (i = 0; i < maxPlayer; i++)
@@ -247,7 +303,21 @@ package model.network {
 		{
 			return function(e:KuzurisErrorEvent):void
 			{
-				syncState();
+				control[playerIndex] = null;
+				playerInfo[playerIndex] = null;
+				endGame();
+				dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.gameAbort, "ゲームデータの不整合が起きたため、ゲームを終了しました。"));
+			}
+		}
+		
+		private function createStreamDropListener(playerIndex:int):Function
+		{
+			return function(e:KuzurisErrorEvent):void
+			{
+				control[playerIndex] = null;
+				playerInfo[playerIndex] = null;
+				endGame();
+				dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.gameAbort, "ネットワークが切断されたため、ゲームを終了しました。"));
 			}
 		}
 		
@@ -256,7 +326,6 @@ package model.network {
 			switch (e.message.type)
 			{
 				case requestState:
-					trace(e.message.peerID);
 					roomGroup.sendPeer(e.message.peerID, replyState, { execution:execution, gameModel:gameModel, replay:replay } );
 					break;
 				case replyState:

@@ -25,10 +25,12 @@ package model
 		public const blockAllClearBonusScore:int = 25000;
 		public const blockAllClearBonusObstacle:int = 100;
 		public const excellentBonusScore:int = 25000;
-		public const excellentBonusObstacle:int = 20;
-		public const obstacleLineMax:int = 10;
+		public var obstacleLineMax:int;
 		public const obstacleLineBlockMax:int = 5;
 		public const towerLineBlockMax:int = 6;
+		public const alwaysHurryUp:Boolean = false;
+		public const hurryUpStartMargin:int = 1800;
+		public const hurryUpMargin:int = 180;
 		public const obstacleColor1:uint = Color.toIndex(Color.lightgray);
 		public const obstacleColor2:uint = Color.toIndex(Color.gray);
 		
@@ -47,6 +49,7 @@ package model
 		public var playTime:int;
 		public const playFastTime:int = 15;
 		public const breakLineDelay:int = 0;
+		public const appendTowerDelay:int = 1;
 		
 		public var quantityOddsBasis:Vector.<int>;
 		public var bigOminoCountMax:int;
@@ -87,18 +90,21 @@ package model
 		public static function createBattleSetting(gameModeIndex:int):GameSetting
 		{
 			var ret:GameSetting = new GameSetting();
+			ret.gameMode = indexToGameMode(gameModeIndex);
+			return ret;
+		}
+		
+		public static function indexToGameMode(gameModeIndex:int):String
+		{
 			switch (gameModeIndex)
 			{
 				case 0:
-					ret.gameMode = classicBattle;
-					break;
+					return classicBattle;
 				case 1:
-					ret.gameMode = digBattle;
-					break;
+					return digBattle;
 				default: 
 					throw new Error();
 			}
-			return ret;
 		}
 		
 		public function clone():GameSetting
@@ -184,7 +190,16 @@ package model
 			setObstacleAddition(level);
 			setQuantityOdds(level);
 			obstacleInitialCoefficient = 3;
-			obstacleDivisor = (gameMode == digBattle ? 20 : 4)
+			if (isTowerAddition())
+			{
+				obstacleDivisor = 20;
+				obstacleLineMax = 5;
+			}
+			else
+			{
+				obstacleDivisor = 4;
+				obstacleLineMax = 10;
+			}
 		}
 		
 		private function linerLeveling(level:int, low:Number, high:Number):Number

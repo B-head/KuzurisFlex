@@ -4,6 +4,7 @@ package model.network {
 	import flash.net.*;
 	import flash.utils.*;
 	import model.EventDispatcherEX;
+	import view.Main;
 	
 	/**
 	 * ...
@@ -67,7 +68,7 @@ package model.network {
 			{
 				if (users[a] + timeoutPeriod < time)
 				{
-					trace("removedUser", a);
+					Main.appendLog("removedUser");
 					dispatchEvent(new UpdateUserEvent(UpdateUserEvent.removedUser, a));
 					delete users[a];
 				}
@@ -78,7 +79,7 @@ package model.network {
 		{
 			if (users[peerID] == null)
 			{
-				trace("addedUser", peerID);
+				Main.appendLog("addedUser");
 				dispatchEvent(new UpdateUserEvent(UpdateUserEvent.addedUser, peerID));
 			}
 			users[peerID] = getTimer();
@@ -107,7 +108,7 @@ package model.network {
 			netGroup.post(message);
 			if (type != keepAlivePalse && type != "playerUpdate")
 			{
-				trace("post", message.type, _peerID);
+				Main.appendLog("post", message.type);
 			}
 		}
 		
@@ -118,7 +119,7 @@ package model.network {
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID, toPeerID);
 			var groupAddress:String = netGroup.convertPeerIDToGroupAddress(toPeerID);
 			var sendResult:String = netGroup.sendToNearest(message, groupAddress);
-			trace("sendPeer", message.type, sendResult, _peerID);
+			Main.appendLog("sendPeer", message.type, sendResult);
 		}
 		
 		public function sendNeighbors(type:String, obj:Object = null):void
@@ -127,7 +128,7 @@ package model.network {
 			if (obj == null) obj = new Object();
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			var sendResult:String = netGroup.sendToAllNeighbors(message);
-			trace("sendNeighbors", message.type, sendResult, _peerID);
+			Main.appendLog("sendNeighbors", message.type, sendResult);
 		}
 		
 		public function sendDecreasing(type:String, obj:Object = null):void
@@ -136,7 +137,7 @@ package model.network {
 			if (obj == null) obj = new Object();
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			var sendResult:String = netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_DECREASING);
-			trace("sendDecreasing", message.type, sendResult, _peerID);
+			Main.appendLog("sendDecreasing", message.type, sendResult);
 		}
 		
 		public function sendIncreasing(type:String, obj:Object = null):void
@@ -145,7 +146,7 @@ package model.network {
 			if (obj == null) obj = new Object();
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			var sendResult:String = netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_INCREASING);
-			trace("sendIncreasing", message.type, sendResult, _peerID);
+			Main.appendLog("sendIncreasing", message.type, sendResult);
 		}
 		
 		private function postingNotify(message:MessageObject, messageID:String):void
@@ -153,7 +154,7 @@ package model.network {
 			if (message == null) return;
 			if (message.type != keepAlivePalse && message.type != "playerUpdate")
 			{
-				trace("postingNotify", message.type, _peerID);
+				Main.appendLog("postingNotify", message.type);
 			}
 			if (message.type == keepAlivePalse)
 			{
@@ -162,7 +163,7 @@ package model.network {
 			}
 			if (message.type == disconnected)
 			{
-				trace("disconnectedUser", message.peerID);
+				Main.appendLog("disconnectedUser", message.peerID);
 				dispatchEvent(new UpdateUserEvent(UpdateUserEvent.removedUser, message.peerID));
 				delete users[message.peerID];
 				return;
@@ -174,12 +175,12 @@ package model.network {
 		private function sendToNotify(message:MessageObject, from:String, fromLocal:Boolean):void
 		{
 			if (message == null) return;
-			trace("sendToNotify", message.type, _peerID);
+			Main.appendLog("sendToNotify", message.type);
 			if (message.toPeerID != "" && message.toPeerID != networkManager.selfPeerID)
 			{
 				var groupAddress:String = netGroup.convertPeerIDToGroupAddress(message.toPeerID);
 				var sendResult:String = netGroup.sendToNearest(message, groupAddress);
-				trace("sendRelay", message.type, sendResult, _peerID);
+				Main.appendLog("sendRelay", message.type, sendResult);
 				return;
 			}
 			dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
@@ -217,7 +218,7 @@ package model.network {
 		{
 			if (e.info.code != "NetGroup.Posting.Notify" && e.info.code != "NetGroup.SendTo.Notify")
 			{
-				trace(e.info.code, _peerID);
+				Main.appendLog(e.info.code);
 			}
 			switch (e.info.code)
 			{

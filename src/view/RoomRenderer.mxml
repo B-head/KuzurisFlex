@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/mx">
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*">
 	<fx:Script>
 		<![CDATA[
 			import events.*;
@@ -21,9 +22,7 @@
 		<fx:Component id="playerOrEnterButtonRenderer">
 			<s:ItemRenderer autoDrawBackground="false">
 				<s:Button label="参加" width="100%" height="100%" visible="{data == null}" buttonDown="outerDocument.enterBattle(itemIndex)" />
-				<s:BorderContainer width="100%" height="100%" visible="{data != null}">
-					<s:Label verticalCenter="0" horizontalCenter="0" text="{data.getName()}" />
-				</s:BorderContainer>
+				<v:BorderLabel width="100%" height="100%" visible="{data != null}" label="{data.getName()}"/>
 			</s:ItemRenderer>
 		</fx:Component>
 	</fx:Declarations>
@@ -35,7 +34,8 @@
 		<s:Label text="{data.name}"/>
 		<s:DataGroup width="100%" dataProvider="{data.entrant}" itemRenderer="{playerOrEnterButtonRenderer}">
 			<s:layout>
-				<s:TileLayout requestedColumnCount="2" columnAlign="justifyUsingWidth" />
+				<s:TileLayout requestedColumnCount="2" columnAlign="justifyUsingWidth" rowHeight="{data.multi ? 22 : 74}"
+					paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" verticalGap="4" horizontalGap="4" />
 			</s:layout>
 		</s:DataGroup>
 	</s:BorderContainer>

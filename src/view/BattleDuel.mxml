@@ -79,7 +79,7 @@
 			parentApplication.bgm.stop();
 			manager.endGame();
 			currentState = "prepare";
-			if (parentApplication.autoBattleRepeat)
+			if (Main.autoBattleRepeat)
 			{
 				start();
 			}

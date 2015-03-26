@@ -43,7 +43,7 @@ package model.ai {
 			considerTree(treeRoot, rootModel);
 		}
 		
-		protected function considerTree(tree:AppraiseTree, current:FragmentGameModel):void
+		private function considerTree(tree:AppraiseTree, current:FragmentGameModel):void
 		{
 			var ps:Boolean = current.controlOmino.isPointSymmetry();
 			var p90s:Boolean = current.controlOmino.isPoint90Symmetry();
@@ -53,27 +53,25 @@ package model.ai {
 				{
 					if (ps == true && (dir == 2 || dir == 3)) continue;
 					if (p90s == true && dir == 1) continue;
-					var way:ControlWay = new ControlWay(lx, dir, false);
-					current.copyTo(nextModel);
-					var fr:ForwardResult = nextModel.forwardNext(way);
-					if (fr == null) continue;
-					if (ps && way.dir == 1 && fr.rightDir) way.dir = 3;
-					var nt:AppraiseTree = new AppraiseTree(way);
-					nt.fr = fr;
-					nt.marks = appraise(nextModel, current, fr);
-					tree.next.push(nt);
-					if (fr.lossTime == 0 || fr.breakLine > 0) continue;
-					way = new ControlWay(lx, dir, true);
-					current.copyTo(nextModel);
-					fr = nextModel.forwardNext(way);
-					if (fr == null) continue;
-					if (ps && way.dir == 1 && fr.rightDir) way.dir = 3;
-					nt = new AppraiseTree(way);
-					nt.fr = fr;
-					nt.marks = appraise(nextModel, current, fr);
-					tree.next.push(nt);
+					var nt:AppraiseTree = considerWay(current, ps, lx, dir, false);
+					if (nt != null) tree.next.push(nt);
+					if (nt == null || nt.fr.lossTime == 0) continue; //TODO ゲームオーバー時でも崩壊判定できるようにする。
+					nt = considerWay(current, ps, lx, dir, true);
+					if (nt != null) tree.next.push(nt);
 				}
 			}
+		}
+		
+		private function considerWay(current:FragmentGameModel, ps:Boolean, lx:int, dir:int, shift:Boolean):AppraiseTree
+		{
+			var way:ControlWay = new ControlWay(lx, dir, false);
+			current.copyTo(nextModel);
+			var rect:Rect = way.getControlRect(current);
+			if (ps && way.dir == 1 && way.getCox(rect) >= current.init_cox(rect)) way.dir = 3;
+			var fr:ForwardResult = nextModel.forwardNext(way);
+			if (fr == null) return null;
+			var marks:Number = appraise(nextModel, current, fr);
+			return new AppraiseTree(way, null, fr, marks);
 		}
 		
 		protected function appraise(current:FragmentGameModel, prev:FragmentGameModel, fr:ForwardResult):Number

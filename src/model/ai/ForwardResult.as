@@ -7,8 +7,6 @@ package model.ai {
 	{
 		public var breakLine:int;
 		public var lossTime:int;
-		public var verge:Boolean;
-		public var rightDir:Boolean;
 	}
 
 }

@@ -188,13 +188,12 @@ package model
 			return ret;
 		}
 		
-		public function occurObstacle(gameTime:int, comboTotalLine:int, comboCount:int, blockAllClearCount:int, excellentCount:int):int
+		public function occurObstacle(gameTime:int, comboTotalLine:int, comboCount:int, blockAllClearCount:int):int
 		{
 			if (!setting.isBattle()) return 0;
 			var r:ObstacleRecord = getOccurRecord(gameTime);
 			var count:int = setting.occurObstacleCount(comboTotalLine, comboCount);
 			count += blockAllClearCount * setting.blockAllClearBonusObstacle;
-			count += excellentCount * setting.excellentBonusObstacle;
 			var ret:int = count - r.count;
 			r.count += ret;
 			dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));

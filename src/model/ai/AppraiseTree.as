@@ -5,14 +5,18 @@ package model.ai {
 	 */
 	public class AppraiseTree 
 	{
-		public var way:ControlWay;
-		public var next:Vector.<AppraiseTree>;
-		public var marks:Number;
+		public var firstWay:ControlWay;
+		public var secondWay:ControlWay;
 		public var fr:ForwardResult;
+		public var marks:Number;
+		public var next:Vector.<AppraiseTree>;
 		
-		public function AppraiseTree(way:ControlWay) 
+		public function AppraiseTree(firstWay:ControlWay = null, secondWay:ControlWay = null, fr:ForwardResult = null, marks:Number = 0) 
 		{
-			this.way = way;
+			this.firstWay = firstWay;
+			this.secondWay = secondWay;
+			this.fr = fr;
+			this.marks = marks;
 			next = new Vector.<AppraiseTree>();
 		}
 		

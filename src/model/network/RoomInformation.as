@@ -1,6 +1,8 @@
 package model.network {
 	import flash.crypto.generateRandomBytes;
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
+	import model.GameSetting;
 	import mx.collections.ArrayCollection;
 	/**
 	 * ...
@@ -9,14 +11,17 @@ package model.network {
 	public class RoomInformation 
 	{
 		public var id:String;
+		public var lastUpdateTime:int;
 		[Bindable]
 		public var name:String;
+		[Bindable]
+		public var isNeedPassword:Boolean;
 		[Bindable]
 		public var quick:Boolean;
 		[Bindable]
 		public var multi:Boolean;
 		[Bindable]
-		public var isNeedPassword:Boolean;
+		public var setting:GameSetting;
 		[Bindable]
 		public var entrant:ArrayCollection;
 		[Bindable]
@@ -24,12 +29,14 @@ package model.network {
 		
 		public static const watchIndex:int = -1;
 		
-		public function RoomInformation(name:String = "", quick:Boolean = false, multi:Boolean = false) 
+		public function RoomInformation(name:String = "", quick:Boolean = false, multi:Boolean = false, setting:GameSetting = null) 
 		{
 			this.id = makeID();
 			this.name = name;
 			this.quick = quick;
 			this.multi = multi;
+			this.setting = setting;
+			lastUpdateTime = getTimer();
 			entrant = new ArrayCollection(new Array());
 			for (var i:int = 0; i < (multi ? 6 : 2); i++)
 			{
@@ -70,7 +77,7 @@ package model.network {
 		
 		public function updatePlayer(player:PlayerInformation):void
 		{
-			if (player.currentRoomID == null)
+			if (player.currentRoomID != id)
 			{
 				removeWatchPlayer(player);
 				removeEntrantPlayer(player);

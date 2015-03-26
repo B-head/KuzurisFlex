@@ -10,6 +10,7 @@ package events {
 		public static const gameReady:String = "gameReady";
 		public static const gameStart:String = "gameStart";
 		public static const gameEnd:String = "gameEnd";
+		public static const gameEndPart:String = "gameEndPart";
 		public static const gamePause:String = "gamePause";
 		public static const gameResume:String = "gameResume";
 		public static const initializeGameModel:String = "initializeGameModel";

@@ -92,6 +92,10 @@ s|DefaultGridItemRenderer {
 	chrome-color: rgb(255, 153, 0);
 }
 
+.create-room {
+	font-size: 24px;
+}
+
 .menu-label {
 	background-color: rgb(0, 0, 0);
 	background-alpha: 0.8;

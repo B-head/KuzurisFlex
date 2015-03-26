@@ -5,6 +5,7 @@ package model.network {
 	import model.*;
 	import model.ai.*;
 	import mx.collections.*;
+	import view.Main;
 	/**
 	 * ...
 	 * @author B_head
@@ -26,6 +27,7 @@ package model.network {
 		private var loungeGroup:NetworkGroupManager;
 		private var timeoutTimer:Timer;
 		private var roomPassword:String;
+		private var filterGameMode:String;
 		[Bindable]
 		public var rooms:ArrayCollection;
 		[Bindable]
@@ -35,14 +37,16 @@ package model.network {
 		[Bindable]
 		public var selfInput:UserInput;
 		
-		private const timeoutPeriod:int = 1000;
+		private const timeoutPeriod:int = 10000;
 		
 		public function RoomManager(networkManager:NetworkManager) 
 		{
 			rooms = new ArrayCollection(new Array());
+			rooms.filterFunction = roomFilterFunction;
 			selfPlayerInfo = new PlayerInformation(networkManager.selfPeerID, "", false);
 			selfInput = SharedObjectHelper.input;
-			timeoutTimer = new Timer(timeoutPeriod);
+			timeoutTimer = new Timer(timeoutPeriod, 1);
+			timeoutTimer.addEventListener(TimerEvent.TIMER_COMPLETE, timeoutListener);
 			this.networkManager = networkManager;
 			networkManager.addTerget(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
 			networkManager.addTerget(KuzurisErrorEvent.roomConnectFailed, roomConnectFailedListener);
@@ -63,6 +67,29 @@ package model.network {
 			loungeGroup.removeTerget(NotifyEvent.notify, notifyListener);
 			removeAll();
 		}
+		
+		public function setRoomFilter(gameModeIndex:int):void
+		{
+			filterGameMode = GameSetting.indexToGameMode(gameModeIndex);
+			rooms.refresh();
+		}
+		
+		private function roomFilterFunction(item:RoomInformation):Boolean
+		{
+			return item.setting.gameMode == filterGameMode;
+		}
+		
+		public function isHostSelfPlayer():Boolean
+		{
+			if (currentRoom == null) return false;
+			return selfPlayerInfo.peerID == currentRoom.getHostPlayer().peerID;
+		}
+		
+		public function hasCurrentRoom(room:RoomInformation):Boolean
+		{
+			if (currentRoom == null) return false;
+			return currentRoom.id == room.id;
+		}
 			
 		public function makeDefaultName(quick:Boolean):String
 		{
@@ -78,26 +105,29 @@ package model.network {
 			return name;
 		}
 		
-		public function quickEnterRoom(multi:Boolean):void
+		public function quickEnterRoom(multi:Boolean, gameModeIndex:int):void
 		{
 			var quicks:Vector.<RoomInformation> = getQuickRooms();
+			var gameMode:String = GameSetting.indexToGameMode(gameModeIndex);
 			for (var i:int = 0; i < quicks.length; i++)
 			{
 				var q:RoomInformation = quicks[i];
 				if (q.multi != multi) continue;
+				if (q.setting.gameMode != gameMode) continue;
 				var playerIndex:int = q.getEnterableIndex();
 				if (playerIndex == -1) continue;
 				selfEnterRoom(q, playerIndex);
 				return;
 			}
 			var name:String = makeDefaultName(true);
-			createRoom(name, true, multi);
+			createRoom(name, true, multi, gameModeIndex);
 		}
 		
-		public function createRoom(name:String, quick:Boolean, multi:Boolean, password:String = ""):void
+		public function createRoom(name:String, quick:Boolean, multi:Boolean, gameModeIndex:int, password:String = ""):void
 		{
 			networkManager.createRoomGroup();
-			var room:RoomInformation = new RoomInformation(name, quick, multi);
+			var setting:GameSetting = GameSetting.createBattleSetting(gameModeIndex);
+			var room:RoomInformation = new RoomInformation(name, quick, multi, setting);
 			rooms.addItem(room);
 			currentRoom = room;
 			roomPassword = password;
@@ -116,9 +146,9 @@ package model.network {
 		
 		private function selfConnectedEnterRoom(room:RoomInformation, player:PlayerInformation, hostPriority:int, battleIndex:int):void
 		{
-			if (currentRoom == null || room.id != currentRoom.id || player.peerID != selfPlayerInfo.peerID)
+			if (!hasCurrentRoom(room) || player.peerID != selfPlayerInfo.peerID)
 			{
-				trace("ignore connected");
+				Main.appendLog("ignore connected");
 				return;
 			}
 			timeoutTimer.stop();
@@ -133,18 +163,18 @@ package model.network {
 			else
 			{
 				selfPlayerInfo.currentBattleIndex = RoomInformation.watchIndex;
-				currentRoom.updatePlayer(selfPlayerInfo);
+				updatePlayer(selfPlayerInfo);
 				loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
 			}
 		}
 		
 		private function requestConnectReply(room:RoomInformation, player:PlayerInformation, battleIndex:int, password:String):void
 		{
-			if (currentRoom == null || room.id != currentRoom.id || selfPlayerInfo.peerID != currentRoom.getHostPlayer().peerID)
+			if (!hasCurrentRoom(room) || !isHostSelfPlayer())
 			{
 				var host:PlayerInformation = currentRoom.getHostPlayer();
 				loungeGroup.sendPeer(host.peerID, requestConnectRoom, { room:currentRoom, player:player, battleIndex:battleIndex, password:password } );
-				trace("relay request connect");
+				Main.appendLog("relay request connect");
 				return;
 			}
 			if (password != roomPassword)
@@ -161,7 +191,7 @@ package model.network {
 			player.hostPriority = hostPriority;
 			player.currentBattleIndex = battleIndex;
 			selfPlayerInfo.winCount = 0;
-			currentRoom.updatePlayer(player);
+			updatePlayer(player);
 			loungeGroup.sendPeer(player.peerID, permitConnectRoom, { room:currentRoom, player:player, hostPriority:hostPriority, battleIndex:battleIndex, specifier:networkManager.roomGroupSpecifier });
 		}
 		
@@ -171,21 +201,21 @@ package model.network {
 			selfPlayerInfo.currentRoomID = null;
 			currentRoom.updatePlayer(selfPlayerInfo);
 			loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
-			if (currentRoom.isEmpty()) removeRoom(currentRoom);
+			updatePlayer(selfPlayerInfo);
 			currentRoom = null;
 		}
 		
 		public function selfEnterBattle(index:int):void
 		{
 			selfPlayerInfo.currentBattleIndex = index;
-			currentRoom.updatePlayer(selfPlayerInfo);
+			updatePlayer(selfPlayerInfo);
 			loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
 		}
 		
 		public function selfLeaveBattle():void
 		{
 			selfPlayerInfo.currentBattleIndex = RoomInformation.watchIndex;
-			currentRoom.updatePlayer(selfPlayerInfo);
+			updatePlayer(selfPlayerInfo);
 			loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
 		}
 		
@@ -207,9 +237,10 @@ package model.network {
 		
 		private function findRoomName(name:String):RoomInformation
 		{
-			for (var i:int = 0; i < rooms.length; i++)
+			var source:Array = rooms.source;
+			for (var i:int = 0; i < source.length; i++)
 			{
-				var r:RoomInformation = rooms[i];
+				var r:RoomInformation = source[i];
 				if (r.name == name) return r;
 			}
 			return null;
@@ -218,18 +249,31 @@ package model.network {
 		private function findRoom(room:RoomInformation):RoomInformation
 		{
 			if (room == null) return null;
-			for (var i:int = 0; i < rooms.length; i++)
+			var source:Array = rooms.source;
+			for (var i:int = 0; i < source.length; i++)
 			{
-				var r:RoomInformation = rooms[i];
+				var r:RoomInformation = source[i];
 				if (r.id == room.id) return r;
 			}
 			return null;
 		}
 		
-		private function removeRoom(room:RoomInformation):void
+		//TODO パフォーマンス改善が必須。
+		private function updatePlayer(player:PlayerInformation):void
 		{
-			var i:int = rooms.getItemIndex(room);
-			rooms.removeItemAt(i);
+			var source:Array = rooms.source;
+			for (var i:int = 0; i < source.length; i++)
+			{
+				var r:RoomInformation = source[i];
+				r.updatePlayer(player);
+				r.lastUpdateTime = getTimer();
+				if (r.isEmpty())
+				{
+					source.splice(i, 1);
+					i--;
+				}
+			}
+			rooms.refresh();
 		}
 		
 		private function roomConnectSuccessListener(e:KuzurisEvent):void
@@ -251,6 +295,18 @@ package model.network {
 		private function announceClockListener(e:KuzurisEvent):void
 		{
 			loungeGroup.post(playerUpdate, { room:currentRoom, player:selfPlayerInfo } );
+			var currentTime:int = getTimer();
+			var source:Array = rooms.source;
+			for (var i:int = 0; i < source.length; i++)
+			{
+				var r:RoomInformation = source[i];
+				if (r.lastUpdateTime + timeoutPeriod < currentTime)
+				{
+					source.splice(i, 1);
+					i--;
+				}
+			}
+			rooms.refresh();
 		}
 		
 		private function timeoutListener(e:TimerEvent):void
@@ -261,13 +317,8 @@ package model.network {
 		
 		private function removedUserListener(e:UpdateUserEvent):void
 		{
-			var p:PlayerInformation = new PlayerInformation(e.peerID);
-			for (var i:int = 0; i < rooms.length; i++)
-			{
-				var r:RoomInformation = rooms[i];
-				r.updatePlayer(p);
-				if (r.isEmpty()) removeRoom(r);
-			}
+			var player:PlayerInformation = new PlayerInformation(e.peerID);
+			updatePlayer(player);
 		}
 		
 		private function notifyListener(e:NotifyEvent):void
@@ -281,7 +332,10 @@ package model.network {
 					if (currentRoom != null) loungeGroup.sendPeer(e.message.peerID, offerRoom, { room:currentRoom } );
 					break;
 				case offerRoom:
-					if (temp == null) rooms.addItem(room);
+					if (temp == null)
+					{
+						rooms.addItem(room);
+					}
 					break;
 				case requestConnectRoom:
 					requestConnectReply(e.message.obj.room, e.message.obj.player, e.message.obj.battleIndex, e.message.obj.password);
@@ -297,13 +351,12 @@ package model.network {
 					break;
 				case playerUpdate:
 					if (temp == null)
-					{	
+					{
 						if (room == null) break;
 						rooms.addItem(room);
 						temp = room;
 					}
-					temp.updatePlayer(player);
-					if (temp.isEmpty()) removeRoom(temp);
+					updatePlayer(player);
 					break;
 			}
 		}

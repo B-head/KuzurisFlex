@@ -26,9 +26,8 @@ package model.ai {
 		private var currentModel:FragmentGameModel;
 		private var controlPhase:Boolean;
 		private var notice:int;
-		private var currentWay:ControlWay;
-		private var targetWay:ControlWay;
-		private var verge:Boolean;
+		private var targetWayList:Vector.<ControlWay>;
+		private var targetWayIndex:int;
 		private var restDelay:int;
 		private var primaryMove:Boolean;
 		private var completedMove:Boolean;
@@ -78,7 +77,7 @@ package model.ai {
 		{
 			if (moveDelay == 0) return false;
 			if (!completedMove) return false;
-			return verge;
+			return targetWayList[targetWayIndex].verge;
 		}
 		
 		public function isSeparateDelay():Boolean
@@ -103,35 +102,38 @@ package model.ai {
 			gameModel.obstacleManager.addTerget(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
 			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
 			notice = 0;
-			currentWay = null;
-			targetWay = null;
 			restDelay = 0;
 			primaryMove = false;
 			controlPhase = false;
 			pressShift = false;
 			pressFall = false;
+			updateModel();
+		}
+		
+		private function updateModel():void
+		{
+			gameModel.copyToFragmentModel(currentModel);
+			targetWayList = null;
+			targetWayIndex = 0;
+			ai.setCurrentModel(currentModel);
 		}
 		
 		private function setOminoListener(e:ControlEvent):void
 		{
 			controlPhase = true;
-			primaryMove = true;
-			pressFall = false;
 			restDelay = appendDelay;
 		}
 		
 		private function fixOminoListener(e:ControlEvent):void
 		{
 			controlPhase = false;
+			primaryMove = true;
+			pressFall = false;
 		}
 		
 		private function updateModelListener(e:GameEvent):void
 		{
-			gameModel.copyToFragmentModel(currentModel);
-			currentWay = ControlWay.getCurrent(currentModel);
-			currentWay.shift = pressShift;
-			targetWay = null;
-			ai.setCurrentModel(currentModel);
+			updateModel();
 		}
 		
 		private function updateObstacleLestener(e:GameEvent):void
@@ -153,12 +155,23 @@ package model.ai {
 			restDelay--;
 			if (restDelay > 0) return ret;
 			if (!controlPhase) return ret;
-			if (targetWay == null)
+			if (targetWayList == null)
 			{
 				choiceTerget();
 			}
+			if (targetWayList.length == 0) return ret;
+			var currentWay:ControlWay = ControlWay.getCurrent(gameModel);
+			currentWay.shift = pressShift;
+			var targetWay:ControlWay = targetWayList[targetWayIndex];
 			completedSeparate = false;
 			completedMove = false;
+			if (currentWay.shift != targetWay.shift && !isSeparateDelay())
+			{
+				completedSeparate = true;
+				pressShift = !pressShift;
+				currentWay.shift = pressShift;
+				ret.noDamege = pressShift;
+			}
 			if (currentWay.dir != targetWay.dir && !isSeparateDelay())
 			{
 				completedSeparate = true;
@@ -181,25 +194,25 @@ package model.ai {
 					currentWay.lx++;
 				}
 			}
-			if (currentWay.shift != targetWay.shift && !isSeparateDelay())
+			if (currentWay.dir == targetWay.dir && currentWay.lx == targetWay.lx && currentWay.shift == targetWay.shift)
 			{
-				completedSeparate = true;
-				pressShift = !pressShift;
-				currentWay.shift = pressShift;
-				ret.noDamege = pressShift;
-			}
-			if (currentWay.dir == targetWay.dir && currentWay.lx == targetWay.lx && currentWay.shift == targetWay.shift && !isFixDelay())
-			{
-				completedSeparate = true;
-				if (fallDelay)
+				if (targetWayIndex < targetWayList.length - 1)
 				{
-					ret.falling = GameCommand.fast;
-					pressFall = true;
+					targetWayIndex++;
 				}
-				else
+				else if (!isFixDelay())
 				{
-					ret.falling = GameCommand.earth;
-					ret.fix = true;
+					completedSeparate = true;
+					if (fallDelay)
+					{
+						ret.falling = GameCommand.fast;
+						pressFall = true;
+					}
+					else
+					{
+						ret.falling = GameCommand.earth;
+						ret.fix = true;
+					}
 				}
 			}
 			if (primaryMove)
@@ -225,18 +238,42 @@ package model.ai {
 		{
 			ai.consider();
 			var choices:Vector.<AppraiseTree> = ai.getChoices(notice);
-			if (choices.length > 0)
+			targetWayList = new Vector.<ControlWay>();
+			targetWayIndex = 0;
+			if (choices.length == 0) return;
+			var index:int = Math.random() * choices.length;
+			var c:AppraiseTree = choices[index];
+			var fw:ControlWay = c.firstWay;
+			var iw:ControlWay = ControlWay.getInit(currentModel);
+			if (hasRelayVarge(iw, fw))
 			{
-				var index:int = Math.random() * choices.length;
-				var c:AppraiseTree = choices[index];
-			    targetWay = c.way;
-				verge = c.fr.verge;
+				var vw:ControlWay = ControlWay.getVergeWay(iw, currentModel);
+				if (iw.lx >= fw.lx)
+				{
+					vw.lx = 0;
+				}
+				vw.setVerge(currentModel);
+				vw.fall = false;
+				targetWayList.push(vw);
+				if (currentModel.controlOmino.isPointSymmetry())
+				{
+					if (fw.dir == 1) fw.dir = 3;
+					else if (fw.dir == 3) fw.dir = 1;
+				}
 			}
-			else
-			{
-				targetWay = new ControlWay();
-				verge = false;
-			}
+			fw.setVerge(currentModel);
+			targetWayList.push(fw);
+		}
+		
+		private function hasRelayVarge(cw:ControlWay, tw:ControlWay):Boolean
+		{
+			var rw:ControlWay = ControlWay.getDirectionRotate(cw, currentModel, tw.dir);
+			tw.setVerge(currentModel);
+			if (tw.verge) return false;
+			var vw:ControlWay = ControlWay.getVergeWay(cw, currentModel);
+			var rs:int = Math.abs(rw.lx - tw.lx);
+			var vs:int = Math.min(tw.lx, vw.lx - tw.lx);
+			return rs > vs;
 		}
 	}
 }

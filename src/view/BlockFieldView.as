@@ -87,15 +87,19 @@ package view
 					{
 						bbm.bitmapData = blockGraphics.split[color][graphicIndex];
 					}
+					bbm.alpha = 1;
 					break;
 				case BlockState.nonBreak:
-					bbm.bitmapData = blockGraphics.nonBreak[color];	
+					bbm.bitmapData = blockGraphics.nonBreak[color];
+					bbm.alpha = 1;
 					break;
 				case BlockState.gem:
-					bbm.bitmapData = blockGraphics.gem[color];	
+					bbm.bitmapData = blockGraphics.gem[color];
+					bbm.alpha = 0.5;
 					break;
 				default:
-					bbm.bitmapData = null;	
+					bbm.bitmapData = null;
+					bbm.alpha = 1;
 					break;
 			}
 		}

@@ -18,12 +18,12 @@ package model
 			return ret;
 		}
 		
-		public function isFillLine(y:int):Boolean
+		public function isBreakLine(y:int):Boolean
 		{
 			if (_left != 0 || _right != maxWidth - 1) return false;
 			for (var x:int = _left; x <= _right; x++)
 			{
-				if (value[x][y].isEmpty())
+				if (value[x][y].isNonBreak())
 				{
 					return false;
 				}
@@ -58,10 +58,9 @@ package model
 			}
 		}
 		
-		public function extractConnection(to:MainField, x:int, y:int, 
-			upperConnect:Boolean, specialUnion:Boolean = false, first:Boolean = true):int
+		public function extractConnection(to:MainField, x:int, y:int, upperConnect:Boolean):int
 		{
-			var ret:int = extractConnectionPart(to, x, y, upperConnect, specialUnion, true)
+			var ret:int = extractConnectionPart(to, x, y, upperConnect, false, true)
 			setRect();
 			to.setRect();
 			return ret;
@@ -103,10 +102,27 @@ package model
 			return count;
 		}
 		
+		public function setNewBlock(x:int, y:int, block:BlockState):void
+		{
+			block.setId();
+			setState(x, y, block);
+			setRect();
+		}
+		
+		public function isEmptyLine(y:int):Boolean
+		{
+			for (var x:int = 0; x < _maxWidth; x++)
+			{
+				if (!value[x][y].isEmpty()) return false;
+			}
+			return true;
+		}
+		
 		public function setLine(line:int, blocks:Vector.<BlockState>):void
 		{
 			for (var i:int = 0; i < maxWidth; i++)
 			{
+				if (blocks[i].isEmpty()) continue;
 				blocks[i].setId();
 				setState(i, line, blocks[i]);
 			}
@@ -141,17 +157,31 @@ package model
 			return _maxHeight;
 		}
 		
-		public function getColorHeight(color:uint):int
+		public function getTypeHeight(type:int):int
 		{
 			for (var y:int = 0; y < _maxHeight; y++)
 			{
 				for (var x:int = 0; x < _maxWidth; x++)
 				{
 					if (value[x][y].isEmpty()) continue;
-					if (value[x][y].color == color) return y;
+					if (value[x][y].type == type) return y;
 				}
 			}
 			return _maxHeight;
+		}
+		
+		public function getTypeCount(type:uint):int
+		{
+			var count:int = 0;
+			for (var y:int = 0; y < _maxHeight; y++)
+			{
+				for (var x:int = 0; x < _maxWidth; x++)
+				{
+					if (value[x][y].isEmpty()) continue;
+					if (value[x][y].type == type) count++;
+				}
+			}
+			return count;
 		}
 	}
 

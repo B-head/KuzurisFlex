@@ -12,6 +12,7 @@ package model
 	[Event(name="gameReady", type="events.KuzurisEvent")]
 	[Event(name="gameStart", type="events.KuzurisEvent")]
 	[Event(name="gameEnd", type="events.KuzurisEvent")]
+	[Event(name="gameEndPart", type="events.KuzurisEvent")]
 	[Event(name="gamePause", type="events.KuzurisEvent")]
 	[Event(name="gameResume", type="events.KuzurisEvent")]
 	[Event(name="initializeGameModel", type="events.KuzurisEvent")]
@@ -78,6 +79,12 @@ package model
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
 		}
 		
+		public function setPlayerInfo(index:int, playerInfo:PlayerInformation):void
+		{
+			this.playerInfo[index] = playerInfo;
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
+		}
+		
 		public function setHandicap(index:int, handi:Number):void
 		{
 			handicap[index] = handi; 
@@ -102,7 +109,7 @@ package model
 			return gameModel[index].record;
 		}
 		
-		[Bindable(event="gameEnd")]
+		[Bindable(event="gameEndPart")]
 		public function getRank(index:int):int
 		{
 			var st:int = gameModel[index].record.gameTime;
@@ -210,9 +217,10 @@ package model
 			ret.seed = seed.clone();
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				var pi:PlayerInformation = playerInfo[0] == null ? null : playerInfo[i].clone();
+				var pi:PlayerInformation = playerInfo[i] == null ? null : playerInfo[i].clone();
 				ret.playerInfo.push(pi);
-				ret.replayControl.push(replay[i].clone());
+				var rc:GameReplayControl = replay[i] == null ? null : replay[i].clone();
+				ret.replayControl.push(rc);
 				ret.setting.push(gameModel[i].setting);
 				ret.record.push(gameModel[i].record);
 			}
@@ -258,17 +266,18 @@ package model
 		private function forwardGame():void
 		{
 			var limitTime:int = getMinGameTime() + 120;
+			var minGameOverTime:int = getMinGameOverTime();
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				forwordGamePert(i, limitTime);
+				forwordGamePert(i, limitTime, minGameOverTime);
 				if (control[i] is NetworkRemoteControl)
 				{
-					forwordGamePert(i, limitTime);
+					forwordGamePert(i, limitTime, minGameOverTime);
 				}
 			}
 		}
 		
-		private function forwordGamePert(index:int, limitTime:int):void
+		private function forwordGamePert(index:int, limitTime:int, minGameOverTime:int):void
 		{
 			if (control[index] == null) return;
 			if (gameModel[index].isGameOver) return;
@@ -278,13 +287,17 @@ package model
 				control[index].enable = false;
 				return;
 			}
-			control[index].enable = true;
+			else
+			{
+				control[index].enable = true;
+			}
 			var command:GameCommand = control[index].issueGameCommand();
 			if (command == null) return;
 			if (replay[index] != null)
 			{
 				replay[index].recordCommand(command);
 			}
+			gameModel[index].harryUp(minGameOverTime);
 			gameModel[index].forwardGame(command);
 		}
 		
@@ -295,6 +308,18 @@ package model
 			{
 				if (control[i] == null) continue;
 				if (gameModel[i].isGameOver) continue;
+				ret = Math.min(ret, gameModel[i].record.gameTime);
+			}
+			return ret;
+		}
+		
+		private function getMinGameOverTime():int
+		{
+			var ret:int = int.MAX_VALUE;
+			for (var i:int = 0; i < maxPlayer; i++)
+			{
+				if (control[i] == null) continue;
+				if (!gameModel[i].isGameOver) continue;
 				ret = Math.min(ret, gameModel[i].record.gameTime);
 			}
 			return ret;
@@ -335,8 +360,7 @@ package model
 			var count:int = 0;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				if (control[i] == null || !control[i].enable) continue;
-				if (gameModel[i].isGameOver) continue;
+				if (control[i] == null || gameModel[i].isGameOver) continue;
 				count++;
 			}
 			if (count <= (isBattle() ? 1 : 0))
@@ -348,7 +372,8 @@ package model
 		
 		private function GameEndListener(e:GameEvent):void
 		{
-			return;
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEndPart));
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
 		}
 		
 		private function createOccurObstacleListener(self:int):Function

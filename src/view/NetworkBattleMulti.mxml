@@ -38,6 +38,7 @@
 				networkGameManager.addTerget(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
 				networkGameManager.addTerget(KuzurisEvent.playerUpdate, playerUpdateListener);
 				networkGameManager.addTerget(KuzurisEvent.completedSyncState, completedSyncStateListener);
+				networkGameManager.addTerget(KuzurisErrorEvent.gameAbort, gameAbortListener);
 				networkGameManager.initialize();
 				practiceGameManager = new GameManager(1);
 				practiceGameManager.addTerget(KuzurisEvent.gameStart, startListener);
@@ -87,6 +88,10 @@
 				{
 					currentState = "watch";
 				}
+				if (currentState == "enter" && Main.autoBattleRepeat && roomManager.isHostSelfPlayer())
+				{
+					start();
+				}
 			}
 			
 			private function start():void
@@ -99,7 +104,7 @@
 				currentState = "practice";
 				practiceGameManager.initialize();
 				practiceGameManager.setPlayer(0, roomManager.selfInput, roomManager.selfPlayerInfo);
-				practiceGameManager.startGame(GameSetting.createBattleSetting(0));
+				practiceGameManager.startGame(roomManager.currentRoom.setting);
 				setFocus();
 				isResult = false;
 			}
@@ -166,6 +171,12 @@
 				prepare();
 			}
 			
+			public function gameAbortListener(e:KuzurisErrorEvent):void
+			{	
+				close();
+				dispatchEvent(e);
+			}
+			
 			public function frameConstructedListener():void
 			{
 				networkGameManager.frameConstructedListener();
@@ -176,6 +187,7 @@
 	
 	<fx:Metadata>
 		[Event(name="navigateBack", type="events.KuzurisEvent")]
+		[Event(name="gameAbort", type="events.KuzurisErrorEvent")]
 	</fx:Metadata>
 	
 	<s:states>
@@ -191,17 +203,17 @@
 	<v:GameView id="practicePlayer" x="{isFlip ? 436 : 18}" y="24" visible="false" visible.practice="true"
 		reverse="{isFlip}" playerIndex="0" gameManager="{practiceGameManager}"/>
 	<s:Group x="{isFlip ? 18 : 436}" x.watch="227" y="8">
-		<v:CompactGameView x="0" y="0" z="-2" reverse="{isFlip}" visible="false" visible.watch="true"
+		<v:CompactGameView x="0" y="0" z="-1" reverse="{isFlip}" visible="false" visible.watch="true"
 			playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="66" x.watch="133" y="0" z="-2" reverse="{isFlip}" 
+		<v:CompactGameView x="66" x.watch="133" y="0" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(1)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="200" x.watch="266" y="0" z="-2" reverse="{isFlip}" 
+		<v:CompactGameView x="200" x.watch="266" y="0" z="-1" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(2)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="0" y="204" z="-1" reverse="{isFlip}" 
+		<v:CompactGameView x="0" y="204" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(3)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="133" y="204" z="-1" reverse="{isFlip}" 
+		<v:CompactGameView x="133" y="204" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(4)}" gameManager="{networkGameManager}" />
-		<v:CompactGameView x="266" y="204" z="-1" reverse="{isFlip}" 
+		<v:CompactGameView x="266" y="204" z="-2" reverse="{isFlip}" 
 			playerIndex="{networkGameManager.transPlayerIndex(5)}" gameManager="{networkGameManager}" />
 	</s:Group>
 	<s:VGroup includeIn="prepare" x="{isFlip ? 561 : 143}" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">

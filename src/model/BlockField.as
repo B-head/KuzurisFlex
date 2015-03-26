@@ -95,22 +95,22 @@ package model
 		
 		public final function get blockWidth():int
 		{
-			return right - left + 1;
+			return _right - _left + 1;
 		}
 		
 		public final function get blockHeight():int
 		{
-			return bottom - top + 1;
+			return _bottom - _top + 1;
 		}
 		
 		public final function get centerX():int
 		{
-			return (right + left) / 2;
+			return (_right + _left) / 2;
 		}
 		
 		public final function get centerY():int
 		{
-			return (bottom + top) / 2;
+			return (_bottom + _top) / 2;
 		}
 		
 		protected final function setState(x:int, y:int, state:BlockState):void
@@ -327,6 +327,7 @@ package model
 		private function blockShock(x:int, y:int, pureDamage:Number, onBlockDamageDelegate:Function):Number
 		{
 			var v:BlockState = value[x][y];
+			if (v.isNonBreak()) return 0;
 			var hitPoint:Number = v.hitPoint;
 			var result:Number = (hitPoint <= pureDamage ? hitPoint : pureDamage);
 			var toSplit:Boolean = (hitPoint > 0 && hitPoint <= pureDamage);
@@ -367,6 +368,8 @@ package model
 			_maxWidth = input.readInt();
 			_maxHeight = input.readInt();
 			value = generateValue(_maxWidth, _maxHeight);
+			_verticalBlockCount = new Vector.<int>(_maxWidth);
+			_horizontalBlockCount = new Vector.<int>(_maxHeight);
 			for (var x:int = 0; x < _maxWidth; x++)
 			{
 				for (var y:int = 0; y < _maxHeight; y++)
@@ -378,6 +381,7 @@ package model
 					}
 				}
 			}
+			setRect();
 		}
 	}
 }

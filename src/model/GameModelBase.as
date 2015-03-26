@@ -105,7 +105,7 @@ package model
 			var count:int = 0;
 			for (var y:int = _mainField.bottom; y >= _mainField.top; y--)
 			{
-				if (_mainField.isFillLine(y))
+				if (_mainField.isBreakLine(y))
 				{
 					count++;
 					var colors:Vector.<uint>;

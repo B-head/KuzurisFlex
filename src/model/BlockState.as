@@ -12,10 +12,10 @@ package model
 		public static const empty:uint = 0;
 		public static const normal:uint = 1;
 		public static const nonBreak:uint = 2;
-		public static const strong:uint = 3;
-		public static const float:uint = 4;
-		public static const strongFloat:uint = 5;
-		public static const gem:uint = 6;
+		public static const gem:uint = 3;
+		public static const strong:uint = 4;
+		public static const float:uint = 5;
+		public static const strongFloat:uint = 6;
 		
 		private static var nextId:uint = 0;
 		
@@ -41,6 +41,11 @@ package model
 		public function isEmpty():Boolean
 		{
 			return type == empty;
+		}
+		
+		public function isNonBreak():Boolean
+		{
+			return type == empty || type == nonBreak;
 		}
 		
 		public function hash():uint

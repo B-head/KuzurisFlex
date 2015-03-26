@@ -47,16 +47,21 @@ package model
 		private var nextPRNG:XorShift128;
 		private var bigNextPRNG:XorShift128;
 		private var obstaclePRNG:XorShift128;
+		private var towerPRNG:XorShift128;
 		
 		private var _isGameOver:Boolean;
 		private var controlPhase:Boolean;
 		private var completedObstacle:Boolean;
 		private var completedTower:Boolean;
 		private var appendTowerCount:int;
+		private var gemCount:int;
+		private var beginHurryUpTime:int;
+		private var appendHurryUpCount:int;
 		
 		private var _cox:Number = 0;
 		private var _coy:Number = 0;
 		private var _ffy:Number = 0;
+		private var _cd:int = 0;
 		
 		private var fallSpeed:Number = 0;
 		private var startFall:Number = 0;
@@ -131,6 +136,9 @@ package model
 		public function get ffy():Number { return _ffy; }
 		
 		[Bindable(event="forwardGame")]
+		public function get cd():Number { return _cd; }
+		
+		[Bindable(event="forwardGame")]
 		public function get shockSave():Boolean { return _shockSave; }
 		
 		[Bindable(event="forwardGame")]
@@ -161,6 +169,7 @@ package model
 			copyTo(to);
 			to.comboCount = comboCount;
 			to.comboTotalLine = comboTotalLine;
+			to.isHurryUp = isHarryUp();
 		}
 		
 		override public function dispose():void 
@@ -180,11 +189,26 @@ package model
 			nextPRNG = seed.clone();
 			bigNextPRNG = seed.clone();
 			obstaclePRNG = seed.clone();
+			towerPRNG = seed.clone();
+			beginHurryUpTime = (_setting.alwaysHurryUp ? 0 : int.MIN_VALUE);
 			setNextOmino(true);
 			_controlOmino = new OminoField(ominoSize);
 			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 			dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
 			dispatchEvent(new GameEvent(GameEvent.firstUpdateNext, _record.gameTime, 0));
+		}
+		
+		public function harryUp(minGameOverTime:int):void
+		{
+			if (beginHurryUpTime != int.MIN_VALUE) return;
+			if (minGameOverTime + _setting.hurryUpStartMargin > _record.gameTime) return;
+			beginHurryUpTime = _record.gameTime;
+			dispatchEvent(new GameEvent(GameEvent.beginHurryUp, _record.gameTime, 0));
+		}
+		
+		public function isHarryUp():Boolean
+		{
+			return beginHurryUpTime != int.MIN_VALUE;
 		}
 		
 		public function forwardGame(command:GameCommand):void
@@ -200,6 +224,14 @@ package model
 			{
 				appendTowerBlocks();
 				appendTowerCount--;
+				delayRest = _setting.appendTowerDelay;
+				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+			}
+			else if (appendHurryUpCount > 0)
+			{
+				appendHurryUpBlocks();
+				appendHurryUpCount--;
+				delayRest = _setting.appendTowerDelay;
 				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
 			}
 			else if (!controlPhase)
@@ -234,21 +266,22 @@ package model
 				comboTotalLine += bl;
 				var tsps:int = _setting.breakLineScore(comboTotalLine + 1, comboCount) - _setting.breakLineScore(comboTotalLine, comboCount);
 				_record.gameScore += tsps;
-				var tsoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount, excellentCount);
+				var tsoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
 				_record.occurObstacle += tsoc;
 				dispatchEvent(new BreakLineEvent(BreakLineEvent.technicalSpin, _record.gameTime, tsps, _setting, bl, comboCount));
 			}
 			onSectionBreakLine(bl);
 			firstBreakLine = false;
 			levelUp();
-			if (!completedTower && _setting.isTowerAddition() && _mainField.getColorHeight(_setting.obstacleColor2) == GameModelBase.fieldHeight)
+			if (_setting.isTowerAddition() && gemCount > 0 && _mainField.getTypeCount(BlockState.gem) == 0)
 			{
 				appendTowerCount = getAppendTowerCount();
-				completedTower = true;
+				var prevGemCount:int = gemCount;
+				gemCount = _mainField.getTypeCount(BlockState.gem) + appendTowerCount;
 				excellentCount++;
-				var ecs:int = _setting.excellentBonusScore;
+				var ecs:int = _setting.excellentBonusScore * prevGemCount;
 				_record.gameScore += ecs;
-				var ecoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount, excellentCount);
+				var ecoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
 				_record.occurObstacle += ecoc;
 				dispatchEvent(new GameEvent(GameEvent.excellent, _record.gameTime, ecs));
 				dispatchEvent(new GameEvent(GameEvent.appendTower, _record.gameTime, 0));
@@ -266,9 +299,15 @@ package model
 				blockAllClearCount++;
 				var acs:int = _setting.blockAllClearBonusScore;
 				_record.gameScore += acs;
-				var acoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount, excellentCount);
+				var acoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
 				_record.occurObstacle += acoc;
 				dispatchEvent(new GameEvent(GameEvent.blockAllClear, _record.gameTime, acs));
+			}
+			appendHurryUpCount = getAppendHurryUpCount();
+			if (appendHurryUpCount > 0) 
+			{
+				dispatchEvent(new GameEvent(GameEvent.appendHurryUp, _record.gameTime, 0));
+				return;
 			}
 			_mainField.clearSpecialUnion();
 			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
@@ -298,21 +337,16 @@ package model
 			}
 			chainLine = 0;
 			chainDamage = 0;
-			if (!completedObstacle && _obstacleManager.noticePrintCount > 0)
+			if (_setting.isGameClear(_record.level))
 			{
-				var oc:int = appendObstacleBlocks();
-				fallSpeed = _setting.fastFallSpeed;
-				fastFall = true;
-				completedObstacle = true;
-				completedTower = true;
-				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
-				dispatchEvent(new GameEvent(GameEvent.obstacleFall, _record.gameTime, 0));
-				_record.receivedObstacle += oc;
+				_isGameOver = true;
+				dispatchEvent(new GameEvent(GameEvent.gameClear, _record.gameTime, 0));
 				return;
 			}
 			if (!completedTower && _setting.isTowerAddition())
 			{
 				appendTowerCount = getAppendTowerCount();
+				gemCount = _mainField.getTypeCount(BlockState.gem) + appendTowerCount;
 				if (appendTowerCount > 0)
 				{
 					completedTower = true;
@@ -320,10 +354,15 @@ package model
 					return;
 				}
 			}
-			if (_setting.isGameClear(_record.level))
+			if (!completedObstacle && _obstacleManager.noticePrintCount > 0)
 			{
-				_isGameOver = true;
-				dispatchEvent(new GameEvent(GameEvent.gameClear, _record.gameTime, 0));
+				var oc:int = appendObstacleBlocks();
+				fallSpeed = _setting.fastFallSpeed;
+				fastFall = true;
+				completedObstacle = true;
+				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
+				dispatchEvent(new GameEvent(GameEvent.obstacleFall, _record.gameTime, 0));
+				_record.receivedObstacle += oc;
 				return;
 			}
 			setNextOmino(false);
@@ -378,7 +417,7 @@ package model
 			chainLine++;
 			comboTotalLine++;
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, _setting, comboTotalLine, comboCount, y, colors));
-			var obs:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount, excellentCount);
+			var obs:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
 			_record.occurObstacle += obs;
 		}
 		
@@ -410,10 +449,12 @@ package model
 			if (rotation == GameCommand.left)
 			{
 				_controlOmino.rotationLeft(cacheOmino);
+				if (++_cd > 3) _cd = 0;
 			}
 			else
 			{
 				_controlOmino.rotationRight(cacheOmino);
+				if (--_cd < 0) _cd = 3;
 			}
 			var controlRect:Rect = _controlOmino.getRect();
 			var cacheRect:Rect = cacheOmino.getRect();
@@ -662,6 +703,7 @@ package model
 				var rect:Rect = _controlOmino.getRect();
 				_cox = init_cox(rect);
 				_coy = init_coy(rect);
+				_cd = 0;
 			}
 		}
 		
@@ -723,11 +765,11 @@ package model
 				var y:int = GameModelBase.gameOverHeight - i;
 				if (rest < _setting.obstacleLineBlockMax)
 				{
-					rest -= setObstacleLine(_fallField, y, rest, _setting.obstacleColor1);
+					rest -= setObstacleLine(y, rest, BlockState.normal, _setting.obstacleColor1, _setting.hitPointMax);
 				}
 				else
 				{
-					rest -= setObstacleLine(_fallField, y, _setting.obstacleLineBlockMax, _setting.obstacleColor1);
+					rest -= setObstacleLine(y, _setting.obstacleLineBlockMax, BlockState.normal, _setting.obstacleColor1, _setting.hitPointMax);
 				}
 			}
 			return ret - rest;
@@ -735,19 +777,41 @@ package model
 		
 		private function getAppendTowerCount():int
 		{
-			var a:int = Math.max(0, _mainField.getColorHeight(_setting.obstacleColor2) - 30);
-			var b:int = Math.max(0, _mainField.getHeight() - 20);
-			return Math.min(a, b);
+			var a:int = 10 - _mainField.getTypeCount(BlockState.gem);
+			var b:int = _mainField.getHeight() - (GameModelBase.gameOverHeight + 1);
+			var c:int = (GameModelBase.fieldHeight - _mainField.getTypeHeight(BlockState.nonBreak)) / 2;
+			return Math.max(0, Math.min(a - c, b));
+		}
+		
+		private function getAppendHurryUpCount():int
+		{
+			if (beginHurryUpTime == int.MIN_VALUE) return 0;
+			var nbh:int = GameModelBase.fieldHeight - _mainField.getTypeHeight(BlockState.nonBreak);
+			var tnbh:int = (_record.gameTime - beginHurryUpTime) / _setting.hurryUpMargin;
+			return Math.max(0, tnbh - nbh);
 		}
 		
 		private function appendTowerBlocks():void
 		{
-			var y:int = GameModelBase.fieldHeight - 1;
+			var y:int = _mainField.getTypeHeight(BlockState.nonBreak) - 1;
 			_mainField.shiftUp(y);
-			setObstacleLine(_mainField, y, _setting.towerLineBlockMax, _setting.obstacleColor2);
+			var rx:int = towerPRNG.genUint() % GameModelBase.fieldWidth;
+			_mainField.setNewBlock(rx, y, new BlockState(BlockState.gem, _setting.obstacleColor2, 0, false));
+			setTowerLine(y, _setting.towerLineBlockMax, BlockState.normal, _setting.obstacleColor2, _setting.hitPointMax);
 		}
 		
-		private function setObstacleLine(field:MainField, y:int, blockCount:int, color:uint):int
+		private function appendHurryUpBlocks():void
+		{
+			var y:int = GameModelBase.fieldHeight - 1;
+			_mainField.shiftUp(y);
+			var state:BlockState = new BlockState(BlockState.nonBreak, _setting.obstacleColor2, Number.POSITIVE_INFINITY);
+			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
+			{
+				_mainField.setNewBlock(x, y, state);
+			}
+		}
+		
+		private function setObstacleLine(y:int, blockCount:int, type:int, color:uint, hitPoint:Number):int
 		{
 			var width:int = GameModelBase.fieldWidth;
 			var sb:Vector.<BlockState> = new Vector.<BlockState>(width);
@@ -755,7 +819,7 @@ package model
 			{
 				if (i < blockCount)
 				{
-					sb[i] = new BlockState(BlockState.normal, color, _setting.hitPointMax, false)
+					sb[i] = new BlockState(type, color, hitPoint, false)
 				}
 				else
 				{
@@ -780,8 +844,55 @@ package model
 				}
 				sb[i] = new BlockState();
 			} 
-			field.setLine(y, sb);
+			_fallField.setLine(y, sb);
 			return ret;
+		}
+		
+		private function setTowerLine(y:int, blockCount:int, type:int, color:uint, hitPoint:Number):void
+		{
+			_mainField.fix(_tempField, 0, 0);
+			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
+			{
+				_tempField.extractConnection(_mainField, x, y, true);
+			}
+			for (var i:int = 0; i < blockCount; i++)
+			{
+				var esp:Vector.<Boolean> = getEnableSetPosition(y, !_tempField.isEmptyLine(y - 1));
+				var p:int = selectSetPosition(esp);
+				_tempField.setNewBlock(p, y, new BlockState(type, color, hitPoint));
+				_tempField.extractConnection(_mainField, p, y, true);
+			}
+			_tempField.fix(_mainField, 0, 0);
+		}
+		
+		private function getEnableSetPosition(y:int, stay:Boolean):Vector.<Boolean>
+		{
+			var ret:Vector.<Boolean> = new Vector.<Boolean>(GameModelBase.fieldWidth);
+			for (var i:int = 0; i < GameModelBase.fieldWidth; i++)
+			{
+				ret[i] = false;
+				if (_mainField.isExistBlock(i, y)) continue;
+				if (stay && !_tempField.isExistBlock(i, y - 1)) continue;
+				ret[i] = true;
+			}
+			return ret;
+		}
+		
+		private function selectSetPosition(esp:Vector.<Boolean>):int
+		{
+			var c:int = 0;
+			for (var i:int = 0; i < esp.length; i++)
+			{
+				if (esp[i] == true) c++;
+			}
+			var r:int = towerPRNG.genUint() % c;
+			for (var k:int = 0; k < esp.length; k++)
+			{
+				if (esp[k] == false) continue;
+				if (r == 0) return k;
+				r--;
+			}
+			throw new Error();
 		}
 		
 		public function writeExternal(output:IDataOutput):void 

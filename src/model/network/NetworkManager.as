@@ -4,6 +4,7 @@ package model.network {
 	import flash.events.*;
 	import flash.net.*;
 	import model.*;
+	import view.Main;
 	
 	/**
 	 * ...
@@ -238,18 +239,18 @@ package model.network {
 					break;
 			}
 			dispatchEvent(e);
-			trace(e.info.code, selfPeerID);
+			Main.appendLog(e.info.code);
 		}
 		
 		private function asyncErrorListener(e:AsyncErrorEvent):void
 		{
-			trace(e.text, e.error, e.errorID);
+			Main.appendLog(e.text, e.error, e.errorID);
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorLintener(e:IOErrorEvent):void
 		{
-			trace(e.text, e.errorID);
+			Main.appendLog(e.text, e.errorID);
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.ioError, "インターネット接続にエラーがあります。\n接続状況を確認してから再度接続して下さい。\n\n" + e.text));
 		}
 	}

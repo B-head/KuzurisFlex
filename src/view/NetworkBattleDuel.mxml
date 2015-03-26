@@ -38,6 +38,7 @@
 				networkGameManager.addTerget(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
 				networkGameManager.addTerget(KuzurisEvent.playerUpdate, playerUpdateListener);
 				networkGameManager.addTerget(KuzurisEvent.completedSyncState, completedSyncStateListener);
+				networkGameManager.addTerget(KuzurisErrorEvent.gameAbort, gameAbortListener);
 				networkGameManager.initialize();
 				practiceGameManager = new GameManager(1);
 				practiceGameManager.addTerget(KuzurisEvent.gameStart, startListener);
@@ -88,6 +89,10 @@
 				{
 					currentState = "watch";
 				}
+				if (currentState == "enter" && Main.autoBattleRepeat && roomManager.isHostSelfPlayer())
+				{
+					start();
+				}
 			}
 			
 			private function start():void
@@ -100,7 +105,7 @@
 				currentState = "practice";
 				practiceGameManager.initialize();
 				practiceGameManager.setPlayer(0, roomManager.selfInput, roomManager.selfPlayerInfo);
-				practiceGameManager.startGame(GameSetting.createBattleSetting(0));
+				practiceGameManager.startGame(roomManager.currentRoom.setting);
 				setFocus();
 				isResult = false;
 			}
@@ -169,6 +174,12 @@
 				prepare();
 			}
 			
+			public function gameAbortListener(e:KuzurisErrorEvent):void
+			{	
+				close();
+				dispatchEvent(e);
+			}
+			
 			public function frameConstructedListener():void
 			{
 				networkGameManager.frameConstructedListener();
@@ -179,6 +190,7 @@
 	
 	<fx:Metadata>
 		[Event(name="navigateBack", type="events.KuzurisEvent")]
+		[Event(name="gameAbort", type="events.KuzurisErrorEvent")]
 	</fx:Metadata>
 	
 	<s:states>

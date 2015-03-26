@@ -32,6 +32,17 @@ package model.network {
 			recentRate = new Vector.<Number>();
 		}
 		
+		public static function containPlayer(p1:PlayerInformation, p2:PlayerInformation):Boolean
+		{
+			if (p1 == null)
+			{
+				if (p2 == null) return true;
+				return false;
+			}
+			if (p2 == null) return false;
+			return p1.peerID == p2.peerID;
+		}
+		
 		public function clone():PlayerInformation
 		{
 			return new PlayerInformation(peerID, name, isAI);
@@ -67,7 +78,6 @@ package model.network {
 			rate += record.ominoPerControlMinute() * 10;
 			rate += record.occurPerControlMinute();
 			rate /= 150;
-			trace(rate);
 			recentRate.push(rate);
 			if (recentRate.length > 10) recentRate.shift();
 			dispatchEvent(new KuzurisEvent("updateRate"));

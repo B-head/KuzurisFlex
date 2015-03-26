@@ -80,5 +80,4 @@
 	</s:BorderContainer>
 	<v:BattleDuel id="battleDuel" includeIn="battleDuel" itemDestructionPolicy="auto" navigateBack="currentState = 'normal'" />
 	<v:BattleMulti id="battleMulti" includeIn="battleMulti" itemDestructionPolicy="auto" navigateBack="currentState = 'normal'" />
-	
 </s:Group>

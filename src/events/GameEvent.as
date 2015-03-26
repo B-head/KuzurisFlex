@@ -27,6 +27,8 @@ package events {
 		public static const extractFall:String = "extractFall";
 		public static const obstacleFall:String = "obstacleFall";
 		public static const appendTower:String = "appendTower";
+		public static const appendHurryUp:String = "appendHurryUp";
+		public static const beginHurryUp:String = "beginHurryUp";
 		public static const excellent:String = "excellent";
 		public static const blockAllClear:String = "blockAllClear";
 		

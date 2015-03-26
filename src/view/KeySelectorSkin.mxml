@@ -2,6 +2,7 @@
 <s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*"
 			   minWidth="200" alpha.disabled="0.5">
 	<fx:Script>
 		<![CDATA[
@@ -64,13 +65,7 @@
 		<s:itemRenderer>
 			<fx:Component>
 				<s:ItemRenderer autoDrawBackground="false">
-					<s:Rect left="1" right="1" top="1" bottom="1" radiusX="{outerDocument.getStyle('corner-radius')}">
-						<s:stroke>            
-							<s:SolidColorStroke color="0x808080"/>
-						</s:stroke>
-					</s:Rect>
-					<s:Label left="4" right="4" top="4" bottom="4" text="{label}"
-						textAlign="center" verticalAlign="middle" lineBreak="toFit" maxDisplayedLines="1"/>
+					<v:BorderLabel label="{label}"/>
 				</s:ItemRenderer>
 			</fx:Component>
 		</s:itemRenderer>

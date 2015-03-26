@@ -8,13 +8,14 @@ package model.ai {
 	{
 		public var comboTotalLine:int;
 		public var comboCount:int;
+		public var isHurryUp:Boolean;
 		private var ominoCache:OminoField;
 		
 		public function FragmentGameModel() 
 		{
 			super();
-			_controlOmino = new OminoField(GameModelBase.ominoSize);
 			ominoCache = new OminoField(GameModelBase.ominoSize);
+			_controlOmino = new OminoField(GameModelBase.ominoSize);
 			for (var i:int = 0; i < nextLength; i++)
 			{
 				_nextOmino[i] = new OminoField(GameModelBase.ominoSize);
@@ -59,33 +60,30 @@ package model.ai {
 		
 		public function forwardNext(way:ControlWay):ForwardResult
 		{
-			ominoCache.clearAll();
 			switch(way.dir)
 			{
 				case 0:
-					ominoCache = _controlOmino;
 					break;
 				case 1: 
-					_controlOmino.rotationLeft(ominoCache); 
+					_controlOmino.rotationLeft(ominoCache);
+					ominoCache.copyTo(_controlOmino);
 					break;
 				case 2: 
 					_controlOmino.rotationLeft(ominoCache);
 					ominoCache.copyTo(_controlOmino);
-					ominoCache.clearAll();
 					_controlOmino.rotationLeft(ominoCache); 
+					ominoCache.copyTo(_controlOmino);
 					break;
 				case 3: 
 					_controlOmino.rotationRight(ominoCache); 
+					ominoCache.copyTo(_controlOmino);
 					break;
 			}
-			ominoCache.copyTo(_controlOmino);
 			var rect:Rect = _controlOmino.getRect();
-			var cox:int = way.lx - rect.left;
+			var cox:int = way.getCox(rect);
 			var coy:int = init_coy(rect);
 			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
 			var ret:ForwardResult = new ForwardResult();
-			ret.verge = way.lx == 0 || (way.lx + rect.width) == fieldWidth;
-			ret.rightDir = cox >= init_cox(rect);
 			earthFix(cox, coy, way.shift);
 			do
 			{
