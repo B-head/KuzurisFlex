@@ -58,9 +58,43 @@ package model.ai {
 			_nextOmino = value;
 		}
 		
-		public function forwardNext(way:ControlWay):ForwardResult
+		public function getValidRange(cox:int, coy:int, dir:int):Range
 		{
-			switch(way.dir)
+			var co:OminoField = new OminoField(GameModelBase.ominoSize);
+			_controlOmino.copyTo(co);
+			switch(dir)
+			{
+				case 0:
+					break;
+				case 1: 
+					co.rotationLeft(ominoCache);
+					ominoCache.copyTo(co);
+					break;
+				case 2: 
+					co.rotationLeft(ominoCache);
+					ominoCache.copyTo(co);
+					co.rotationLeft(ominoCache); 
+					ominoCache.copyTo(co);
+					break;
+				case 3: 
+					co.rotationRight(ominoCache); 
+					ominoCache.copyTo(co);
+					break;
+			}
+			for (var l:int = cox; l > 0; --l)
+			{
+				if (co.blocksHitChack(_mainField, l - 1, coy, true) > 0) break;
+			}
+			for (var h:int = cox; h < GameModelBase.fieldWidth - 1; ++h)
+			{
+				if (co.blocksHitChack(_mainField, h + 1, coy, true) > 0) break;
+			}
+			return new Range(l, h);
+		}
+		
+		public function forwardNext(fw:ControlWay, sw:ControlWay):ForwardResult
+		{
+			switch(fw.dir)
 			{
 				case 0:
 					break;
@@ -80,11 +114,20 @@ package model.ai {
 					break;
 			}
 			var rect:Rect = _controlOmino.getRect();
-			var cox:int = way.getCox(rect);
+			var cox:int = fw.getCox(rect);
 			var coy:int = init_coy(rect);
-			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
 			var ret:ForwardResult = new ForwardResult();
-			earthFix(cox, coy, way.shift);
+			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
+			coy = earthFall(cox, coy, fw.shift);
+			if (sw != null)
+			{
+				cox = sw.getCox(rect);
+				if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
+				coy = earthFall(cox, coy, sw.shift);
+				ret.secondMove = true;
+			}
+			_controlOmino.fix(_mainField, cox, coy);
+			ret.fixCoy = coy;
 			do
 			{
 				ret.lossTime += fallingField(0, GameModelBase.fieldHeight - 1, false);
@@ -102,7 +145,7 @@ package model.ai {
 			return ret;
 		}
 		
-		private function earthFix(cox:int, coy:int, shockSave:Boolean):void
+		private function earthFall(cox:int, coy:int, shockSave:Boolean):int
 		{
 			for (var i:int = coy; i < GameModelBase.fieldHeight; i++)
 			{
@@ -114,9 +157,9 @@ package model.ai {
 				{
 					shockDamage(_controlOmino, cox, i, 1);
 				}
-				_controlOmino.fix(_mainField, cox, i);
 				break;
 			}
+			return i;
 		}
 	}
 

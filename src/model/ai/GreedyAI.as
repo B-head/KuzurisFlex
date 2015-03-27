@@ -29,13 +29,14 @@ package model.ai
 			var chasm:Vector.<int> = appraiseChasm(current, horizontal);
 			var sumChasm:int = vectorSum(chasm);
 			var ret:int = 0;
-			ret += Math.pow(fr.breakLine + prev.comboTotalLine, 2) * 100;
+			if (fr.breakLine > 0) ret += Math.pow(fr.breakLine + prev.comboTotalLine, 2) * 100;
 			ret -= fr.lossTime * 5;
+			if (fr.secondMove) ret -= 400;
 			//ret -= rMinTops * 10;
 			ret -= countOverTops * 1000;
 			//ret += minVertical * 200;
 			ret -= roughness * 5;
-			ret += semiBreak * 5;
+			ret += semiBreak * 6;
 			//ret += Math.pow(coveredSemiBreak, 2) * 25;
 			ret -= sumChasm * 50;
 			if (vertical[0] == minVertical) ret += 50;

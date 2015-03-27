@@ -11,7 +11,6 @@ package model.ai {
 		public var shift:Boolean;
 		public var verge:Boolean;
 		public var fall:Boolean;
-		public var fix:Boolean;
 		
 		public function ControlWay(lx:int = 0, dir:int = 0, shift:Boolean = false)
 		{
@@ -125,7 +124,8 @@ package model.ai {
 		{
 			var ret:ControlWay = new ControlWay();
 			var cr:Rect = currentModel.controlOmino.getRect();
-			ret.lx = GameModelBase.fieldWidth - cr.width;
+			var fr:Rect = getDirectionRect(cr, cw.dir);
+			ret.lx = GameModelBase.fieldWidth - fr.width;
 			ret.dir = cw.dir;
 			ret.shift = cw.shift;
 			return ret;

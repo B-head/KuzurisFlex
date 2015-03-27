@@ -47,31 +47,51 @@ package model.ai {
 		{
 			var ps:Boolean = current.controlOmino.isPointSymmetry();
 			var p90s:Boolean = current.controlOmino.isPoint90Symmetry();
-			for (var lx:int = 0; lx < GameModelBase.fieldWidth; lx++)
+			for (var dir:int = 0; dir < 4; dir++)
 			{
-				for (var dir:int = 0; dir < 4; dir++)
+				var rect:Rect = ControlWay.getDirectionRect(current.controlOmino.getRect(), dir);
+				var fr:Range = current.getValidRange(current.init_cox(rect), current.init_coy(rect), dir);
+				for (var flx:int = fr.low; flx <= fr.high; flx++)
 				{
 					if (ps == true && (dir == 2 || dir == 3)) continue;
 					if (p90s == true && dir == 1) continue;
-					var nt:AppraiseTree = considerWay(current, ps, lx, dir, false);
-					if (nt != null) tree.next.push(nt);
-					if (nt == null || nt.fr.lossTime == 0) continue; //TODO ゲームオーバー時でも崩壊判定できるようにする。
-					nt = considerWay(current, ps, lx, dir, true);
-					if (nt != null) tree.next.push(nt);
+					var fw:ControlWay = new ControlWay(flx, dir, false);
+					var nt:AppraiseTree = considerWay(current, ps, fw);
+					if (nt == null) continue;
+					tree.next.push(nt);
+					var fixCoy:int = nt.fr.fixCoy;
+					if (nt.fr.lossTime > 0 && nt.fr.breakLine == 0)
+					{
+						fw = new ControlWay(flx, dir, true);
+						nt = considerWay(current, ps, fw);
+						if (nt != null) tree.next.push(nt);
+					}
+					var sr:Range = current.getValidRange(flx, fixCoy, dir);
+					for (var slx:int = sr.low; slx <= sr.high; slx++)
+					{
+						if (flx == slx) continue;
+						fw = new ControlWay(flx, dir, false);
+						var sw:ControlWay = new ControlWay(slx, dir, false);
+						nt = considerWay(current, ps, fw, sw);
+						if (nt != null) tree.next.push(nt);
+					}
 				}
 			}
 		}
 		
-		private function considerWay(current:FragmentGameModel, ps:Boolean, lx:int, dir:int, shift:Boolean):AppraiseTree
+		private function considerWay(current:FragmentGameModel, ps:Boolean, fw:ControlWay, sw:ControlWay = null):AppraiseTree
 		{
-			var way:ControlWay = new ControlWay(lx, dir, false);
 			current.copyTo(nextModel);
-			var rect:Rect = way.getControlRect(current);
-			if (ps && way.dir == 1 && way.getCox(rect) >= current.init_cox(rect)) way.dir = 3;
-			var fr:ForwardResult = nextModel.forwardNext(way);
+			var rect:Rect = fw.getControlRect(current);
+			if (ps && fw.dir == 1 && fw.getCox(rect) >= current.init_cox(rect)) 
+			{
+				fw.dir = 3;
+				if (sw != null) sw.dir = 3;
+			}
+			var fr:ForwardResult = nextModel.forwardNext(fw, sw);
 			if (fr == null) return null;
 			var marks:Number = appraise(nextModel, current, fr);
-			return new AppraiseTree(way, null, fr, marks);
+			return new AppraiseTree(fw, sw, fr, marks);
 		}
 		
 		protected function appraise(current:FragmentGameModel, prev:FragmentGameModel, fr:ForwardResult):Number

@@ -27,7 +27,8 @@ package model.ai {
 		private var controlPhase:Boolean;
 		private var notice:int;
 		private var targetWayList:Vector.<ControlWay>;
-		private var targetWayIndex:int;
+		private var targetWayIndex:int
+		private var lastCoy:Number;
 		private var restDelay:int;
 		private var primaryMove:Boolean;
 		private var completedMove:Boolean;
@@ -114,7 +115,8 @@ package model.ai {
 		{
 			gameModel.copyToFragmentModel(currentModel);
 			targetWayList = null;
-			targetWayIndex = 0;
+			targetWayIndex = 0;			
+			lastCoy = gameModel.coy;
 			ai.setCurrentModel(currentModel);
 		}
 		
@@ -150,14 +152,30 @@ package model.ai {
 		{
 			var ret:GameCommand = new GameCommand(materialization);
 			materialization = new Vector.<Boolean>(GameCommand.materializationLength);
+			var isLast:Boolean = targetWayList != null && targetWayIndex == targetWayList.length - 1;
 			ret.noDamege = pressShift;
-			if (pressFall) ret.falling = GameCommand.fast;
+			if (pressFall)
+			{
+				if (!isLast && lastCoy == gameModel.coy)
+				{
+					targetWayIndex++;
+					pressFall = false;
+					primaryMove = true;
+					restDelay = isFastMove() ? primaryMoveDelay : moveDelay;
+				}
+				else
+				{
+					ret.falling = GameCommand.fast;
+				}
+				lastCoy = gameModel.coy;
+			}
 			restDelay--;
 			if (restDelay > 0) return ret;
 			if (!controlPhase) return ret;
 			if (targetWayList == null)
 			{
 				choiceTerget();
+				isLast = targetWayIndex == targetWayList.length - 1;
 			}
 			if (targetWayList.length == 0) return ret;
 			var currentWay:ControlWay = ControlWay.getCurrent(gameModel);
@@ -175,7 +193,7 @@ package model.ai {
 			if (currentWay.dir != targetWay.dir && !isSeparateDelay())
 			{
 				completedSeparate = true;
-				ret.rotation = targetWay.dir == 3 ? GameCommand.right : GameCommand.left;
+				ret.rotation = getRotationDir(currentWay.dir, targetWay.dir);
 				currentWay = ControlWay.getRotate(currentWay, currentModel, ret.rotation);
 			}
 			var slx:int = currentWay.lx - targetWay.lx;
@@ -196,14 +214,10 @@ package model.ai {
 			}
 			if (currentWay.dir == targetWay.dir && currentWay.lx == targetWay.lx && currentWay.shift == targetWay.shift)
 			{
-				if (targetWayIndex < targetWayList.length - 1)
-				{
-					targetWayIndex++;
-				}
-				else if (!isFixDelay())
+				if (targetWay.fall && !isFixDelay())
 				{
 					completedSeparate = true;
-					if (fallDelay)
+					if (fallDelay || !isLast)
 					{
 						ret.falling = GameCommand.fast;
 						pressFall = true;
@@ -213,6 +227,10 @@ package model.ai {
 						ret.falling = GameCommand.earth;
 						ret.fix = true;
 					}
+				}
+				if (!isLast && !targetWay.fall)
+				{
+					targetWayIndex++;
 				}
 			}
 			if (primaryMove)
@@ -234,6 +252,23 @@ package model.ai {
 			return ret;
 		}
 		
+		private function getRotationDir(fd:int, td:int):int
+		{
+			switch(td - fd)
+			{
+				case 1:
+				case 2:
+				case -2:
+				case -3:
+					return GameCommand.left;
+				case -1:
+				case 3:
+					return GameCommand.right;
+				default:
+					return GameCommand.nothing;
+			}
+		}
+		
 		private function choiceTerget():void
 		{
 			ai.consider();
@@ -244,6 +279,7 @@ package model.ai {
 			var index:int = Math.random() * choices.length;
 			var c:AppraiseTree = choices[index];
 			var fw:ControlWay = c.firstWay;
+			var sw:ControlWay = c.secondWay;
 			var iw:ControlWay = ControlWay.getInit(currentModel);
 			if (hasRelayVarge(iw, fw))
 			{
@@ -257,12 +293,36 @@ package model.ai {
 				targetWayList.push(vw);
 				if (currentModel.controlOmino.isPointSymmetry())
 				{
-					if (fw.dir == 1) fw.dir = 3;
-					else if (fw.dir == 3) fw.dir = 1;
+					if (fw.dir == 1) 
+					{
+						fw.dir = 3;
+						if (sw != null) sw.dir = 3;
+					}
+					else if (fw.dir == 3) 
+					{
+						fw.dir = 1;
+						if (sw != null) sw.dir = 1;
+					}
 				}
 			}
 			fw.setVerge(currentModel);
+			fw.fall = true;
 			targetWayList.push(fw);
+			if (sw == null) return;
+			if (hasRelayVarge(fw, sw))
+			{
+				vw = ControlWay.getVergeWay(fw, currentModel);
+				if (fw.lx >= sw.lx)
+				{
+					vw.lx = 0;
+				}
+				vw.setVerge(currentModel);
+				vw.fall = false;
+				targetWayList.push(vw);
+			}
+			sw.setVerge(currentModel);
+			sw.fall = true;
+			targetWayList.push(sw);
 		}
 		
 		private function hasRelayVarge(cw:ControlWay, tw:ControlWay):Boolean

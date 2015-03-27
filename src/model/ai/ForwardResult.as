@@ -7,6 +7,8 @@ package model.ai {
 	{
 		public var breakLine:int;
 		public var lossTime:int;
+		public var fixCoy:int;
+		public var secondMove:Boolean;
 	}
 
 }
