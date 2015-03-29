@@ -28,6 +28,7 @@ package model.ai {
 		private var notice:int;
 		private var targetWayList:Vector.<ControlWay>;
 		private var targetWayIndex:int
+		private var lastCox:Number;
 		private var lastCoy:Number;
 		private var restDelay:int;
 		private var primaryMove:Boolean;
@@ -115,7 +116,8 @@ package model.ai {
 		{
 			gameModel.copyToFragmentModel(currentModel);
 			targetWayList = null;
-			targetWayIndex = 0;			
+			targetWayIndex = 0;
+			lastCox = gameModel.cox;
 			lastCoy = gameModel.coy;
 			ai.setCurrentModel(currentModel);
 		}
@@ -232,6 +234,14 @@ package model.ai {
 				{
 					targetWayIndex++;
 				}
+			}
+			else if (!isLast && !primaryMove && completedMove)
+			{
+				if (lastCox == gameModel.cox)
+				{
+					targetWayIndex++;
+				}
+				lastCox = gameModel.cox;
 			}
 			if (primaryMove)
 			{

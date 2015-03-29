@@ -74,6 +74,15 @@ s|DefaultGridItemRenderer {
 	text-align: center;
 }
 
+.version {
+	font-size: 24px;
+	text-align: center;
+}
+
+.license {
+	text-align: center;
+}
+
 .title-menu {
 	font-size: 24px;
 	corner-radius: 8;
@@ -81,6 +90,10 @@ s|DefaultGridItemRenderer {
 
 .hard-mode {
 	chrome-color: rgb(255, 40, 0);
+}
+
+.howto {
+	chrome-color: rgb(0, 65, 255);
 }
 
 .back {

@@ -118,12 +118,12 @@ package model.ai {
 			var coy:int = init_coy(rect);
 			var ret:ForwardResult = new ForwardResult();
 			if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
-			coy = earthFall(cox, coy, fw.shift);
+			coy = earthFall(cox, coy, fw.shift, false);
 			if (sw != null)
 			{
 				cox = sw.getCox(rect);
 				if (_controlOmino.blocksHitChack(_mainField, cox, coy, true) > 0) return null;
-				coy = earthFall(cox, coy, sw.shift);
+				coy = earthFall(cox, coy, sw.shift, true);
 				ret.secondMove = true;
 			}
 			_controlOmino.fix(_mainField, cox, coy);
@@ -145,17 +145,19 @@ package model.ai {
 			return ret;
 		}
 		
-		private function earthFall(cox:int, coy:int, shockSave:Boolean):int
+		private function earthFall(cox:int, coy:int, shockSave:Boolean, secondary:Boolean):int
 		{
+			var d:int = 0;
 			for (var i:int = coy; i < GameModelBase.fieldHeight; i++)
 			{
 				if (_controlOmino.blocksHitChack(_mainField, cox, i + 1, true) == 0)
 				{
+					d++;
 					continue;
 				}
 				if (!shockSave)
 				{
-					shockDamage(_controlOmino, cox, i, 1);
+					shockDamage(_controlOmino, cox, i, secondary ? distanceDamageCoefficient[d] : 1);
 				}
 				break;
 			}

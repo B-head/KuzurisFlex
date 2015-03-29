@@ -334,7 +334,7 @@ package model
 			hitPoint -= pureDamage;
 			v.hitPoint = hitPoint;
 			onBlockDamageDelegate(pureDamage, v.id, toSplit);
-			return result;
+			return Math.max(0, result);
 		}
 		
 		public function getRect():Rect

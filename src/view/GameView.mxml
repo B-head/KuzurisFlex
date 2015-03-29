@@ -224,6 +224,7 @@
 		<v:GameSoundEffect gameModel="{_gameModel}"/>
 		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
 		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
+		<s:GlowFilter id="glow" color="#000000"/>
 		<s:Sequence id="fieldRecordEffect">
 			<s:SetAction property="visible" value="true"/>
 			<s:SetAction property="visible" value="false" startDelay="4000" />
@@ -251,16 +252,16 @@
 		</s:Rect>
 		<s:Image x="0" y="64" source="@Embed('../graphic/frame.png')"/>
 		<s:Group id="recordFieldView" x="0" y="64">
-			<s:Label id="comboScore" styleName="break-combo-score" y="0" width="192" text="{line.comboCount}コンボ" visible="false"/>
-			<s:Label id="lineRecord" styleName="field-record break-line" y="12" width="192" text="{line.line}ライン" visible="false"/>
-			<s:Label id="lineScore" styleName="break-line-score" y="36" width="192" text="+{line.plusScore}点" visible="false"/>
-			<s:Label id="obstacleRecord" styleName="obstacle-record" y="36" width="192" text="+{line.occurObstacle()}おじゃま[×{nf.format(line.powerScale())}]" visible="false"/>
-			<s:Label id="technicalSpinBonus" styleName="technical-spin" y="48" width="192" text="+{technicalSpin.line}ライン" visible="false"/>
-			<s:Label id="technicalSpinRecord" styleName="field-record technical-spin" y="60" width="192" text="{technicalSpin.line}ライン&#10;テクニカルスピン" visible="false"/>
-			<s:Label id="levelUpBonus" styleName="level-up" y="48" width="192" text="+{levelClear.plusScore}点[{frameTime.format(levelClear.clearTime)}]" visible="false"/>
-			<s:Label id="levelUpRecord" styleName="field-record level-up" y="60" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
-			<s:Label id="allClearBonus" styleName="all-clear" y="48" width="192" text="+100000点" visible="false"/>
-			<s:Label id="allClear" styleName="field-record all-clear" y="60" width="192" text="オールクリア！" visible="false"/>
+			<s:Label id="comboScore" styleName="break-combo-score" filters="{[glow]}" y="0" width="192" text="{line.comboCount}コンボ" visible="false"/>
+			<s:Label id="lineRecord" styleName="field-record break-line" filters="{[glow]}" y="12" width="192" text="{line.line}ライン" visible="false"/>
+			<s:Label id="lineScore" styleName="break-line-score" filters="{[glow]}" y="36" width="192" text="+{line.plusScore}点" visible="false"/>
+			<s:Label id="obstacleRecord" styleName="obstacle-record" filters="{[glow]}" y="36" width="192" text="+{line.occurObstacle()}おじゃま[×{nf.format(line.powerScale())}]" visible="false"/>
+			<s:Label id="technicalSpinBonus" styleName="technical-spin" filters="{[glow]}" y="48" width="192" text="+{technicalSpin.line}ライン" visible="false"/>
+			<s:Label id="technicalSpinRecord" styleName="field-record technical-spin" filters="{[glow]}" y="60" width="192" text="{technicalSpin.line}ライン&#10;テクニカルスピン" visible="false"/>
+			<s:Label id="levelUpBonus" styleName="level-up" filters="{[glow]}" y="48" width="192" text="+{levelClear.plusScore}点[{frameTime.format(levelClear.clearTime)}]" visible="false"/>
+			<s:Label id="levelUpRecord" styleName="field-record level-up" filters="{[glow]}" y="60" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
+			<s:Label id="allClearBonus" styleName="all-clear" filters="{[glow]}" y="48" width="192" text="+100000点" visible="false"/>
+			<s:Label id="allClear" styleName="field-record all-clear" filters="{[glow]}" y="60" width="192" text="オールクリア！" visible="false"/>
 		</s:Group>
 		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
 		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>

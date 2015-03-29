@@ -173,24 +173,20 @@
 		<s:State name="battleMulti" />
 		<s:State name="network" />
 		<s:State name="howToPlay" />
+		<s:State name="credit" />
 	</s:states>
 
 	<s:Image width="854" height="480" source="@Embed(source='../graphic/photo0000-1251.jpg')" scaleMode="zoom" />
 	<s:Group includeIn="title">
-		<s:BorderContainer width="300" x="100" y="200">
+		<s:BorderContainer width="300" x="100" verticalCenter="0">
 			<s:layout>
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4"
 								  paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Label styleName="sub-title" text="壊リスの偽物" />
-			<s:Label styleName="main-title" text="崩リス" />
-		</s:BorderContainer>
-
-		<s:BorderContainer x="100" y="200" visible="false">
-			<s:RichText width="300" height="230">
-			崩れて壊れない「壊リス」の偽物。
-			転じて「崩リス」。
-			</s:RichText>
+			<s:Image source="@Embed(source='../graphic/title-logo.png')" />
+			<s:Label styleName="version" text="alpha version" />
+			<s:Label styleName="license" text="Copyright © 2015 by B_head, All Rights Reserved." />
 		</s:BorderContainer>
 
 		<s:VGroup includeIn="top" height="380" x="454" y="50" verticalAlign="middle"
@@ -201,8 +197,10 @@
 					  buttonDown="currentState = 'battleDuel'" />
 			<s:Button styleName="title-menu" width="300" label="インターネット対戦"
 					  buttonDown="currentState = 'network'" />
-			<s:Button styleName="title-menu" width="300" label="あそびかた"
-					  buttonDown="currentState = 'howToPlay'" enabled="false" />
+			<s:Button styleName="title-menu howto" width="300" label="あそびかた"
+					  buttonDown="navigateToURL(new URLRequest('http://kuzuris.com/wiki/howto/'))"/>
+			<s:Button width="150" label="クレジット"
+					  buttonDown="currentState = 'credit'" />
 		</s:VGroup>
 		<s:VGroup includeIn="preTrial" height="380" x="454" y="50" verticalAlign="middle"
 				  horizontalAlign="center">
