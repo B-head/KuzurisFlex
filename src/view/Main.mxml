@@ -176,7 +176,7 @@
 		<s:State name="credit" />
 	</s:states>
 
-	<s:Image width="854" height="480" source="@Embed(source='../graphic/photo0000-1251.jpg')" scaleMode="zoom" />
+	<s:Image width="854" height="480" source="@Embed(source='../graphic/photo0000-1251.jpg')" scaleMode="zoom" cacheAsBitmap="true"/>
 	<s:Group includeIn="title">
 		<s:BorderContainer width="300" x="100" verticalCenter="0">
 			<s:layout>

@@ -85,13 +85,15 @@
 		</s:RadialGradient>
 	</fx:Declarations>
 	
-	<s:Ellipse id="circle0" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-	<s:Ellipse id="circle1" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-	<s:Ellipse id="circle2" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-	<s:Ellipse id="circle3" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-	<s:Ellipse id="circle4" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-	<s:Ellipse id="circle5" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-	<s:Label x="0" y="0" width="{circleWidth}" textAlign="center" text="ネクスト" visible="{!compact}" />
+	<s:Group cacheAsBitmap="true">
+		<s:Ellipse id="circle0" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+		<s:Ellipse id="circle1" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+		<s:Ellipse id="circle2" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+		<s:Ellipse id="circle3" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+		<s:Ellipse id="circle4" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+		<s:Ellipse id="circle5" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+		<s:Label x="0" y="0" width="{circleWidth}" textAlign="center" text="ネクスト" visible="{!compact}" />
+	</s:Group>
 	<v:BlockFieldView id="next0" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
 	<v:BlockFieldView id="next1" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
 	<v:BlockFieldView id="next2" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>

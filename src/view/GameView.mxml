@@ -242,34 +242,40 @@
 	</fx:Declarations>
 	
 	<s:Group x="104" y="0">
-		<s:Rect x="15" y="64" width="161" height="320" alpha="0.8">
-			<s:fill>
-				<s:SolidColor color="#000000"/>
-			</s:fill>
-			<s:stroke>
-				<s:SolidColorStroke color="#ff9900" weight="1" />
-			</s:stroke>
-		</s:Rect>
-		<s:Image x="0" y="64" source="@Embed('../graphic/frame.png')"/>
-		<s:Group id="recordFieldView" x="0" y="64">
-			<s:Label id="comboScore" styleName="break-combo-score" filters="{[glow]}" y="0" width="192" text="{line.comboCount}コンボ" visible="false"/>
-			<s:Label id="lineRecord" styleName="field-record break-line" filters="{[glow]}" y="12" width="192" text="{line.line}ライン" visible="false"/>
-			<s:Label id="lineScore" styleName="break-line-score" filters="{[glow]}" y="36" width="192" text="+{line.plusScore}点" visible="false"/>
-			<s:Label id="obstacleRecord" styleName="obstacle-record" filters="{[glow]}" y="36" width="192" text="+{line.occurObstacle()}おじゃま[×{nf.format(line.powerScale())}]" visible="false"/>
-			<s:Label id="technicalSpinBonus" styleName="technical-spin" filters="{[glow]}" y="48" width="192" text="+{technicalSpin.line}ライン" visible="false"/>
-			<s:Label id="technicalSpinRecord" styleName="field-record technical-spin" filters="{[glow]}" y="60" width="192" text="{technicalSpin.line}ライン&#10;テクニカルスピン" visible="false"/>
-			<s:Label id="levelUpBonus" styleName="level-up" filters="{[glow]}" y="48" width="192" text="+{levelClear.plusScore}点[{frameTime.format(levelClear.clearTime)}]" visible="false"/>
-			<s:Label id="levelUpRecord" styleName="field-record level-up" filters="{[glow]}" y="60" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false"/>
-			<s:Label id="allClearBonus" styleName="all-clear" filters="{[glow]}" y="48" width="192" text="+100000点" visible="false"/>
-			<s:Label id="allClear" styleName="field-record all-clear" filters="{[glow]}" y="60" width="192" text="オールクリア！" visible="false"/>
+		<s:Group x="0" y="64" cacheAsBitmap="true">
+			<s:Rect x="15" width="161" height="320" alpha="0.8">
+				<s:fill>
+					<s:SolidColor color="#000000"/>
+				</s:fill>
+				<s:stroke>
+					<s:SolidColorStroke color="#ff9900" weight="1" />
+				</s:stroke>
+			</s:Rect>
+			<s:Image source="@Embed('../graphic/frame.png')"/>
 		</s:Group>
-		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
-		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
-		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="16" y="-256" showSpecial="true"/>
-		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" visible.pause="false" x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
-		<s:Group x="16" y="0" id="breakLineContainer"/>
+		<s:Group id="recordFieldView" x="0" y="64">
+			<s:Label id="comboScore" styleName="break-combo-score" filters="{[glow]}" y="0" width="192" text="{line.comboCount}コンボ" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="lineRecord" styleName="field-record break-line" filters="{[glow]}" y="12" width="192" text="{line.line}ライン" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="lineScore" styleName="break-line-score" filters="{[glow]}" y="36" width="192" text="+{line.plusScore}点" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="obstacleRecord" styleName="obstacle-record" filters="{[glow]}" y="36" width="192" text="+{line.occurObstacle()}おじゃま[×{nf.format(line.powerScale())}]" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="technicalSpinBonus" styleName="technical-spin" filters="{[glow]}" y="48" width="192" text="+{technicalSpin.line}ライン" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="technicalSpinRecord" styleName="field-record technical-spin" filters="{[glow]}" y="60" width="192" text="{technicalSpin.line}ライン&#10;テクニカルスピン" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="levelUpBonus" styleName="level-up" filters="{[glow]}" y="48" width="192" text="+{levelClear.plusScore}点[{frameTime.format(levelClear.clearTime)}]" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="levelUpRecord" styleName="field-record level-up" filters="{[glow]}" y="60" width="192" text="{levelClear.upLevel > 1 ? levelClear.upLevel : ''}レベルアップ!" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="allClearBonus" styleName="all-clear" filters="{[glow]}" y="48" width="192" text="+100000点" visible="false" cacheAsBitmap="true"/>
+			<s:Label id="allClear" styleName="field-record all-clear" filters="{[glow]}" y="60" width="192" text="オールクリア！" visible="false" cacheAsBitmap="true"/>
+		</s:Group>
+		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+			visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.goy * blockGraphics.blockHeight - 256}" showSpecial="true" alpha="0.5"/>
+		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+			visible.pause="false" x="{_gameModel.cox * blockGraphics.blockWidth + 16}" y="{_gameModel.coy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+			visible.pause="false" x="16" y="-256" showSpecial="true"/>
+		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+			visible.pause="false" x="16" y="{_gameModel.ffy * blockGraphics.blockHeight - 256}" showSpecial="true"/>
+		<s:Group id="breakLineContainer" x="16" y="0"/>
 		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" obstacleManager="{_gameModel.obstacleManager}"/>
-		<s:BorderContainer x="16" y="400" width="160" height="32" visible="{playerInfo != null}">
+		<s:BorderContainer x="16" y="400" width="160" height="32" visible="{playerInfo != null}" cacheAsBitmap="true">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
@@ -287,33 +293,33 @@
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Group includeInLayout="{!battle}" visible="{!battle}">
-				<s:Label text="レベル"/>
-				<s:Label text="{_gameModel.record.level}" right="0" />
+				<s:Label text="レベル" cacheAsBitmap="true"/>
+				<s:Label text="{_gameModel.record.level}" right="0" cacheAsBitmap="true" />
 			</s:Group>
 			<s:Group>
-				<s:Label text="ライン"/>
-				<s:Label text="{_gameModel.record.breakLine}" right="0"/>
+				<s:Label text="ライン" cacheAsBitmap="true"/>
+				<s:Label text="{_gameModel.record.breakLine}" right="0" cacheAsBitmap="true"/>
 			</s:Group>
 			<s:Group>
-				<s:Label text="ミノ"/>
-				<s:Label text="{_gameModel.record.fixOmino}" right="0"/>
+				<s:Label text="ミノ" cacheAsBitmap="true"/>
+				<s:Label text="{_gameModel.record.fixOmino}" right="0" cacheAsBitmap="true"/>
 			</s:Group>
 		</s:BorderContainer>
 		<s:BorderContainer>
 			<s:layout>
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
-			<s:Label text="スコア"/>
-			<s:Label text="{_gameModel.record.gameScore}点" textAlign="right" />
-			<s:Label text="タイム"/>
-			<s:Label text="{frameTime.format(_gameModel.record.gameTime)}" textAlign="right" />
+			<s:Label text="スコア" cacheAsBitmap="true"/>
+			<s:Label text="{_gameModel.record.gameScore}点" textAlign="right" cacheAsBitmap="true" />
+			<s:Label text="タイム" cacheAsBitmap="true"/>
+			<s:Label text="{frameTime.format(_gameModel.record.gameTime)}" textAlign="right" cacheAsBitmap="true" />
 		</s:BorderContainer>
 		<s:BorderContainer visible="{_gameModel.isObstacleAddition}">
 			<s:layout>
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" />
 			</s:layout>
-			<s:Label text="次のおじゃま"/>
-			<s:Label text="{frameTime.format(_gameModel.nextObstacleTime)}" textAlign="right"/>
+			<s:Label text="次のおじゃま" cacheAsBitmap="true"/>
+			<s:Label text="{frameTime.format(_gameModel.nextObstacleTime)}" textAlign="right" cacheAsBitmap="true"/>
 		</s:BorderContainer>
 	</s:VGroup>
 </s:Group>
