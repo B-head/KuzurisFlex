@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			public var label:String;
+		
+            override protected function initializationComplete():void
+            {
+				if (styleManager.isValidStyleValue('corner-radius'))
+				{
+					setStyle('corner-radius', 4);
+				}
+				if (styleManager.isValidStyleValue('border-color'))
+				{
+					setStyle('border-color', 0x808080);
+				}
+                super.initializationComplete();
+            }  
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="1" right="1" top="1" bottom="1" radiusX="{getStyle('corner-radius')}">
+		<s:stroke>            
+			<s:SolidColorStroke color="{getStyle('border-color')}"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label id="labelDisplay" left="4" right="4" top="4" bottom="4" text="{label}"
+		textAlign="center" verticalAlign="middle" lineBreak="toFit" maxDisplayedLines="1"/>
+</s:Group>
