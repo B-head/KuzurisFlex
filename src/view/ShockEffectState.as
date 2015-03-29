@@ -25,7 +25,7 @@ package view
 		public function getReviseFrame():int
 		{
 			var a:Number = Math.min(1, damage / hitPointMax);
-			return frameCount * a + ShockEffectGraphics.frameMax * (1 - a);
+			return frameCount * a;
 		}
 		
 		public function getDamageRest():Number

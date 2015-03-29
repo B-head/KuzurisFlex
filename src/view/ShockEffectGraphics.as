@@ -15,7 +15,7 @@ package view
 		public var blockWidth:Number;
 		public var blockHeight:Number;
 		
-		public static const frameMax:int = 15;
+		public static const frameMax:int = 30;
 		
 		public function ShockEffectGraphics(width:Number, height:Number) 
 		{
@@ -26,10 +26,10 @@ package view
 			for (var i:int = 0; i < frameMax; i++)
 			{
 				var n:BitmapData = new BitmapData(blockWidth * 2, blockHeight * 2, true, 0);
-				drawGraphics(n, 1, Color.skyblue, i);
+				drawGraphics(n, 2, Color.skyblue, i);
 				normal[i] = n;
 				var ts:BitmapData = new BitmapData(blockWidth * 2, blockHeight * 2, true, 0);
-				drawGraphics(ts, 3, Color.orange, i);
+				drawGraphics(ts, 4, Color.orange, i);
 				toSplit[i] = ts;
 			}
 		}
@@ -39,11 +39,13 @@ package view
 			var shape:Shape = new Shape();
 			var grf:Graphics = shape.graphics;
 			grf.lineStyle(thickness, color);
-			var x:Number = blockWidth / 2 * (2 - frame / frameMax);
-			var y:Number = blockHeight / 2 * (2 - frame / frameMax);
-			var w:Number = blockWidth * (0 + frame / frameMax);
-			var h:Number = blockHeight * (0 + frame / frameMax);
-			grf.drawRect(x, y, w, h);
+			var a:Number = blockWidth * 0.5 * (frame / frameMax);
+			grf.moveTo(blockWidth * 1 - a, blockHeight * 0.5);
+			grf.lineTo(blockWidth * 0.5 - a, blockHeight * 1);
+			grf.lineTo(blockWidth * 1 - a, blockHeight * 1.5);
+			grf.moveTo(blockWidth * 1 + a, blockHeight * 0.5);
+			grf.lineTo(blockWidth * 1.5 + a, blockHeight * 1);
+			grf.lineTo(blockWidth * 1 + a, blockHeight * 1.5);
 			bitmap.draw(shape);
 		}
 		
