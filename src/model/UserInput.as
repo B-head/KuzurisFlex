@@ -276,9 +276,9 @@ package model
 			if (lastControl.move == value.move)
 			{
 				moveDelay--;
-				if (moveDelay > 0)
+				if (moveDelay > 0 && value.move != GameCommand.nothing)
 				{
-					value.move = GameCommand.nothing;
+					value.move = GameCommand.stopgap;
 				}
 				else if (controlPhase && !oneFrameMove)
 				{

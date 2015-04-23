@@ -5,37 +5,55 @@
 			   xmlns:v="view.*">
 	<fx:Script>
 		<![CDATA[
+		import events.GameEvent;
 		import model.*;
 		
 		[Bindable]
 		public var blockGraphics:BlockGraphics;
 		[Bindable] 
 		public var shockGraphics:ShockEffectGraphics;
+		private var _gameModel:GameModel;
 		private const moveDuration:int = 1000 * 8 / 60;
 		
-		public function update(nextOmino:Vector.<OminoField>, shockSave:Boolean, first:Boolean):void
+		public function get gameModel():GameModel
 		{
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			_gameModel.addTerget(GameEvent.updateNext, updateNextListener);
+			_gameModel.addTerget(GameEvent.firstUpdateNext, updateNextListener);
+		}
+		
+		public function updateNextListener(e:GameEvent):void
+		{
+			if (_gameModel.isGameOver) return;
+			updateOmino();
+			if (e.type == GameEvent.firstUpdateNext) return;
+			playEffect();
+		}
+		
+		private function updateOmino():void
+		{
+			var nextOmino:Vector.<OminoField> = _gameModel.getNextOmino();
+			var shockSave:Boolean = _gameModel.shockSave;
 			next0.update(nextOmino[0], shockSave);
 			next1.update(nextOmino[1], shockSave);
 			next2.update(nextOmino[2], shockSave);
 			next3.update(nextOmino[3], shockSave);
 			next4.update(nextOmino[4], shockSave);
 			next5.update(nextOmino[5], shockSave);
-			var f:Number = circleHeight / 4;
-			var n:Number = circleHeight + gap;
-			adjust(next0, nextOmino[0], 0, f + n * 0, circleWidth, circleHeight, 1);
-			adjust(next1, nextOmino[1], 0, f + n * 1, circleWidth, circleHeight, 1);
-			adjust(next2, nextOmino[2], 0, f + n * 2, circleWidth, circleHeight, 1);
-			adjust(next3, nextOmino[3], 0, f + n * 3, circleWidth, circleHeight, 1);
-			adjust(next4, nextOmino[4], 0, f + n * 4, circleWidth, circleHeight, 1);
-			adjust(next5, nextOmino[5], 0, f + n * 5, circleWidth, circleHeight, 1);
-			circle0.y = f + n * 0;
-			circle1.y = f + n * 1;
-			circle2.y = f + n * 2;
-			circle3.y = f + n * 3;
-			circle4.y = f + n * 4;
-			circle5.y = f + n * 5;
-			if (first) return;
+			adjust(next0, nextOmino[0], 0, circle0.y, circleWidth, circleHeight, 1);
+			adjust(next1, nextOmino[1], 0, circle1.y, circleWidth, circleHeight, 1);
+			adjust(next2, nextOmino[2], 0, circle2.y, circleWidth, circleHeight, 1);
+			adjust(next3, nextOmino[3], 0, circle3.y, circleWidth, circleHeight, 1);
+			adjust(next4, nextOmino[4], 0, circle4.y, circleWidth, circleHeight, 1);
+			adjust(next5, nextOmino[5], 0, circle5.y, circleWidth, circleHeight, 1);
+		}
+		
+		private function playEffect():void
+		{
 			moveNext0.yTo = next0.y;
 			moveNext1.yTo = next1.y;
 			moveNext2.yTo = next2.y;
@@ -50,7 +68,7 @@
 			moveNext5.play();
 		}
 		
-		public function adjust(fieldView:BlockFieldView, omino:OminoField, x:int, y:int, width:int, height:int, scale:Number):void
+		private function adjust(fieldView:BlockFieldView, omino:OminoField, x:int, y:int, width:int, height:int, scale:Number):void
 		{
 			if (omino == null) return;
 			var rect:Rect = omino.getRect();
@@ -85,19 +103,21 @@
 		</s:RadialGradient>
 	</fx:Declarations>
 	
-	<s:Group cacheAsBitmap="true">
-		<s:Ellipse id="circle0" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-		<s:Ellipse id="circle1" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-		<s:Ellipse id="circle2" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-		<s:Ellipse id="circle3" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-		<s:Ellipse id="circle4" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-		<s:Ellipse id="circle5" x="0" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
-		<s:Label x="0" y="0" width="{circleWidth}" textAlign="center" text="ネクスト" visible="{!compact}" />
+	<s:Group y="{circleHeight / 4}">
+		<s:Group cacheAsBitmap="true">
+			<s:Ellipse id="circle0" x="0" y="{(circleHeight + gap) * 0}" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+			<s:Ellipse id="circle1" x="0" y="{(circleHeight + gap) * 1}" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+			<s:Ellipse id="circle2" x="0" y="{(circleHeight + gap) * 2}" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+			<s:Ellipse id="circle3" x="0" y="{(circleHeight + gap) * 3}" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+			<s:Ellipse id="circle4" x="0" y="{(circleHeight + gap) * 4}" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+			<s:Ellipse id="circle5" x="0" y="{(circleHeight + gap) * 5}" width="{circleWidth}" height="{circleHeight}" fill="{ncFill}"/>
+			<s:Label x="0" y="{-circleHeight / 4}" width="{circleWidth}" textAlign="center" text="ネクスト" visible="{!compact}" />
+		</s:Group>
+		<v:BlockFieldView id="next0" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+		<v:BlockFieldView id="next1" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+		<v:BlockFieldView id="next2" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+		<v:BlockFieldView id="next3" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+		<v:BlockFieldView id="next4" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
+		<v:BlockFieldView id="next5" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
 	</s:Group>
-	<v:BlockFieldView id="next0" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next1" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next2" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next3" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next4" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
-	<v:BlockFieldView id="next5" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" visible="{!pause}"/>
 </s:Group>

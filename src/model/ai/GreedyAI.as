@@ -10,48 +10,49 @@ package model.ai
 	 	override protected function getBorder():Number
 		{
 			if (level > 20) return 0;
-			return (21 - level) / 80;
+			return (21 - level) / 100;
 		}
 		
 		override protected function appraise(current:FragmentGameModel, prev:FragmentGameModel, fr:ForwardResult):Number
 		{
 			var tops:Vector.<int> = getTops(current);
-			var rMinTops:int = GameModelBase.fieldHeight - vectorMin(tops);
-			var reviseGameOverHeight:int = (prev.isHurryUp ? GameModelBase.gameOverHeight + 1 : GameModelBase.gameOverHeight);
-			var countOverTops:int = vectorCount(tops, function(i:int):Boolean { return i <= reviseGameOverHeight; });
 			var blockCount:int = current.mainField.blockCount; 
 			var vertical:Vector.<int> = current.mainField.verticalBlockCount;
 			var minVertical:int = vectorMin(vertical);
 			var roughness:int = appraiseRoughness(vertical);
 			var horizontal:Vector.<int> = current.mainField.horizontalBlockCount;
-			var semiBreak:int = semiBreakLines(horizontal);
-			//var coveredSemiBreak:int = coveredSemiBreakLines(current, horizontal);
+			var semiBreak:int = semiBreakLines(current);
 			var chasm:Vector.<int> = appraiseChasm(current, horizontal);
 			var sumChasm:int = vectorSum(chasm);
+			var breakPower:int = fr.breakLine + prev.comboTotalLine - prev.comboCount;
+			fr.minTops = GameModelBase.fieldHeight - vectorMin(tops);
 			var ret:int = 0;
-			if (fr.breakLine > 0) ret += Math.pow(fr.breakLine + prev.comboTotalLine, 2) * 100;
-			ret -= fr.lossTime * 5;
-			if (fr.secondMove) ret -= 400;
-			//ret -= rMinTops * 10;
-			ret -= countOverTops * 1000;
-			//ret += minVertical * 200;
-			ret -= roughness * 5;
-			ret += semiBreak * 6;
-			//ret += Math.pow(coveredSemiBreak, 2) * 25;
-			ret -= sumChasm * 50;
-			if (vertical[0] == minVertical) ret += 50;
-			if (vertical[9] == minVertical) ret += 100;
-			if (blockCount == 0) ret += 1000;
+			if (fr.breakLine > 0) ret += summation(breakPower) * 15;
+			if (fr.secondMove) ret -= 100;
+			ret -= fr.lossTime;
+			ret += minVertical * 0;
+			ret -= roughness;
+			ret += semiBreak;
+			ret -= sumChasm * 3;
+			if (vertical[0] == minVertical) ret += 10;
+			if (vertical[9] == minVertical) ret += 20;
+			if (blockCount == 0) ret += 100;
 			return ret;
 		}
 		
-		override protected function postAppraise(current:FragmentGameModel, fr:ForwardResult, notice:int):Number 
+		override protected function postAppraise(fr:ForwardResult, notice:int):Number 
 		{
-			var blockCountLimitBase:int = (GameModelBase.fieldWidth - 1) * GameModelBase.fieldHeight / 2;
-			var blockCountLimit:int = Math.min(blockCountLimitBase, blockCountLimitBase * level / 20);
-			var blockCount:int = current.mainField.blockCount;
-			var over:int = Math.max(0, (blockCount + notice * 3) - (blockCountLimit + fr.breakLine * 30));
-			return over * -50;
+			var topsLimitBase:int = GameModelBase.fieldHeight / 2;
+			var topsLimit:int = Math.min(topsLimitBase, topsLimitBase * level / 10);
+			var noticeHeight:int = (fr.breakLine > 0 ? 0 : Math.ceil(notice / 3));
+			var topHeight:int = fr.minTops + noticeHeight;
+			var over:int = Math.max(0, topHeight - topsLimit);
+			return -(over > 0 ? 300 : 0);
+		}
+		
+		private function summation(a:Number):Number
+		{
+			return a * (a + 1) / 2;
 		}
 		
 		private function vectorMax(v:Vector.<int>):int
@@ -122,46 +123,31 @@ package model.ai
 				if (prev != int.MIN_VALUE)
 				{
 					var a:int = Math.abs(prev - vertical[x]);
-					ret += Math.pow(a, 2);
+					ret += summation(a);
 				}
 				prev = vertical[x];
 			}
 			return ret;
 		}
 		
-		private function semiBreakLines(horizontal:Vector.<int>):int
-		{
-			var ret:int = 0;
-			for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
-			{
-				ret += Math.pow(horizontal[y], 2);
-			}
-			return ret;
-		}
-		
-		private function coveredSemiBreakLines(gameModel:FragmentGameModel, horizontal:Vector.<int>):int
+		private function semiBreakLines(gameModel:FragmentGameModel):int
 		{
 			var ret:int = 0;
 			var m:MainField = gameModel.mainField;
-			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
+			for (var y:int = m.top; y <= m.bottom; y++)
 			{
-				var cover:int = 0;
-				var chasm:Boolean = false;
-				for (var y:int = m.top; y <= m.bottom; y++)
+				var left:int = GameModelBase.fieldWidth;
+				var right:int = 0;
+				for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
 				{
-					if (m.isExistBlock(x, y))
+					if (!m.isExistBlock(x, y))
 					{
-						if (chasm) break;
-						cover++;
-					}
-					else
-					{
-						if (cover == 0) continue;
-						chasm = true;
-						if (horizontal[y] != 9) continue;
-						ret++;
+						left = Math.min(left, x);
+						right = Math.max(right, x);
 					}
 				}
+				var raw:int = GameModelBase.fieldWidth - (1 + right - left);
+				ret += summation(raw);
 			}
 			return ret;
 		}
@@ -175,15 +161,14 @@ package model.ai
 				var cc:int = 0;
 				var smhp:Number = 0;
 				var first:Boolean = true;
-				//for (var y:int = m.top; y <= m.bottom; y++)
-				for (var y:int = 0; y < GameModelBase.fieldHeight; y++)
+				for (var y:int = m.top; y <= m.bottom; y++)
 				{
 					if (m.isExistBlock(x, y))
 					{
 						if (m.isUnionSideBlock(x, y))
 						{
 							var hp:Number = m.getHitPoint(x, y);
-							if (first) hp /= GameModelBase.shockDamageCoefficient;
+							if (first) hp /= GameSetting.shockDamageCoefficient;
 							smhp = Math.max(smhp, hp);
 						}
 						first = false;

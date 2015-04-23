@@ -11,6 +11,9 @@ package events {
 		
 		public static const fixOmino:String = "fixOmino"; 
 		public static const setOmino:String = "setOmino";
+		public static const forceFix:String = "forceFix";
+		public static const timeOutAlert:String = "timeOutAlert";
+		public static const timeOutFix:String = "timeOutFix";
 		public static const moveOK:String = "moveOK";
 		public static const moveNG:String = "moveNG";
 		public static const rotationOK:String = "rotationOK";

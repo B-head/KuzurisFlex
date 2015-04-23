@@ -1,5 +1,6 @@
 package view 
 {
+	import events.GameEvent;
 	import flash.display.*;
 	import flash.geom.Matrix;
 	import model.*;
@@ -23,8 +24,7 @@ package view
 		[Embed(source='../graphic/obs1000.png')]
 		private var Obs1000:Class;
 		
-		[Bindable]
-		public var obstacleManager:ObstacleManager;
+		private var _gameModel:GameModel;
 		private var blocks:Vector.<Image>;
 		private var moveEffects:Vector.<Move>;
 		private var lastNotice:int;
@@ -40,6 +40,18 @@ package view
 			blocks = new Vector.<Image>();
 			moveEffects = new Vector.<Move>();
 			blockScale = 1;
+		}
+		
+		public function get gameModel():GameModel
+		{
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			_gameModel.obstacleManager.addTerget(GameEvent.updateObstacle, updateObstacleLestener);
+			_gameModel.obstacleManager.addTerget(GameEvent.outsideUpdateObstacle, updateObstacleLestener);
+			visible = false;
 		}
 		
 		public function set blockScale(value:Number):void
@@ -60,8 +72,10 @@ package view
 			return data;
 		}
 		
-		public function update():void
+		private function updateObstacleLestener(e:GameEvent):void
 		{
+			if (_gameModel.isGameOver) return;
+			var obstacleManager:ObstacleManager = _gameModel.obstacleManager;
 			var n:int = obstacleManager.noticeSaveCount;
 			visible = n > 0;
 			if (obstacleManager.noticeCount > 0)

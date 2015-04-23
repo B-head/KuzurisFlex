@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*">
+	<fx:Script>
+		<![CDATA[
+		import events.*;
+		import model.*;
+		
+		private var _gameModel:GameModel;
+		
+		public function get gameModel():GameModel
+		{
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			_gameModel.addTerget(LevelClearEvent.levelClear, levelClearListener);
+			_gameModel.addTerget(GameEvent.blockAllClear, allClearListener);
+			_gameModel.addTerget(GameEvent.jewelAllClear, excellentListener);
+			levelUp.visible = false;
+			allClear.visible = false;
+			jewelAllClear.visible = false;
+		}
+		
+		private function levelClearListener(e:LevelClearEvent):void
+		{
+			upLevel = e.upLevel;
+			plusScore = e.plusScore;
+			clearTime = e.clearTime;
+			bonusEffect.play([levelUp]);
+		}
+		
+		private function allClearListener(e:GameEvent):void
+		{
+			bonusEffect.play([allClear]);
+		}
+		
+		private function excellentListener(e:GameEvent):void
+		{
+			bonusEffect.play([jewelAllClear]);
+		}
+
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<fx:Boolean id="battle"/>
+		<fx:int id="upLevel"/>
+		<fx:int id="plusScore"/>
+		<fx:int id="clearTime"/>
+		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
+		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
+		<s:Parallel id="bonusEffect">
+			<s:Sequence>
+				<s:Move xFrom="80" xTo="0" duration="500"/>
+				<s:Move xFrom="0" xTo="-80" duration="500" startDelay="1000"/>
+			</s:Sequence>
+			<s:Sequence>
+				<s:Fade alphaFrom="0" alphaTo="1" duration="500"/>
+				<s:Fade alphaFrom="1" alphaTo="0" duration="500" startDelay="1000"/>
+			</s:Sequence>
+		</s:Parallel>
+	</fx:Declarations>
+	
+	<s:VGroup id="levelUp" styleName="field-record" width="100%" visible="false" horizontalAlign="justify" gap="1" cacheAsBitmap="true" filters="{[glow]}">
+		<s:Label styleName="main-record level-up">{upLevel > 1 ? upLevel : ''}レベルアップ</s:Label>
+		<s:Label styleName="level-up">セクションタイム {frameTime.format(clearTime)}</s:Label>
+		<s:Label styleName="plus-score" includeInLayout="{!battle}" visible="{!battle}">+{plusScore}</s:Label>
+	</s:VGroup>
+	<s:VGroup id="allClear" styleName="field-record" width="100%" visible="false" horizontalAlign="justify" gap="1" cacheAsBitmap="true" filters="{[glow]}">
+		<s:Label styleName="main-record bonus">オールクリア</s:Label>
+		<s:Label styleName="plus-score" includeInLayout="{!battle}" visible="{!battle}">+25000</s:Label>
+		<s:Label styleName="occur-obstacle" includeInLayout="{battle}" visible="{battle}">+100おじゃま</s:Label>
+	</s:VGroup>
+	<s:VGroup id="jewelAllClear" styleName="field-record" width="100%" visible="false" horizontalAlign="justify" gap="1" cacheAsBitmap="true" filters="{[glow]}">
+		<s:Label styleName="main-record bonus">ジュエルクリア</s:Label>
+		<s:Label styleName="plus-score" includeInLayout="{!battle}" visible="{!battle}">+25000</s:Label>
+	</s:VGroup>
+</s:Group>

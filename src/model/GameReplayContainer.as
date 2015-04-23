@@ -15,7 +15,7 @@ package model
 		public var replayControl:Vector.<GameReplayControl>;
 		public var playerInfo:Vector.<PlayerInformation>;
 		public var record:Vector.<GameRecord>;
-		public var traceLog:Vector.<String>;
+		private var traceLog:Vector.<String>;
 		
 		public function GameReplayContainer() 
 		{

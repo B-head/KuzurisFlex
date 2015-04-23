@@ -179,11 +179,14 @@
 				close();
 				dispatchEvent(e);
 			}
-			
-			public function frameConstructedListener():void
+		
+			private function frameConstructedListener():void
 			{
-				networkGameManager.frameConstructedListener();
-				practiceGameManager.frameConstructedListener();
+				networkGameManager.forwardGame();
+				practiceGameManager.forwardGame();
+				player1.update();
+				player2.update();
+				practicePlayer.update();
 			}
 		]]>
 	</fx:Script>
@@ -192,6 +195,10 @@
 		[Event(name="navigateBack", type="events.KuzurisEvent")]
 		[Event(name="gameAbort", type="events.KuzurisErrorEvent")]
 	</fx:Metadata>
+	
+	<fx:Declarations>
+		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
+	</fx:Declarations>
 	
 	<s:states>
 		<s:State name="hidden" />
@@ -232,4 +239,6 @@
 	<s:VGroup x="561" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button includeIn="watch" styleName="enterButton" width="80" height="80" label="参加" buttonDown="enterBattle(1)" visible="{networkGameManager.isIndexEmpty(1)}" />
 	</s:VGroup>
+	<s:Label styleName="outcome win" x="{networkGameManager.getRank(0) == 1 ? 122 : 540}" y="128" width="192" visible="{isResult}" text="勝利" filters="{[glow]}"/>
+	<s:Label styleName="outcome lose" x="{networkGameManager.getRank(0) == 1 ? 540 : 122}" y="128" width="192" visible="{isResult}" text="敗北" filters="{[glow]}"/>
 </s:Group>

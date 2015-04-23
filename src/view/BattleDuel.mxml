@@ -4,7 +4,7 @@
 		   xmlns:mx="library://ns.adobe.com/flex/mx"
 		   xmlns:v="view.*"
 		   initialize="init()"
-		   frameConstructed ="manager.frameConstructedListener()">
+		   frameConstructed ="frameConstructedListener()">
 			   
 	<fx:Script>
 		<![CDATA[
@@ -79,10 +79,6 @@
 			parentApplication.bgm.stop();
 			manager.endGame();
 			currentState = "prepare";
-			if (Main.autoBattleRepeat)
-			{
-				start();
-			}
 		}
 		
 		private function start():void
@@ -194,12 +190,27 @@
 			replayContainer = manager.makeReplayContainer();
 			battleRecords.entry(replayContainer);
 		}
+		
+		private function frameConstructedListener():void
+		{
+			if (currentState == "prepare" && Main.autoBattleRepeat)
+			{
+				start();
+			}
+			manager.forwardGame();
+			player1.update();
+			player2.update();
+		}
 		]]>
 	</fx:Script>
 
 	<fx:Metadata>
 		[Event(name="navigateBack", type="events.KuzurisEvent")]
 	</fx:Metadata>
+	
+	<fx:Declarations>
+		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
+	</fx:Declarations>
 	
 	<s:states>
 		<s:State name="hidden" />
@@ -217,7 +228,7 @@
 	<v:KeyConfig includeIn="keyConfig" x="18" y="88" input="{input1 as UserInput}" visible="{input1 is UserInput}" navigateBack="currentState = 'prepare'"/>
 	<v:KeyConfig includeIn="keyConfig" x="436" y="88" input="{input2 as UserInput}" visible="{input2 is UserInput}" navigateBack="currentState = 'prepare'"/>
 	<v:BattleRecordsViewer includeIn="battleRecords" battleRecords="{battleRecords}" navigateBack="currentState = 'prepare'"/>
-	<s:VGroup includeIn="prepare" x="143" y="88" width="150" height="200" verticalAlign="middle" horizontalAlign="center">
+	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()" />
 		<s:Label styleName="menu-label" text="対戦モード" />
 		<s:ButtonBar id="battleMode" width="150" requireSelection="true" selectedIndex="0">  
@@ -232,7 +243,7 @@
 			<mx:ArrayCollection source="['人間', 'AI']"/>
 		</s:ButtonBar>
 		<s:Label styleName="menu-label" text="ハンデキャップ{handicap1.value}" />
-		<s:HSlider id="handicap1" width="150" minimum="0" maximum="4" snapInterval="0.2" showDataTip="false" />
+		<s:HSlider id="handicap1" width="150" minimum="0" maximum="3" snapInterval="0.5" showDataTip="false" />
 		<s:Label styleName="menu-label" text="AIレベル{aiLevel1.value}" visible="{playerType1.selectedIndex == 1}" />
 		<s:HSlider id="aiLevel1" width="150" minimum="1" maximum="20" showDataTip="false" visible="{playerType1.selectedIndex == 1}" />
 	</s:VGroup>
@@ -241,7 +252,7 @@
 			<mx:ArrayCollection source="['人間', 'AI']"/>
 		</s:ButtonBar>
 		<s:Label styleName="menu-label" text="ハンデキャップ{handicap2.value}" />
-		<s:HSlider id="handicap2" width="150" minimum="0" maximum="4" snapInterval="0.2" showDataTip="false" />
+		<s:HSlider id="handicap2" width="150" minimum="0" maximum="3" snapInterval="0.5" showDataTip="false" />
 		<s:Label styleName="menu-label" text="AIレベル{aiLevel2.value}" visible="{playerType2.selectedIndex == 1}" />
 		<s:HSlider id="aiLevel2" width="150" minimum="1" maximum="20" showDataTip="false" visible="{playerType2.selectedIndex == 1}" />
 	</s:VGroup>
@@ -254,4 +265,6 @@
 		<s:Button width="100" label="もういちど" buttonDown="restart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
 	</s:VGroup>
+	<s:Label styleName="outcome win" x="{manager.getRank(0) == 1 ? 122 : 540}" y="128" width="192" visible="{isResult}" text="勝利" filters="{[glow]}"/>
+	<s:Label styleName="outcome lose" x="{manager.getRank(0) == 1 ? 540 : 122}" y="128" width="192" visible="{isResult}" text="敗北" filters="{[glow]}"/>
 </s:Group>

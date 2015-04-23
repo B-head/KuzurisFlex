@@ -12,9 +12,13 @@ package model
 	[Event(name="gameReady", type="events.KuzurisEvent")]
 	[Event(name="gameStart", type="events.KuzurisEvent")]
 	[Event(name="gameEnd", type="events.KuzurisEvent")]
-	[Event(name="gameEndPart", type="events.KuzurisEvent")]
+	[Event(name="gameClear", type="events.KuzurisEvent")]
+	[Event(name="gameOvar", type="events.KuzurisEvent")]
 	[Event(name="gamePause", type="events.KuzurisEvent")]
 	[Event(name="gameResume", type="events.KuzurisEvent")]
+	[Event(name="gameHurryUp", type="events.KuzurisEvent")]
+	[Event(name="playerKnockout", type="events.KuzurisEvent")]
+	[Event(name="playerKnockoutOneself", type="events.KuzurisEvent")]
 	[Event(name="initializeGameModel", type="events.KuzurisEvent")]
 	[Event(name="playerUpdate", type="events.KuzurisEvent")]
 	public class GameManager extends EventDispatcherEX
@@ -109,9 +113,10 @@ package model
 			return gameModel[index].record;
 		}
 		
-		[Bindable(event="gameEndPart")]
+		[Bindable(event="playerUpdate")]
 		public function getRank(index:int):int
 		{
+			if (!gameModel[index].isGameOver) return 1;
 			var st:int = gameModel[index].record.gameTime;
 			var vt:Vector.<int> = new Vector.<int>();
 			for (var i:int = 0; i < maxPlayer; i++)
@@ -149,8 +154,9 @@ package model
 				gameModel[index].dispose();
 			}
 			gameModel[index] = gm;
-			gameModel[index].addTerget(GameEvent.gameOver, GameEndListener);
-			gameModel[index].addTerget(GameEvent.gameClear, GameEndListener);
+			gameModel[index].addTerget(GameEvent.gameOver, gameEndListener);
+			gameModel[index].addTerget(GameEvent.gameClear, gameEndListener);
+			gameModel[index].addTerget(GameEvent.beginHurryUp, gameEndListener);
 			gameModel[index].obstacleManager.addTerget(GameEvent.enabledObstacle, createOccurObstacleListener(index), false);
 		}
 		
@@ -204,7 +210,7 @@ package model
 				control[i].enable = true;
 			}
 			replayMode = true;
-			readyDelay = 0;
+			readyDelay = 1;
 			execution = true;
 			resetFrameCount();
 		}
@@ -263,21 +269,46 @@ package model
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameResume));
 		}
 		
-		private function forwardGame():void
+		private function resetFrameCount():void
 		{
+			prevFrameCount = getTimer() * 60 / 1000;
+		}
+		
+		public function forwardGame():void
+		{
+			if (execution == false) return;
+			var currentFrameCount:int = getTimer() * 60 / 1000;
+			for (var i:int = 0; i < 4; i++)
+			{
+				if (prevFrameCount + i >= currentFrameCount) break;
+				forwardGamePart();
+			}
+			prevFrameCount = currentFrameCount;
+		}
+		
+		private function forwardGamePart():void
+		{
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.forwardGame));
+			readyDelay--;
+			if (readyDelay > 0) return;
+			if (readyDelay == 0)
+			{
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameStart));
+			}
 			var limitTime:int = getMinGameTime() + 120;
 			var minGameOverTime:int = getMinGameOverTime();
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
-				forwordGamePert(i, limitTime, minGameOverTime);
+				forwordGamePlayer(i, limitTime, minGameOverTime);
 				if (control[i] is NetworkRemoteControl)
 				{
-					forwordGamePert(i, limitTime, minGameOverTime);
+					forwordGamePlayer(i, limitTime, minGameOverTime);
 				}
 			}
+			checkGameEnd();
 		}
 		
-		private function forwordGamePert(index:int, limitTime:int, minGameOverTime:int):void
+		private function forwordGamePlayer(index:int, limitTime:int, minGameOverTime:int):void
 		{
 			if (control[index] == null) return;
 			if (gameModel[index].isGameOver) return;
@@ -325,36 +356,6 @@ package model
 			return ret;
 		}
 		
-		private function resetFrameCount(delay:Boolean = false):void
-		{
-			prevFrameCount = getTimer() * 60 / 1000;
-			if (delay) prevFrameCount -= 60;
-		}
-		
-		public function frameConstructedListener():void
-		{
-			if (execution == false) return;
-			if (prevFrameCount < getTimer() * 60 / 1000 - 60)
-			{
-				resetFrameCount(true);
-			}
-			var time:int = getTimer();
-			while (time >= prevFrameCount * 1000 / 60)
-			{
-				prevFrameCount++;
-				if (readyDelay == 0)
-				{
-					dispatchEvent(new KuzurisEvent(KuzurisEvent.gameStart));
-				}
-				if (readyDelay <= 0)
-				{
-					forwardGame();
-				}
-				readyDelay--;
-			}
-			checkGameEnd();
-		}
-		
 		protected function checkGameEnd():void
 		{
 			var count:int = 0;
@@ -367,13 +368,26 @@ package model
 			{
 				endGame();
 				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
 			}
 		}
 		
-		private function GameEndListener(e:GameEvent):void
+		private function gameEndListener(e:GameEvent):void
 		{
-			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEndPart));
 			dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
+			if (e.type == GameEvent.gameClear)
+			{
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameClear));
+			}
+			else
+			{
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameOvar));
+			}
+		}
+		
+		private function hurryUpListener(e:GameEvent):void
+		{
+			dispatchEvent(new KuzurisEvent(KuzurisEvent.gameHurryUp));
 		}
 		
 		private function createOccurObstacleListener(self:int):Function

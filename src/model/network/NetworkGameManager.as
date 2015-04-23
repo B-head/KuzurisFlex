@@ -40,8 +40,8 @@ package model.network {
 			roomGroup.addTerget(KuzurisEvent.disposed, disposedListener);
 			currentRoom = roomManager.currentRoom;
 			currentRoom.entrant.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener, false, 0, true);
-			//selfControl = networkManager.getSelfGameControl(roomManager.selfInput);
-			selfControl = networkManager.getSelfGameControl(GameAIManager.createDefaultAI());
+			selfControl = networkManager.getSelfGameControl(roomManager.selfInput);
+			//selfControl = networkManager.getSelfGameControl(GameAIManager.createDefaultAI());
 			selfPlayerInfo = roomManager.selfPlayerInfo;
 		}
 		
@@ -144,7 +144,7 @@ package model.network {
 		{
 			var ret:GameReplayContainer = super.makeReplayContainer();
 			ret.roomName = currentRoom.name;
-			ret.traceLog = Main.getTraceLog();
+			//TODO ret.traceLog = Main.getTraceLog();
 			return ret;
 		}
 		

@@ -8,46 +8,50 @@ package events {
 	public class BreakLineEvent extends GameEvent
 	{
 		private var setting:GameSetting;
-		[Bindable]
 		public var line:int;
-		[Bindable]
-		public var comboCount:int;
-		public var position:int;
-		public var colors:Vector.<uint>;
+		public var total:int;
+		public var technicalSpin:int;
+		public var combo:int;
 		
 		public static const breakLine:String = "breakLine";
 		public static const sectionBreakLine:String = "sectionBreakLine";
 		public static const totalBreakLine:String = "totalBreakLine";
-		public static const technicalSpin:String = "technicalSpin";
+		public static const breakTechnicalSpin:String = "breakTechnicalSpin";
+		public static const endCombo:String = "endCombo";
 		
-		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, setting:GameSetting, line:int, comboCount:int, position:int = int.MIN_VALUE, colors:Vector.<uint> = null) 
+		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, setting:GameSetting, line:int, total:int, technicalSpin:int, combo:int) 
 		{ 
 			super(type, gameTime, plusScore);
 			this.setting = setting;
 			this.line = line;
-			this.comboCount = comboCount;
-			this.position = position;
-			this.colors = colors;
+			this.total = total;
+			this.technicalSpin = technicalSpin;
+			this.combo = combo;
 		} 
 		
 		public override function clone():Event 
 		{ 
-			return new BreakLineEvent(type, gameTime, plusScore, setting, line, comboCount, position, colors)
+			return new BreakLineEvent(type, gameTime, plusScore, setting, line, total, technicalSpin, combo)
 		}
 		
 		public function powerLevel():int
 		{
-			return setting.powerLevel(line, comboCount);
+			return setting.powerLevel(total + technicalSpin, combo);
 		}
 		
 		public function powerScale():Number
 		{
-			return setting.powerScale(line, comboCount);;
+			return setting.powerScale(total + technicalSpin, combo);;
 		}
 		
 		public function occurObstacle():int
 		{
-			return setting.occurObstacleCount(line, comboCount);;
+			return setting.occurObstacleCount(total + technicalSpin, combo);;
+		}
+		
+		public function totalPlusScore():int
+		{
+			return setting.breakLineScore(total + technicalSpin, combo)
 		}
 	}
 

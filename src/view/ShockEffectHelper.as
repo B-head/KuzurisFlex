@@ -3,12 +3,14 @@ package view
 	import events.ShockBlockEvent;
 	import flash.utils.Dictionary;
 	import model.BlockState;
+	import model.GameModel;
 	/**
 	 * ...
 	 * @author B_head
 	 */
 	public class ShockEffectHelper 
 	{
+		private var _gameModel:GameModel;
 		private var shockDictionary:Dictionary;
 		
 		public function ShockEffectHelper() 
@@ -16,7 +18,18 @@ package view
 			shockDictionary = new Dictionary();
 		}
 		
-		public function registerShockBlockEvent(e:ShockBlockEvent):void
+		public function get gameModel():GameModel
+		{
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			_gameModel.addTerget(ShockBlockEvent.shockDamage, shockBlockListener);
+			shockDictionary = new Dictionary();
+		}
+		
+		private function shockBlockListener(e:ShockBlockEvent):void
 		{
 			if (shockDictionary[e.id] == undefined)
 			{
@@ -36,7 +49,24 @@ package view
 				else
 				{
 					s.damage += e.damage;
+					s.distance = Math.min(s.distance, e.distance);
 					if (e.toSplit == true) s.toSplit = true;
+				}
+			}
+		}
+		
+		public function incrementFrame():void
+		{
+			for (var s:String in shockDictionary)
+			{
+				var v:Vector.<ShockEffectState> = shockDictionary[s];
+				for (var i:int = 0; i < v.length; i++)
+				{
+					v[i].frameCount++;
+					if (v[i].isEndEffect())
+					{
+						v.splice(i--, 1);
+					}
 				}
 			}
 		}

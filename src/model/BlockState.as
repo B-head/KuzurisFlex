@@ -12,7 +12,7 @@ package model
 		public static const empty:uint = 0;
 		public static const normal:uint = 1;
 		public static const nonBreak:uint = 2;
-		public static const gem:uint = 3;
+		public static const jewel:uint = 3;
 		public static const strong:uint = 4;
 		public static const float:uint = 5;
 		public static const strongFloat:uint = 6;

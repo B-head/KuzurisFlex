@@ -7,12 +7,17 @@ package events {
 	 */
 	public class KuzurisEvent extends Event 
 	{
+		public static const forwardGame:String = "forwardGame";
 		public static const gameReady:String = "gameReady";
 		public static const gameStart:String = "gameStart";
 		public static const gameEnd:String = "gameEnd";
-		public static const gameEndPart:String = "gameEndPart";
+		public static const gameClear:String = "gameClear";
+		public static const gameOvar:String = "gameOvar";
 		public static const gamePause:String = "gamePause";
 		public static const gameResume:String = "gameResume";
+		public static const gameHurryUp:String = "gameHurryUp";
+		public static const playerKnockout:String = "playerKnockout";
+		public static const playerKnockoutOneself:String = "playerKnockoutOneself";
 		public static const initializeGameModel:String = "initializeGameModel";
 		public static const completedSyncState:String = "completedSyncState";
 		public static const connectSuccess:String = "connectSuccess";

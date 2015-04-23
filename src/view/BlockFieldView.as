@@ -4,6 +4,7 @@ package view
 	import flash.geom.ColorTransform;
 	import model.BlockField;
 	import model.BlockState;
+	import model.GameSetting;
 	import mx.core.UIComponent;
 	import mx.core.UIComponentCachePolicy;
 	
@@ -20,6 +21,7 @@ package view
 		public var shockGraphics:ShockEffectGraphics;
 		public var shockEffectHelper:ShockEffectHelper;
 		public var showSpecial:Boolean;
+		public var isGhost:Boolean;
 		
 		private var blocks:Vector.<Bitmap>;
 		private var effects:Vector.<Bitmap>;
@@ -56,19 +58,18 @@ package view
 						effectDamageRest = shockEffectHelper.getDamageRest(id);
 						effectIndex = updateEffects(id, x, y, effectIndex);
 					}
-					updateBlock(bbm, x, y, effectDamageRest, field);
-					var specialUnion:Boolean = field.getSpecialUnion(x, y);
-					bbm.transform.colorTransform = createColorTransform(effectDamageRest, field, specialUnion, shockSave);
+					updateBlock(bbm, x, y, effectDamageRest, field, shockSave);
 				}
 			}
 			postHidden(blockIndex, effectIndex);
 		}
 		
-		private function updateBlock(bbm:Bitmap, x:int, y:int, effectDamageRest:Number, field:BlockField):void
+		private function updateBlock(bbm:Bitmap, x:int, y:int, effectDamageRest:Number, field:BlockField, shockSave:Boolean):void
 		{
 			var type:uint = field.getType(x, y);
 			var color:uint = field.getColor(x, y);
 			var hitPoint:Number = field.getHitPoint(x, y);
+			var specialUnion:Boolean = field.getSpecialUnion(x, y);
 			var reviseHitPoint:Number = Math.ceil(hitPoint + effectDamageRest);
 			var graphicIndex:int = Math.min(blockGraphics.blockLength, reviseHitPoint);
 			graphicIndex = Math.max(graphicIndex, 0);
@@ -76,6 +77,12 @@ package view
 			bbm.visible = true;
 			bbm.x = x * blockGraphics.blockWidth;
 			bbm.y = y * blockGraphics.blockHeight;
+			bbm.transform.colorTransform = createColorTransform(effectDamageRest, specialUnion, shockSave);
+			if (isGhost)
+			{
+				bbm.bitmapData = blockGraphics.ghost[color];
+				return;
+			}
 			switch(type)
 			{
 				case BlockState.normal:
@@ -87,19 +94,15 @@ package view
 					{
 						bbm.bitmapData = blockGraphics.split[color][graphicIndex];
 					}
-					bbm.alpha = 1;
 					break;
 				case BlockState.nonBreak:
 					bbm.bitmapData = blockGraphics.nonBreak[color];
-					bbm.alpha = 1;
 					break;
-				case BlockState.gem:
-					bbm.bitmapData = blockGraphics.gem[color];
-					bbm.alpha = 0.5;
+				case BlockState.jewel:
+					bbm.bitmapData = blockGraphics.jewel[color];
 					break;
 				default:
 					bbm.bitmapData = null;
-					bbm.alpha = 1;
 					break;
 			}
 		}
@@ -111,15 +114,9 @@ package view
 			for (var i:int = 0; i < effectStates.length; i++)
 			{
 				var es:ShockEffectState = effectStates[i];
-				var reviseFrame:int = es.getReviseFrame();
-				if (es.isEndEffect())
-				{
-					effectStates.splice(i--, 1);
-					continue;
-				}
-				es.frameCount++;
-				if (es.isNonVisible()) continue;
+				if (!es.isVisible()) continue;
 				if (effectIndex >= effects.length) addEffect();
+				var reviseFrame:int = es.getGraphicFrame();
 				var ebm:Bitmap = effects[effectIndex++];
 				ebm.visible = true;
 				if (es.toSplit)
@@ -130,15 +127,15 @@ package view
 				{
 					ebm.bitmapData = shockGraphics.normal[reviseFrame];
 				}
-				ebm.x = x * shockGraphics.blockWidth - shockGraphics.blockWidth / 2;
-				ebm.y = y * shockGraphics.blockHeight - shockGraphics.blockHeight / 2;
+				ebm.x = x * shockGraphics.blockWidth + shockGraphics.offsetX;
+				ebm.y = y * shockGraphics.blockHeight + shockGraphics.offsetY;
 			}
 			return effectIndex;
 		}
 		
-		private function createColorTransform(effectDamageRest:Number, field:BlockField, specialUnion:Boolean, shockSave:Boolean):ColorTransform
+		private function createColorTransform(effectDamageRest:Number, specialUnion:Boolean, shockSave:Boolean):ColorTransform
 		{
-			var tedr:Number = Math.min(1, effectDamageRest / ShockEffectState.hitPointMax);
+			var tedr:Number = Math.min(1, effectDamageRest / GameSetting.hitPointMax);
 			var multi:Number = 1 - tedr;
 			var offset:int = 0xFF * tedr;
 			var colorTransform:ColorTransform = new ColorTransform(multi, multi, multi, 1, offset, offset, offset, 0);

@@ -123,11 +123,13 @@ package model
 		
 		public function getNextTrialObstacleTime(gameTime:int):int
 		{
+			if (setting == null) return 0;
 			return (trialLastAddition + setting.obstacleInterval) - gameTime;
 		}
 		
 		public function getTrialObstacleEnableTime(gameTime:int):int
 		{
+			if (setting == null) return 0;
 			return (trialLastAddition + setting.obstacleSaveTime) - gameTime;
 		}
 		
@@ -177,6 +179,7 @@ package model
 			}
 			if (isUpdate)
 			{
+				if (noticeCount > 0) dispatchEvent(new GameEvent(GameEvent.cautionObstacle, gameTime, 0));
 				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
 		}
@@ -253,7 +256,7 @@ package model
 				trialLastAddition = gameTime;
 				dispatchEvent(new GameEvent(GameEvent.updateObstacle, gameTime, 0));
 			}
-			if (getNextTrialObstacleTime(gameTime) == 0)
+			if (getNextTrialObstacleTime(gameTime) <= 0)
 			{
 				appendRecord(ObstacleRecord.trialObstacle, setting.obstacleAdditionCount, gameTime, trialSequence);
 				trialLastAddition = gameTime;

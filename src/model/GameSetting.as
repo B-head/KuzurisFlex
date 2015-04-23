@@ -1,6 +1,6 @@
 package model 
 {
-	import view.GameSoundEffect;
+	import view.GameModelSoundEffect;
 	/**
 	 * ...
 	 * @author B_head
@@ -19,21 +19,6 @@ package model
 		public static const classicBattle:String = "classicBattle";
 		public static const digBattle:String = "digBattle";
 		
-		public const levelUpCoefficient:int = 4000;
-		public const levelTimeCoefficient:int = 6000;
-		public const breakLineCoefficient:int = 1000;
-		public const blockAllClearBonusScore:int = 25000;
-		public const blockAllClearBonusObstacle:int = 100;
-		public const excellentBonusScore:int = 25000;
-		public var obstacleLineMax:int;
-		public const obstacleLineBlockMax:int = 5;
-		public const towerLineBlockMax:int = 6;
-		public const alwaysHurryUp:Boolean = false;
-		public const hurryUpStartMargin:int = 1800;
-		public const hurryUpMargin:int = 180;
-		public const obstacleColor1:uint = Color.toIndex(Color.lightgray);
-		public const obstacleColor2:uint = Color.toIndex(Color.gray);
-		
 		public var version:uint = alpha1;
 		public var gameMode:String = free;
 		public var startLevel:int = 1;
@@ -42,10 +27,24 @@ package model
 		public var gameClearLevel:int = 20;
 		public var handicap:Number;
 		
-		public const hitPointMax:Number = 10;
-		public var naturalFallSpeed:Number;
+		public const levelUpCoefficient:int = 5000;
+		public const levelTimeCoefficient:int = 6000;
+		public const breakLineCoefficient:int = 1000;
+		public const blockAllClearBonusScore:int = 25000;
+		public const blockAllClearBonusObstacle:int = 100;
+		public const excellentBonusScore:int = 25000;
+		
+		public static const shockDamageCoefficient:Number = 2.5;
+		public static const indirectShockDamageCoefficient:Number = 1;
+		public static const naturalShockDamageCoefficient:Number = 0.5;
+		
+		public static const hitPointMax:Number = 10;
+		public var compelFallSpeed:Number;
 		public var fastFallSpeed:Number;
+		public var maxNaturalFallSpeed:Number;
 		public var fallAcceleration:Number;
+		public static const basicAccelerationDividend:Number = 20;
+		public static const basicAccelerationDivisor:Number = 1200;
 		public var playTime:int;
 		public const playFastTime:int = 15;
 		public const breakLineDelay:int = 0;
@@ -55,11 +54,19 @@ package model
 		public var bigOminoCountMax:int;
 		public var bigOminoCountAddition:Number;
 		
-		public const obstacleSaveTime:int = 120;
+		public const obstacleSaveTime:int = 0;
 		public var obstacleInterval:int;
 		public var obstacleAdditionCount:Number;
 		public var obstacleInitialCoefficient:int;
 		public var obstacleDivisor:int;
+		public var obstacleLineMax:int;
+		public const obstacleLineBlockMax:int = 5;
+		public const towerLineBlockMax:int = 6;
+		public const obstacleColor:uint = Color.toIndex(Color.lightgray);
+		
+		public const alwaysHurryUp:Boolean = false;
+		public const hurryUpStartMargin:int = 1800;
+		public const hurryUpMargin:int = 180;
 		
 		public static function modeToText(mode:String):String
 		{
@@ -183,6 +190,21 @@ package model
 			return obstacleLineMax * obstacleLineBlockMax;
 		}
 		
+		public function getJewelColor(rand:Number):uint
+		{
+			switch(int(7 * rand))
+			{
+				case 0: return Color.toIndex(Color.red);
+				case 1: return Color.toIndex(Color.orange);
+				case 2: return Color.toIndex(Color.yellow);
+				case 3: return Color.toIndex(Color.green);
+				case 4: return Color.toIndex(Color.skyblue);
+				case 5: return Color.toIndex(Color.blue);
+				case 6: return Color.toIndex(Color.purple);
+				default: throw new Error();
+			}
+		}
+		
 		public function setLevelParameter(level:int):void
 		{
 			if (level > 20) level = 20;
@@ -233,25 +255,26 @@ package model
 		{
 			if (gameMode == axelSpeed)
 			{
-				naturalFallSpeed = 20 / exponentLeveling(level, 1200, 1, 100);
-				fastFallSpeed = (naturalFallSpeed > 1 ? naturalFallSpeed : 1);
-				fallAcceleration = 10 / 400;
+				compelFallSpeed = 20 / exponentLeveling(level, 1200, 1, 100);
+				fastFallSpeed = (compelFallSpeed > 1 ? compelFallSpeed : 1);
+				fallAcceleration = basicAccelerationDividend / basicAccelerationDivisor;
 				playTime = 60;
 			}
 			else if (gameMode == overSpeed)
 			{
-				naturalFallSpeed = 20;
+				compelFallSpeed = 20;
 				fastFallSpeed = 20;
-				fallAcceleration = 10 / exponentLeveling(level, 400, 1, 100);
+				fallAcceleration = basicAccelerationDividend / exponentLeveling(level, basicAccelerationDivisor, 1, 100);
 				playTime = linerLeveling(level, 60, 20);
 			}
 			else
 			{
-				naturalFallSpeed = 20 / 1200;
+				compelFallSpeed = 20 / 1200;
 				fastFallSpeed = 1;
-				fallAcceleration = 10 / 400;
+				fallAcceleration = basicAccelerationDividend / basicAccelerationDivisor;
 				playTime = 60;
 			}
+			maxNaturalFallSpeed = Math.sqrt(40 * fallAcceleration);
 		}
 		
 		private function setObstacleAddition(level:int):void

@@ -65,7 +65,7 @@
 				var ret:ClassFactory = new ClassFactory(DefaultGridItemRenderer);
 				if (item == currentRecord)
 				{
-					ret.properties = { styleName:"current-record" };
+					ret.properties = { styleName:"current-record-item" };
 				}
 				return ret;
 			}

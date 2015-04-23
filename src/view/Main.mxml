@@ -6,16 +6,15 @@
 		<![CDATA[
 			import events.*;
 			import flash.display.*;
-			import flash.events.MouseEvent;
+			import flash.events.*;
 			import flash.media.*;
 			import flash.net.*;
 			import flash.ui.*;
 			import model.*;
 			import mx.core.*;
-			import mx.events.FlexEvent;
+			import mx.events.*;
 			import net.hires.debug.*;
-			import spark.components.RichEditableText;
-			import spark.components.RichText;
+			import spark.components.*;
 			import spark.core.*;
 			
 			public static var blockGraphics:BlockGraphics;
@@ -183,10 +182,9 @@
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4"
 								  paddingLeft="4" paddingRight="4" />
 			</s:layout>
-			<s:Label styleName="sub-title" text="壊リスの偽物" />
 			<s:Image source="@Embed(source='../graphic/title-logo.png')" />
-			<s:Label styleName="version" text="alpha version" />
-			<s:Label styleName="license" text="Copyright © 2015 by B_head, All Rights Reserved." />
+			<s:Label text="alpha version" fontSize="24" color="{Color.skyblue}" />
+			<s:Label text="Copyright © 2015 by B_head, All Rights Reserved." color="{Color.lightgray}" />
 		</s:BorderContainer>
 
 		<s:VGroup includeIn="top" height="380" x="454" y="50" verticalAlign="middle"
@@ -233,6 +231,10 @@
 	<v:BattleDuel id="battleDuel" includeIn="battleDuel" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<v:BattleMulti id="battleMulti" includeIn="battleMulti" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<v:NetworkLounge id="network" includeIn="network" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
+	<s:BorderContainer id="credit" includeIn="credit" verticalCenter="0" horizontalCenter="0">
+		<s:Button styleName="back" width="100" label="もどる"
+				  buttonDown="currentState = 'top'" />
+	</s:BorderContainer>
 	<v:VolumeControl bottom="0" left="0" />
 	<s:ToggleButton id="fullScreen" bottom="0" right="0" label="フルスクリーン" visible="false" click="fullScreenChangeListener(event)" 
 		icon="@Embed(source='../graphic/full_screen.png')" />

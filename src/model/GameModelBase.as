@@ -14,10 +14,6 @@ package model
 		public static const gameOverHeight:int = 19;
 		public static const ominoSize:int = 10;
 		public static const nextLength:int = 6;
-		
-		public static const shockDamageCoefficient:Number = 2.5;
-		public static const indirectShockDamageCoefficient:Number = 1;
-		public static const naturalShockDamageCoefficient:Number = 0.5;
 		public const distanceDamageCoefficient:Vector.<Number> = generateDistanceDamageCoefficient();
 		public const fallingLossTime:Vector.<int> = generateFallingLossTime();
 		
@@ -90,7 +86,7 @@ package model
 			return;
 		}
 		
-		protected function onBlockDamage(damage:Number, id:uint, toSplit:Boolean):void
+		protected function onBlockDamage(damage:Number, distance:int, id:uint, toSplit:Boolean):void
 		{
 			return;
 		}
@@ -136,7 +132,7 @@ package model
 				blockscCount -= collideFallingBlocks(i, _tempField);
 				var coefficient:Number = getNaturalShockDamage(i, fast);
 				var damage:Number = shockDamage(_tempField, 0, i, coefficient)
-				onSectionDamage(damage, shockDamageCoefficient * coefficient);
+				onSectionDamage(damage, GameSetting.shockDamageCoefficient * coefficient);
 				_tempField.fix(_mainField, 0, i);
 				if (blockscCount <= 0) break;
 			}
@@ -164,8 +160,8 @@ package model
 		{
 			var area:int = field.blocksHitChack(_mainField, dx, dy + 1, true);
 			var blockCount:int = field.blockCount;
-			var shockDamage:Number = shockDamageCoefficient * damageCoefficient * blockCount / area;
-			var indirectShockDamage:Number = indirectShockDamageCoefficient * damageCoefficient * blockCount / area;
+			var shockDamage:Number = GameSetting.shockDamageCoefficient * damageCoefficient * blockCount / area;
+			var indirectShockDamage:Number = GameSetting.indirectShockDamageCoefficient * damageCoefficient * blockCount / area;
 			var result:Number = 0;
 			for (var x:int = field.left; x <= field.right; x++)
 			{
@@ -202,42 +198,7 @@ package model
 		{
 			if (fast) n = distanceDamageCoefficient.length - 1;
 			if (n >= distanceDamageCoefficient.length) n = distanceDamageCoefficient.length - 1;
-			return naturalShockDamageCoefficient * distanceDamageCoefficient[n];
-		}
-		
-		private static function generateDistanceDamageCoefficient():Vector.<Number>
-		{
-			var vec:Vector.<Number> = new Vector.<Number>(41, true);
-			var g:Number = 1 / 40;
-			for (var i:int = 0, l:int = vec.length; i < l; i++)
-			{
-				if (i < 20)
-				{
-					vec[i] = Math.sqrt(2 * g * i);
-				}
-				else
-				{
-					vec[i] = 1;
-				}
-			}
-			return vec;
-		}
-		
-		private static function generateFallingLossTime():Vector.<int>
-		{
-			var vec:Vector.<int> = new Vector.<int>(41, true);
-			var g:Number = 10 / 400;
-			var fs:Number = 0;
-			var time:int = 0;
-			for (var i:Number = 0; i < GameModelBase.fieldHeight; i += fs)
-			{
-				vec[int(i) + 1] = time;
-				if (vec[int(i)] == 0) vec[int(i)] = time;
-				fs += g;
-				time++;
-			}
-			vec[0] = 0;
-			return vec;
+			return GameSetting.naturalShockDamageCoefficient * distanceDamageCoefficient[n];
 		}
 		
 		public function init_cox(rect:Rect):int
@@ -258,6 +219,49 @@ package model
 		public function rotateReviseY(from:Rect, to:Rect):int
 		{
 			return from.bottom - to.bottom;
+		}
+		
+		private function generateDistanceDamageCoefficient():Vector.<Number>
+		{
+			var vec:Vector.<Number> = new Vector.<Number>(41, true);
+			var g:Number = 1 / 40;
+			for (var i:int = 0; i < vec.length; i++)
+			{
+				if (i <= 20)
+				{
+					vec[i] = Math.sqrt(2 * g * i);
+				}
+				else
+				{
+					vec[i] = Math.sqrt(40 * g);
+				}
+				//trace(i, vec[i]);
+			}
+			return vec;
+		}
+		
+		private function generateFallingLossTime():Vector.<int>
+		{
+			var vec:Vector.<int> = new Vector.<int>(41, true);
+			var g:Number = GameSetting.basicAccelerationDividend / GameSetting.basicAccelerationDivisor;
+			var fs:Number = 0;
+			var time:int = 0;
+			for (var i:Number = 0; i < 40; i += fs)
+			{
+				vec[int(i) + 1] = time;
+				if (vec[int(i)] == 0)
+				{
+					vec[int(i)] = time;
+				}
+				fs += g;
+				time++;
+			}
+			vec[0] = 0;
+			for (var k:int = 0; k < vec.length; k++)
+			{
+				//trace(k, vec[k]);
+			}
+			return vec;
 		}
 	}
 }

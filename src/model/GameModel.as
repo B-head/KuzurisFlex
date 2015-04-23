@@ -8,17 +8,19 @@ package model
 	 * @author B_head
 	 */
 	[Event(name="forwardGame", type="events.GameEvent")]
-	[Event(name="updateField", type="events.GameEvent")]
-	[Event(name="updateControl", type="events.GameEvent")]
 	[Event(name="updateNext", type="events.GameEvent")]
 	[Event(name="firstUpdateNext", type="events.GameEvent")]
-	[Event(name="updateObstacle", type="events.GameEvent")]
 	[Event(name="gameOver", type="events.GameEvent")]
 	[Event(name="gameClear", type="events.GameEvent")]
+	[Event(name="breakChain", type="events.GameEvent")]
 	[Event(name="breakConbo", type="events.GameEvent")]
 	[Event(name="extractFall", type="events.GameEvent")]
 	[Event(name="obstacleFall", type="events.GameEvent")]
 	[Event(name="appendTower", type="events.GameEvent")]
+	[Event(name="appendHurryUp", type="events.GameEvent")]
+	[Event(name="beginHurryUp", type="events.GameEvent")]
+	[Event(name="jewelAllClear", type="events.GameEvent")]
+	[Event(name="blockAllClear", type="events.GameEvent")]
 	[Event(name="fixOmino", type="events.ControlEvent")]
 	[Event(name="setOmino", type="events.ControlEvent")]
 	[Event(name="moveOK", type="events.ControlEvent")]
@@ -39,6 +41,7 @@ package model
 	[Event(name="breakLine", type="events.BreakLineEvent")]
 	[Event(name="sectionBreakLine", type="events.BreakLineEvent")]
 	[Event(name="totalBreakLine", type="events.BreakLineEvent")]
+	[Event(name="breakTechnicalSpin", type="events.BreakLineEvent")]
 	public class GameModel extends GameModelBase implements IExternalizable
 	{
 		private var _setting:GameSetting;
@@ -79,7 +82,8 @@ package model
 		private var technicalSpinFlag:Boolean;
 		private var chainLine:int;
 		private var chainDamage:Number = 0;
-		private var comboTotalLine:int;
+		private var comboEraseLine:int;
+		private var comboTechnicalSpin:int;
 		private var comboCount:int;
 		private var blockAllClearCount:int;
 		private var excellentCount:int;
@@ -108,9 +112,9 @@ package model
 			}
 		}
 		
-		[Bindable(event="forwardGame")]
 		public function get goy():Number
 		{
+			if (_controlOmino == null) return 0;
 			for (var i:int = coy; i < fieldHeight; i++)
 			{
 				var a:int = _controlOmino.blocksHitChack(_mainField, cox, i + 1, true);
@@ -119,45 +123,28 @@ package model
 			return i;
 		}
 		
-		[Bindable(event="forwardGame")]
 		public function get rfvy():Number
 		{
 			var rect:Rect = _mainField.getRect();
 			return rect.top;
 		}
 		
-		[Bindable(event="forwardGame")]
 		public function get cox():Number { return _cox; }
-		
-		[Bindable(event="forwardGame")]
 		public function get coy():Number { return _coy; }
-		
-		[Bindable(event="forwardGame")]
 		public function get ffy():Number { return _ffy; }
-		
-		[Bindable(event="forwardGame")]
 		public function get cd():Number { return _cd; }
-		
-		[Bindable(event="forwardGame")]
 		public function get shockSave():Boolean { return _shockSave; }
-		
-		[Bindable(event="forwardGame")]
 		public function get isGameOver():Boolean { return _isGameOver; }
-		
-		[Bindable(event="forwardGame")]
 		public function get isObstacleAddition():Boolean { return _setting.isObstacleAddition(); }
-		
-		[Bindable(event="forwardGame")]
 		public function get record():GameRecord { return _record.clone(); }
-		
-		[Bindable(event="forwardGame")]
 		public function get setting():GameSetting { return _setting.clone(); }
-		
-		[Bindable(event="forwardGame")]
 		public function get obstacleManager():ObstacleManager { return _obstacleManager; }
-		
-		[Bindable(event="forwardGame")]
 		public function get nextObstacleTime():int { return _obstacleManager.getNextTrialObstacleTime(_record.gameTime); }
+		
+		private function comboLine():int
+		{
+			return comboEraseLine + comboTechnicalSpin;
+		}
 		
 		public function hash():uint
 		{
@@ -168,7 +155,7 @@ package model
 		{
 			copyTo(to);
 			to.comboCount = comboCount;
-			to.comboTotalLine = comboTotalLine;
+			to.comboTotalLine = comboEraseLine;
 			to.isHurryUp = isHarryUp();
 		}
 		
@@ -250,7 +237,7 @@ package model
 		private function forwardNonControl():void
 		{
 			fallSpeed += _setting.fallAcceleration;
-			if (fallSpeed > _setting.fastFallSpeed) fallSpeed = _setting.fastFallSpeed;
+			if (fallSpeed > _setting.maxNaturalFallSpeed) fallSpeed = _setting.maxNaturalFallSpeed;
 			fallingField(int(_ffy), int(_ffy + fallSpeed), fastFall);
 			_ffy += fallSpeed;
 			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
@@ -262,28 +249,27 @@ package model
 			if (bl > 0) delayRest = _setting.breakLineDelay;
 			if (technicalSpinFlag && firstBreakLine)
 			{
-				chainLine += bl;
-				comboTotalLine += bl;
-				var tsps:int = _setting.breakLineScore(comboTotalLine + 1, comboCount) - _setting.breakLineScore(comboTotalLine, comboCount);
+				comboTechnicalSpin += bl;
+				var tsps:int = _setting.breakLineScore(comboLine(), comboCount) - _setting.breakLineScore(comboLine() - bl, comboCount);
 				_record.gameScore += tsps;
-				var tsoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
+				var tsoc:int = obstacleManager.occurObstacle(_record.gameTime, comboLine(), comboCount, blockAllClearCount);
 				_record.occurObstacle += tsoc;
-				dispatchEvent(new BreakLineEvent(BreakLineEvent.technicalSpin, _record.gameTime, tsps, _setting, bl, comboCount));
+				dispatchEvent(new BreakLineEvent(BreakLineEvent.breakTechnicalSpin, _record.gameTime, tsps, _setting, bl, comboEraseLine, comboTechnicalSpin, comboCount));
 			}
 			onSectionBreakLine(bl);
 			firstBreakLine = false;
 			levelUp();
-			if (_setting.isTowerAddition() && gemCount > 0 && _mainField.getTypeCount(BlockState.gem) == 0)
+			if (_setting.isTowerAddition() && gemCount > 0 && _mainField.getTypeCount(BlockState.jewel) == 0)
 			{
 				appendTowerCount = getAppendTowerCount();
 				var prevGemCount:int = gemCount;
-				gemCount = _mainField.getTypeCount(BlockState.gem) + appendTowerCount;
+				gemCount = _mainField.getTypeCount(BlockState.jewel) + appendTowerCount;
 				excellentCount++;
 				var ecs:int = _setting.excellentBonusScore * prevGemCount;
 				_record.gameScore += ecs;
-				var ecoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
+				var ecoc:int = obstacleManager.occurObstacle(_record.gameTime, comboLine(), comboCount, blockAllClearCount);
 				_record.occurObstacle += ecoc;
-				dispatchEvent(new GameEvent(GameEvent.excellent, _record.gameTime, ecs));
+				dispatchEvent(new GameEvent(GameEvent.jewelAllClear, _record.gameTime, ecs));
 				dispatchEvent(new GameEvent(GameEvent.appendTower, _record.gameTime, 0));
 				return;
 			}
@@ -299,7 +285,7 @@ package model
 				blockAllClearCount++;
 				var acs:int = _setting.blockAllClearBonusScore;
 				_record.gameScore += acs;
-				var acoc:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
+				var acoc:int = obstacleManager.occurObstacle(_record.gameTime, comboLine(), comboCount, blockAllClearCount);
 				_record.occurObstacle += acoc;
 				dispatchEvent(new GameEvent(GameEvent.blockAllClear, _record.gameTime, acs));
 			}
@@ -311,15 +297,15 @@ package model
 			}
 			_mainField.clearSpecialUnion();
 			dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
-			dispatchEvent(new GameEvent(GameEvent.breakChain, _record.gameTime, 0));
 			if (chainDamage > 0)
 			{
 				_record.blockDamage += chainDamage;
-				dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, chainDamage, chainDamage, chainDamage));
+				dispatchEvent(new ShockBlockEvent(ShockBlockEvent.totalDamage, _record.gameTime, chainDamage, chainDamage));
 			}
-			if (chainLine > 0 || technicalSpinFlag)
+			if (chainLine > 0)
 			{
-				dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, _record.gameTime, _setting.breakLineScore(comboTotalLine, comboCount), _setting, comboTotalLine, comboCount));
+				var tps:int = _setting.breakLineScore(comboLine(), comboCount);
+				dispatchEvent(new BreakLineEvent(BreakLineEvent.totalBreakLine, _record.gameTime, tps, _setting, comboLine(), comboEraseLine, comboTechnicalSpin, comboCount));
 				completedObstacle = true;
 				completedTower = true;
 				technicalSpinFlag = false;
@@ -327,17 +313,23 @@ package model
 			}
 			else
 			{
-				_record.incrementChainLines(comboTotalLine);
-				comboTotalLine = 0;
+				if (comboEraseLine > 0 || technicalSpinFlag)
+				{
+					comboCount = Math.max(0, comboCount - 1);
+					var ecps:int = _setting.breakLineScore(comboLine(), comboCount);
+					dispatchEvent(new BreakLineEvent(BreakLineEvent.endCombo, _record.gameTime, ecps, _setting, comboLine(), comboEraseLine, comboTechnicalSpin, comboCount));
+					_record.incrementChainLines(comboEraseLine);
+					obstacleManager.breakCombo(_record.gameTime);
+				}
+				comboEraseLine = 0;
+				comboTechnicalSpin = 0;
 				comboCount = 0;
 				blockAllClearCount = 0;
 				excellentCount = 0;
-				obstacleManager.breakCombo(_record.gameTime);
-				dispatchEvent(new GameEvent(GameEvent.breakCombo, _record.gameTime, 0));
 			}
 			chainLine = 0;
 			chainDamage = 0;
-			if (_setting.isGameClear(_record.level))
+			if (_setting.isGameClear(_record.level) && comboCount == 0)
 			{
 				_isGameOver = true;
 				dispatchEvent(new GameEvent(GameEvent.gameClear, _record.gameTime, 0));
@@ -346,7 +338,7 @@ package model
 			if (!completedTower && _setting.isTowerAddition())
 			{
 				appendTowerCount = getAppendTowerCount();
-				gemCount = _mainField.getTypeCount(BlockState.gem) + appendTowerCount;
+				gemCount = _mainField.getTypeCount(BlockState.jewel) + appendTowerCount;
 				if (appendTowerCount > 0)
 				{
 					completedTower = true;
@@ -357,7 +349,7 @@ package model
 			if (!completedObstacle && _obstacleManager.noticePrintCount > 0)
 			{
 				var oc:int = appendObstacleBlocks();
-				fallSpeed = _setting.fastFallSpeed;
+				fallSpeed = _setting.maxNaturalFallSpeed;
 				fastFall = true;
 				completedObstacle = true;
 				dispatchEvent(new GameEvent(GameEvent.updateField, _record.gameTime, 0));
@@ -411,26 +403,26 @@ package model
 		
 		override protected function onBreakLine(y:int, colors:Vector.<uint>):void 
 		{
-			var plus:int = _setting.breakLineScore(comboTotalLine + 1, comboCount) - _setting.breakLineScore(comboTotalLine, comboCount);
+			var plus:int = _setting.breakLineScore(comboLine() + 1, comboCount) - _setting.breakLineScore(comboLine(), chainLine == 0 ? comboCount - 1 : comboCount);
 			_record.gameScore += plus;
 			_record.breakLine++;
 			chainLine++;
-			comboTotalLine++;
-			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, _setting, comboTotalLine, comboCount, y, colors));
-			var obs:int = obstacleManager.occurObstacle(_record.gameTime, comboTotalLine, comboCount, blockAllClearCount);
+			comboEraseLine++;
+			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, _setting, y, comboEraseLine, comboTechnicalSpin, comboCount));
+			var obs:int = obstacleManager.occurObstacle(_record.gameTime, comboEraseLine, comboCount, blockAllClearCount);
 			_record.occurObstacle += obs;
 		}
 		
 		override protected function onSectionBreakLine(count:int):void 
 		{
 			if (count == 0) return;
-			var plus:int = _setting.breakLineScore(comboTotalLine, comboCount);
-			dispatchEvent(new BreakLineEvent(BreakLineEvent.sectionBreakLine, _record.gameTime, plus, _setting, comboTotalLine, comboCount));
+			var plus:int = _setting.breakLineScore(comboLine(), comboCount + 1) - _setting.breakLineScore(comboLine() - chainLine, comboCount);;
+			dispatchEvent(new BreakLineEvent(BreakLineEvent.sectionBreakLine, _record.gameTime, plus, _setting, chainLine, comboEraseLine, comboTechnicalSpin, comboCount));
 		}
 		
-		override protected function onBlockDamage(damage:Number, id:uint, toSplit:Boolean):void 
+		override protected function onBlockDamage(damage:Number, distance:int, id:uint, toSplit:Boolean):void 
 		{
-			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, _record.gameTime, 0, damage, Number.NaN, Number.NaN, id, toSplit));
+			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, _record.gameTime, 0, damage, Number.NaN, distance, id, toSplit));
 		}
 		
 		override protected function onSectionDamage(damage:Number, coefficient:Number):void
@@ -439,7 +431,7 @@ package model
 			var plus:int = chainDamage % 1 + damage;
 			_record.gameScore += plus;
 			chainDamage += damage;
-			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.sectionDamage, _record.gameTime, plus, damage, chainDamage, coefficient));
+			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.sectionDamage, _record.gameTime, plus, damage, coefficient));
 		}
 		
 		private function rotationOmino(rotation:int):void
@@ -460,15 +452,7 @@ package model
 			var cacheRect:Rect = cacheOmino.getRect();
 			var sx:int = rotateReviseX(controlRect, cacheRect);
 			var sy:int = rotateReviseY(controlRect, cacheRect);
-			var dir:int;
-			if (lastMoveDir == GameCommand.nothing)
-			{
-				dir = rotation;
-			}
-			else
-			{
-				dir = lastMoveDir;
-			}
+			var dir:int = rotation;
 			for (var i:int = 0; i < ominoSize; i++)
 			{
 				if (i == 0)
@@ -476,27 +460,31 @@ package model
 					if (rotationChack(cacheOmino, controlRect, cacheRect, sx, sy)) return;
 					continue;
 				}
-				for (var m:int = 0; m < i; m++)
+				var k:int = 0;
+				var a:int = 0;
+				for (k = 0; k < i; k++)
 				{
-					var b:int = (dir == GameCommand.left ? m * -1 : m);
-					if (rotationChack(cacheOmino, controlRect, cacheRect, sx + b, sy + i)) return;
-					if (rotationChack(cacheOmino, controlRect, cacheRect, sx + b, sy - i)) return;
-					if (m > 0)
-					{
-						if (rotationChack(cacheOmino, controlRect, cacheRect, sx - b, sy + i)) return;
-						if (rotationChack(cacheOmino, controlRect, cacheRect, sx - b, sy - i)) return;
-					}
+					a = (dir == GameCommand.left ? k * -1 : k);
+					if (rotationChack(cacheOmino, controlRect, cacheRect, sx + a, sy + i)) return;
+					if (k > 0) if (rotationChack(cacheOmino, controlRect, cacheRect, sx - a, sy + i)) return;
 				}
-				for (var k:int = 0; k <= i; k++)
+				for (k = 0; k <= i; k++)
 				{
-					var a:int = (dir == GameCommand.left ? i * -1 : i);
+					a = (dir == GameCommand.left ? i * -1 : i);
 					if (rotationChack(cacheOmino, controlRect, cacheRect, sx + a, sy + k)) return;
 					if (rotationChack(cacheOmino, controlRect, cacheRect, sx - a, sy + k)) return;
-					if (k > 0)
-					{
-						if (rotationChack(cacheOmino, controlRect, cacheRect, sx + a, sy - k)) return;
-						if (rotationChack(cacheOmino, controlRect, cacheRect, sx - a, sy - k)) return;
-					}
+				}
+				for (k = 1; k < i; k++)
+				{
+					a = (dir == GameCommand.left ? i * -1 : i);
+					if (rotationChack(cacheOmino, controlRect, cacheRect, sx + a, sy - k)) return;
+					if (rotationChack(cacheOmino, controlRect, cacheRect, sx - a, sy - k)) return;
+				}
+				for (k = 0; k <= i; k++)
+				{
+					a = (dir == GameCommand.left ? k * -1 : k);
+					if (rotationChack(cacheOmino, controlRect, cacheRect, sx + a, sy - i)) return;
+					if (k > 0) if (rotationChack(cacheOmino, controlRect, cacheRect, sx - a, sy - i)) return;
 				}
 			}
 			dispatchEvent(new ControlEvent(ControlEvent.rotationNG, _record.gameTime, 0, _cox, _coy));
@@ -504,8 +492,9 @@ package model
 		
 		private function rotationChack(cacheOmino:OminoField, controlRect:Rect, cacheRect:Rect, x:int, y:int):Boolean
 		{
-			if (controlRect.left > cacheRect.right + x || controlRect.right < cacheRect.left + x) return false;
-			if (controlRect.top > cacheRect.bottom + y || controlRect.bottom < cacheRect.top + y) return false;
+			//if (controlRect.left > cacheRect.right + x || controlRect.right < cacheRect.left + x) return false;
+			//if (controlRect.top > cacheRect.bottom + y || controlRect.bottom < cacheRect.top + y) return false;
+			if (cacheOmino.blocksHitChack(_controlOmino, x, y, false) == 0) return false;
 			if (cacheOmino.blocksHitChack(_mainField, _cox + x, _coy + y, true) > 0) return false;
 			_controlOmino = cacheOmino;
 			dispatchEvent(new GameEvent(GameEvent.updateControl, _record.gameTime, 0));
@@ -528,11 +517,11 @@ package model
 				{
 					dispatchEvent(new ControlEvent(ControlEvent.moveOK, _record.gameTime, 0, _cox, _coy));
 					_cox -= 1;
+					playLimit = 0;
 				}
-				else
+				else if (lastMoveDir == GameCommand.nothing)
 				{
 					dispatchEvent(new ControlEvent(ControlEvent.moveNG, _record.gameTime, 0, _cox, _coy));
-					return;
 				}
 			}
 			else if (move == GameCommand.right)
@@ -541,19 +530,14 @@ package model
 				{
 					dispatchEvent(new ControlEvent(ControlEvent.moveOK, _record.gameTime, 0, _cox, _coy));
 					_cox += 1;
+					playLimit = 0;
 				}
-				else
+				else if (lastMoveDir == GameCommand.nothing)
 				{
 					dispatchEvent(new ControlEvent(ControlEvent.moveNG, _record.gameTime, 0, _cox, _coy));
-					return;
 				}
 			}
-			else
-			{
-				return;
-			}
 			lastMoveDir = move;
-			playLimit = 0;
 		}
 		
 		private function fallingOmino(falling:int, fix:Boolean, noDamage:Boolean):void
@@ -561,7 +545,7 @@ package model
 			switch(falling)
 			{
 				case GameCommand.fast:
-					fallSpeed = _setting.fastFallSpeed > _setting.naturalFallSpeed ? _setting.fastFallSpeed : _setting.naturalFallSpeed;
+					fallSpeed = _setting.fastFallSpeed > _setting.compelFallSpeed ? _setting.fastFallSpeed : _setting.compelFallSpeed;
 					if (!controlFalling)
 					{
 						controlFalling = true;
@@ -572,7 +556,7 @@ package model
 					fallSpeed = fieldHeight;
 					break;
 				default:
-					fallSpeed = _setting.naturalFallSpeed;
+					fallSpeed = _setting.compelFallSpeed;
 					startFall = _coy;
 					if (controlFalling)
 					{
@@ -692,7 +676,7 @@ package model
 				omino = randomReadOmino(nextPRNG.genUint(), nextPRNG.genUint());
 			}
 			var color:uint = omino.coloringOmino();
-			omino.allSetState(BlockState.normal, color, _setting.hitPointMax, true);
+			omino.allSetState(BlockState.normal, color, GameSetting.hitPointMax, true);
 			rotateNext(omino);
 			if (init ? _nextOmino[0] == null : _controlOmino == null)
 			{
@@ -765,11 +749,11 @@ package model
 				var y:int = GameModelBase.gameOverHeight - i;
 				if (rest < _setting.obstacleLineBlockMax)
 				{
-					rest -= setObstacleLine(y, rest, BlockState.normal, _setting.obstacleColor1, _setting.hitPointMax);
+					rest -= setObstacleLine(y, rest, BlockState.normal, _setting.obstacleColor, GameSetting.hitPointMax);
 				}
 				else
 				{
-					rest -= setObstacleLine(y, _setting.obstacleLineBlockMax, BlockState.normal, _setting.obstacleColor1, _setting.hitPointMax);
+					rest -= setObstacleLine(y, _setting.obstacleLineBlockMax, BlockState.normal, _setting.obstacleColor, GameSetting.hitPointMax);
 				}
 			}
 			return ret - rest;
@@ -777,7 +761,7 @@ package model
 		
 		private function getAppendTowerCount():int
 		{
-			var a:int = 10 - _mainField.getTypeCount(BlockState.gem);
+			var a:int = 10 - _mainField.getTypeCount(BlockState.jewel);
 			var b:int = _mainField.getHeight() - (GameModelBase.gameOverHeight + 1);
 			var c:int = (GameModelBase.fieldHeight - _mainField.getTypeHeight(BlockState.nonBreak)) / 2;
 			return Math.max(0, Math.min(a - c, b));
@@ -796,15 +780,15 @@ package model
 			var y:int = _mainField.getTypeHeight(BlockState.nonBreak) - 1;
 			_mainField.shiftUp(y);
 			var rx:int = towerPRNG.genUint() % GameModelBase.fieldWidth;
-			_mainField.setNewBlock(rx, y, new BlockState(BlockState.gem, _setting.obstacleColor2, 0, false));
-			setTowerLine(y, _setting.towerLineBlockMax, BlockState.normal, _setting.obstacleColor2, _setting.hitPointMax);
+			_mainField.setNewBlock(rx, y, new BlockState(BlockState.jewel, _setting.getJewelColor(towerPRNG.genNumber()), 0, false));
+			setTowerLine(y, _setting.towerLineBlockMax, BlockState.normal, _setting.obstacleColor, GameSetting.hitPointMax);
 		}
 		
 		private function appendHurryUpBlocks():void
 		{
 			var y:int = GameModelBase.fieldHeight - 1;
 			_mainField.shiftUp(y);
-			var state:BlockState = new BlockState(BlockState.nonBreak, _setting.obstacleColor2, Number.POSITIVE_INFINITY);
+			var state:BlockState = new BlockState(BlockState.nonBreak, _setting.obstacleColor, Number.POSITIVE_INFINITY);
 			for (var x:int = 0; x < GameModelBase.fieldWidth; x++)
 			{
 				_mainField.setNewBlock(x, y, state);

@@ -18,6 +18,8 @@ package model
 		public static const nothing:int = 0;
 		public static const right:int = 1;
 		public static const left:int = 2;
+		public static const half:int = 3;
+		public static const stopgap:int = 3;
 		public static const fast:int = 1;
 		public static const earth:int = 2;
 		

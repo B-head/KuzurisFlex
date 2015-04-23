@@ -28,7 +28,7 @@ package model.ai {
 			var next:Vector.<AppraiseTree> = treeRoot.next;
 			for (var i:int = 0; i < next.length; i++)
 			{
-				next[i].marks += postAppraise(rootModel, next[i].fr, notice);
+				next[i].marks += postAppraise(next[i].fr, notice);
 			}
 			return treeRoot.getChoices(getBorder());
 		}
@@ -49,8 +49,8 @@ package model.ai {
 			var p90s:Boolean = current.controlOmino.isPoint90Symmetry();
 			for (var dir:int = 0; dir < 4; dir++)
 			{
-				var rect:Rect = ControlWay.getDirectionRect(current.controlOmino.getRect(), dir);
-				var fr:Range = current.getValidRange(current.init_cox(rect), current.init_coy(rect), dir);
+				var rect:Rect = current.controlOmino.getRect();
+				var fr:Range = current.getValidRange(current.init_cox(rect), current.init_coy(rect), dir, true);
 				for (var flx:int = fr.low; flx <= fr.high; flx++)
 				{
 					if (ps == true && (dir == 2 || dir == 3)) continue;
@@ -59,14 +59,16 @@ package model.ai {
 					var nt:AppraiseTree = considerWay(current, ps, fw);
 					if (nt == null) continue;
 					tree.next.push(nt);
+					var fixCox:int = nt.fr.fixCox;
 					var fixCoy:int = nt.fr.fixCoy;
+					var fixDir:int = fw.dir;
 					if (nt.fr.lossTime > 0 && nt.fr.breakLine == 0)
 					{
 						fw = new ControlWay(flx, dir, true);
 						nt = considerWay(current, ps, fw);
 						if (nt != null) tree.next.push(nt);
 					}
-					var sr:Range = current.getValidRange(flx, fixCoy, dir);
+					var sr:Range = current.getValidRange(fixCox, fixCoy, fixDir, false);
 					for (var slx:int = sr.low; slx <= sr.high; slx++)
 					{
 						if (flx == slx) continue;
@@ -82,8 +84,8 @@ package model.ai {
 		private function considerWay(current:FragmentGameModel, ps:Boolean, fw:ControlWay, sw:ControlWay = null):AppraiseTree
 		{
 			current.copyTo(nextModel);
-			var rect:Rect = fw.getControlRect(current);
-			if (ps && fw.dir == 1 && fw.getCox(rect) >= current.init_cox(rect)) 
+			var rect:Rect = fw.getControlRect(nextModel);
+			if (ps && fw.dir == 1 && fw.getCox(rect) >= nextModel.init_cox(rect)) 
 			{
 				fw.dir = 3;
 				if (sw != null) sw.dir = 3;
@@ -99,7 +101,7 @@ package model.ai {
 			return 0;
 		}
 		
-		protected function postAppraise(current:FragmentGameModel, fr:ForwardResult, notice:int):Number
+		protected function postAppraise(fr:ForwardResult, notice:int):Number
 		{
 			return 0;
 		}

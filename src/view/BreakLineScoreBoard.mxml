@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*">
+	<fx:Script>
+	    <![CDATA[
+		import events.*;
+		import model.*;
+		
+		private var _gameModel:GameModel;
+		private var isEndChain:Boolean;
+		
+		public function get gameModel():GameModel
+		{
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			_gameModel.addTerget(BreakLineEvent.sectionBreakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.totalBreakLine, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.endCombo, breakLineListener);
+			_gameModel.addTerget(BreakLineEvent.breakTechnicalSpin, technicalSpinListener);
+			scoreBoard.visible = false;
+			technicalSpin = int.MIN_VALUE;
+		}
+		
+		private function breakLineListener(e:BreakLineEvent):void
+		{
+			comboCount = e.combo;
+			breakLine = e.total;
+			technicalSpinTotal = e.technicalSpin;
+			plusScore = e.totalPlusScore();
+			occurObstacle = e.occurObstacle();
+			powerScale = e.powerScale();
+			fieldRecordEffect.stop();
+			fieldRecordEffect.play([scoreBoard]);
+			if (isEndChain)
+			{
+				if (e.type != BreakLineEvent.endCombo)
+				{
+					technicalSpin = int.MIN_VALUE;
+				}
+				isEndChain = false;
+			}
+			if (e.type == BreakLineEvent.totalBreakLine || e.type == BreakLineEvent.endCombo)
+			{
+				isEndChain = true;
+			}
+		}
+		
+		private function technicalSpinListener(e:BreakLineEvent):void
+		{
+			technicalSpin = e.line;
+			isEndChain = false;
+		}
+	    ]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<fx:Boolean id="battle"/>
+		<fx:int id="comboCount"/>
+		<fx:int id="breakLine"/>
+		<fx:int id="technicalSpinTotal"/>
+		<fx:int id="technicalSpin"/>
+		<fx:int id="plusScore"/>
+		<fx:int id="occurObstacle"/>
+		<fx:Number id="powerScale"/>
+		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
+		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
+		<s:Sequence id="fieldRecordEffect">
+			<s:SetAction property="visible" value="true"/>
+			<s:SetAction property="visible" value="false" startDelay="2000" />
+		</s:Sequence>
+	</fx:Declarations>
+	
+	<s:VGroup id="scoreBoard" styleName="field-record" width="100%" visible="false" horizontalAlign="justify" gap="1" cacheAsBitmap="true" filters="{[glow]}">
+		<s:Label styleName="break-combo" visible="{comboCount > 0}">{comboCount}コンボ</s:Label>
+		<s:HGroup styleName="main-record" horizontalAlign="center" gap="0">
+			<s:Label styleName="break-line">{breakLine}</s:Label>
+			<s:Label styleName="technical-spin" includeInLayout="{technicalSpinTotal > 0}" visible="{technicalSpinTotal > 0}">+{technicalSpinTotal}</s:Label>
+			<s:Label styleName="break-line">ライン</s:Label>
+		</s:HGroup>
+		<s:Label styleName="plus-score" includeInLayout="{!battle}" visible="{!battle}">+{plusScore}</s:Label>
+		<s:Label styleName="occur-obstacle" includeInLayout="{battle}" visible="{battle}">+{occurObstacle}おじゃま[×{nf.format(powerScale)}]</s:Label>
+		<s:Label styleName="technical-spin" visible="{technicalSpin >= 0}">{technicalSpin}ライン テクニカルスピン</s:Label>
+	</s:VGroup>
+</s:Group>

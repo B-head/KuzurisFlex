@@ -1,5 +1,8 @@
 package model 
 {
+	import flash.display.BitmapData;
+	import flash.display.BlendMode;
+	import flash.display.IBitmapDrawable;
 	import flash.geom.ColorTransform;
 	import flash.utils.Dictionary;
 	/**
@@ -63,6 +66,14 @@ package model
             colorTransform.blueOffset = (color & 0x000000FF) - 0x80;
             colorTransform.alphaMultiplier = ((color & 0xFF000000) >> 24);
 			return colorTransform;
+		}
+		
+		public static function coloring(drawable:IBitmapDrawable, width:int, height:int, color:uint):BitmapData
+		{
+			var data:BitmapData = new BitmapData(width, height, true, color);
+			data.draw(drawable, null, null, BlendMode.HARDLIGHT);
+			data.draw(drawable, null, null, BlendMode.ALPHA);
+			return data;
 		}
 	}
 

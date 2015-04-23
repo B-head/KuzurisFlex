@@ -18,8 +18,9 @@ package view
 		public const blockLength:int = 11;
 		public var split:Vector.<Vector.<BitmapData>>;
 		public var union:Vector.<Vector.<BitmapData>>;
+		public var ghost:Vector.<BitmapData>;
 		public var nonBreak:Vector.<BitmapData>;
-		public var gem:Vector.<BitmapData>;
+		public var jewel:Vector.<BitmapData>;
 		[Bindable] 
 		public var blockWidth:int;
 		[Bindable] 
@@ -29,8 +30,9 @@ package view
 		{
 			split = new Vector.<Vector.<BitmapData>>(19);
 			union = new Vector.<Vector.<BitmapData>>(19);
+			ghost = new Vector.<BitmapData>(19);
 			nonBreak = new Vector.<BitmapData>(19);
-			gem = new Vector.<BitmapData>(19);
+			jewel = new Vector.<BitmapData>(19);
 			this.blockWidth = blockWidth;
 			this.blockHeight = blockHeight;
 			for (var i:int; i < 19; i++)
@@ -44,10 +46,12 @@ package view
 					var u:Bitmap = indexToUnion(j);
 					union[i][j] = coloring(u, Color.toColor(i));
 				}
+				var gh:Bitmap = new Ghost();
+				ghost[i] = coloring(gh, Color.toColor(i));
 				var nb:Bitmap = new NonBreak();
 				nonBreak[i] = coloring(nb, Color.toColor(i));
-				var g:Bitmap = new Gem();
-				gem[i] = coloring(g, Color.toColor(i));
+				var je:Bitmap = new Jewel();
+				jewel[i] = coloring(je, Color.toColor(i));
 			}
 		}
 		
@@ -143,10 +147,12 @@ package view
 		private var Union9:Class;
 		[Embed(source='../graphic/block/union10.png')]
 		private var Union10:Class;
+		[Embed(source='../graphic/block/ghost.png')]
+		private var Ghost:Class;
 		[Embed(source='../graphic/block/non-break.png')]
 		private var NonBreak:Class;
-		[Embed(source='../graphic/block/gem.png')]
-		private var Gem:Class;
+		[Embed(source='../graphic/block/jewel.png')]
+		private var Jewel:Class;
 	
 	}
 

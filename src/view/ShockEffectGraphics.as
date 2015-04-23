@@ -1,8 +1,10 @@
 package view 
 {
 	import flash.display.BitmapData;
+	import flash.display.GradientType;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.geom.Matrix;
 	import model.Color;
 	/**
 	 * ...
@@ -14,6 +16,8 @@ package view
 		public var toSplit:Vector.<BitmapData>;
 		public var blockWidth:Number;
 		public var blockHeight:Number;
+		public var offsetX:Number;
+		public var offsetY:Number;
 		
 		public static const frameMax:int = 30;
 		
@@ -21,15 +25,17 @@ package view
 		{
 			this.blockWidth = width;
 			this.blockHeight = height;
+			this.offsetX = -width * 1.5;
+			this.offsetY = 0;
 			normal = new Vector.<BitmapData>(frameMax);
 			toSplit = new Vector.<BitmapData>(frameMax);
 			for (var i:int = 0; i < frameMax; i++)
 			{
-				var n:BitmapData = new BitmapData(blockWidth * 2, blockHeight * 2, true, 0);
-				drawGraphics(n, 2, Color.skyblue, i);
+				var n:BitmapData = new BitmapData(blockWidth * 4, blockHeight, true, 0);
+				drawGraphics(n, 3, Color.skyblue, i);
 				normal[i] = n;
-				var ts:BitmapData = new BitmapData(blockWidth * 2, blockHeight * 2, true, 0);
-				drawGraphics(ts, 4, Color.orange, i);
+				var ts:BitmapData = new BitmapData(blockWidth * 4, blockHeight, true, 0);
+				drawGraphics(ts, 6, Color.orange, i);
 				toSplit[i] = ts;
 			}
 		}
@@ -38,14 +44,19 @@ package view
 		{
 			var shape:Shape = new Shape();
 			var grf:Graphics = shape.graphics;
-			grf.lineStyle(thickness, color);
-			var a:Number = blockWidth * 0.5 * (frame / frameMax);
-			grf.moveTo(blockWidth * 1 - a, blockHeight * 0.5);
-			grf.lineTo(blockWidth * 0.5 - a, blockHeight * 1);
-			grf.lineTo(blockWidth * 1 - a, blockHeight * 1.5);
-			grf.moveTo(blockWidth * 1 + a, blockHeight * 0.5);
-			grf.lineTo(blockWidth * 1.5 + a, blockHeight * 1);
-			grf.lineTo(blockWidth * 1 + a, blockHeight * 1.5);
+			var matrix:Matrix = new Matrix();
+			matrix.createGradientBox(blockWidth * 3, blockHeight, Math.PI / 2, 0, 0);
+			grf.lineStyle(thickness);
+			grf.lineGradientStyle(GradientType.LINEAR, [color, Color.white, color], [1, 1, 1], [0, 128, 255], matrix);
+			var a:Number = blockWidth * (frame / frameMax);
+			var b:Number = blockWidth * 0.5;
+			var cx:Number = blockWidth * 2;
+			grf.moveTo(cx - a, blockHeight * 0);
+			grf.lineTo(cx - a - b, blockHeight * 0.5);
+			grf.lineTo(cx - a, blockHeight * 1);
+			grf.moveTo(cx + a, blockHeight * 0);
+			grf.lineTo(cx + a + b, blockHeight * 0.5);
+			grf.lineTo(cx + a, blockHeight * 1);
 			bitmap.draw(shape);
 		}
 		

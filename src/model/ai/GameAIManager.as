@@ -10,8 +10,7 @@ package model.ai {
 	{
 		private const primaryMoveDelay:int = 8;
 		private const secondaryMoveDelay:int = 4;
-		private const levelAsterisk:int = int.MAX_VALUE / 2;
-		private const levelDoubleAsterisk:int = int.MAX_VALUE;
+		private const levelAsterisk:int = int.MAX_VALUE;
 		
 		private var ai:GameAI;
 		private var appendDelay:int;
@@ -54,23 +53,21 @@ package model.ai {
 		
 		public function setAILevel(level:int):void
 		{
-			//if (level == 1) level = levelAsterisk;
-			//if (level == 2) level = levelDoubleAsterisk;
 			ai.level = level;
-			if (level == levelAsterisk || level == levelDoubleAsterisk)
+			if (level == levelAsterisk)
 			{
 				appendDelay = 0;
-				moveDelay = level == levelAsterisk ? 4 : 0;
+				moveDelay = 0;
 				fallDelay = false;
 				separateDelay = false;
 			}
 			else
 			{
-				appendDelay = 480 / level;
+				appendDelay = 16 * Math.pow(2, (20 - level) / 5);
 				fallDelay = level <= 5;
 				separateDelay = level <= 10;
 				if (fallDelay) appendDelay -= 30;
-				moveDelay = appendDelay / 8 + 5;
+				moveDelay = appendDelay / 4;
 				appendDelay -= separateDelay ? moveDelay * 2.5 : moveDelay * 2;
 			}
 		}
@@ -163,13 +160,14 @@ package model.ai {
 					targetWayIndex++;
 					pressFall = false;
 					primaryMove = true;
-					restDelay = isFastMove() ? primaryMoveDelay : moveDelay;
+					restDelay = 0;
 				}
 				else
 				{
 					ret.falling = GameCommand.fast;
+					lastCoy = gameModel.coy;
+					return ret;
 				}
-				lastCoy = gameModel.coy;
 			}
 			restDelay--;
 			if (restDelay > 0) return ret;
@@ -179,7 +177,11 @@ package model.ai {
 				choiceTerget();
 				isLast = targetWayIndex == targetWayList.length - 1;
 			}
-			if (targetWayList.length == 0) return ret;
+			if (targetWayList.length == 0)
+			{
+				ret.falling = GameCommand.fast;
+				return ret;
+			}
 			var currentWay:ControlWay = ControlWay.getCurrent(gameModel);
 			currentWay.shift = pressShift;
 			var targetWay:ControlWay = targetWayList[targetWayIndex];

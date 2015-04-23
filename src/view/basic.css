@@ -1,14 +1,27 @@
 @namespace s "library://ns.adobe.com/flex/spark";
 @namespace mx "library://ns.adobe.com/flex/mx";
 
-* {
-	font-family: sans-serif;
+@font-face { 
+    src: url("../font/NotoSansCJKjp-Regular.otf"); 
+    fontFamily: noto-sans;
+}
+
+@font-face { 
+    src: url("../font/NotoSansCJKjp-Black.otf"); 
+    fontFamily: noto-sans-strong;
+}
+
+s|Application {
 	locale: "ja-JP";
+	font-family: noto-sans;
+	font-size: 12px;
+	color: rgb(255, 255, 255);
 	chrome-color: rgb(53, 161, 107);
 }
 
 s|Label {
-	color: rgb(255, 255, 255);
+	text-align: center;
+	line-break: explict;
 }
 
 s|Button {
@@ -36,7 +49,7 @@ s|HGroup {
 	padding-right: 4px;
 	padding-bottom: 4px;
 	padding-left: 4px;
-	
+	gap: 4px;
 }
 
 s|VGroup {
@@ -44,7 +57,7 @@ s|VGroup {
 	padding-right: 4px;
 	padding-bottom: 4px;
 	padding-left: 4px;
-	
+	gap: 4px;
 }
 
 s|DataGrid {
@@ -58,29 +71,8 @@ s|DefaultGridItemRenderer {
 	color: rgb(255, 255, 255);
 }
 
-.current-record {
+.current-record-item {
 	color: rgb(255, 153, 0);
-}
-
-.main-title {
-	color: rgb(53, 161, 107);
-	font-size: 60px;
-	font-weight: bold;
-	text-align: center;
-}
-
-.sub-title {
-	font-size: 24px;
-	text-align: center;
-}
-
-.version {
-	font-size: 24px;
-	text-align: center;
-}
-
-.license {
-	text-align: center;
 }
 
 .title-menu {
@@ -109,78 +101,81 @@ s|DefaultGridItemRenderer {
 	font-size: 24px;
 }
 
-.menu-label {
-	background-color: rgb(0, 0, 0);
-	background-alpha: 0.8;
-}
-
 .enterButton {
 	font-size: 24px;
 	corner-radius: 40;
 }
 
-.field-record {
+.menu-label {
+	background-color: rgb(0, 0, 0);
+	background-alpha: 0.8;
+}
+
+.ready {
+	font-family: noto-sans-strong;
 	font-size: 24px;
-	font-weight: bold;
-	text-align: center;
+}
+
+.side-record {
+	font-family: noto-sans-strong;
+	font-size: 18px;
+}
+
+.field-record {
+	font-family: noto-sans-strong;
+}
+
+.main-record {
+	font-size: 24px;
 }
 
 .technical-spin {
 	color: rgb(154, 0, 121);
-	text-align: center;
 }
 
 .level-up {
 	color: rgb(102, 204, 255);
-	text-align: center;
 }
 
-.all-clear {
+.bonus {
 	color: rgb(250, 245, 0);
-	text-align: center;
 }
 
 .break-line {
 	color: rgb(250, 245, 0);
 }
 
-.break-combo-score {
+.break-combo {
 	color: rgb(102, 204, 255);
-	text-align: center;
 }
 
-.break-line-score {
+.plus-score {
 	color: rgb(250, 245, 0);
-	text-align: center;
 }
 
-.obstacle-record {
+.occur-obstacle {
 	color: rgb(255, 153, 0);
-	text-align: center;
 }
 
-.ready {
+.outcome {
+	font-family: noto-sans-strong;
 	font-size: 24px;
-	font-weight: bold;
-	text-align: center;
 }
 
 .game-over {
-	font-size: 24px;
-	font-weight: bold;
-	text-align: center;
 	color: rgb(255, 40, 0);
-	background-color: rgb(0, 0, 0);
-	background-alpha: 0.8;
 }
 
 .game-clear {
-	font-size: 24px;
-	font-weight: bold;
-	text-align: center;
 	color: rgb(250, 245, 0);
-	background-color: rgb(0, 0, 0);
-	background-alpha: 0.8;
+}
+
+.win {
+	color: rgb(250, 245, 0);
+}
+
+.lose {
+	color: rgb(102, 204, 255);
 }
 
 .chat-text {

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+		import model.*;
+		
+		[Bindable]
+		public var gameManager:GameManager;
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<fx:Boolean id="isResult"/>
+		<fx:Boolean id="reverse"/>
+		<fx:int id="playerIndex"/>
+		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
+	</fx:Declarations>
+	
+	<s:Group x="{reverse ? 36 : 0}" y="36" visible="{isResult}">
+		<s:Label styleName="outcome win" width="96" visible="{gameManager.getRank(playerIndex) == 1}" text="{gameManager.getRank(playerIndex)}位" filters="{[glow]}"/>
+		<s:Label styleName="outcome lose" width="96" visible="{gameManager.getRank(playerIndex) != 1}" text="{gameManager.getRank(playerIndex)}位" filters="{[glow]}"/>
+	</s:Group>
+	
+</s:Group>

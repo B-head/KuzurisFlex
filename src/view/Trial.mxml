@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/halo" xmlns:v="view.*"
-		 frameConstructed ="manager.frameConstructedListener()">
+		 frameConstructed ="frameConstructedListener()">
 
 	<fx:Script>
 		<![CDATA[
@@ -27,7 +27,8 @@
 			manager = new GameManager(1);
 			input = SharedObjectHelper.input;
 			manager.addTerget(KuzurisEvent.gameStart, startListener);
-			manager.addTerget(KuzurisEvent.gameEnd, endListener);
+			manager.addTerget(KuzurisEvent.gameOvar, gameOverListener);
+			manager.addTerget(KuzurisEvent.gameClear, gameClearListener);
 			prepare();
 		}
 		
@@ -83,6 +84,21 @@
 			}
 		}
 		
+		private function result():void
+		{
+			parentApplication.bgm.stop();
+			manager.endGame();
+			recordView.record = manager.getRecord(0);
+			if (!manager.isReplayMode())
+			{
+				var ranking:GameRanking = SharedObjectHelper.getRanking(mode, endless.selected);
+				replayContainer = manager.makeReplayContainer();
+				ranking.entry(replayContainer);
+				SharedObjectHelper.shared.flush();
+			}
+			rankingView.update();
+		}
+		
 		private function end():void
 		{
 			if (isRankingView)
@@ -124,7 +140,10 @@
 				case "hidden":
 					pauseing();
 					break;
-				case "result":
+				case "gameOver":
+					prepare();
+					break;
+				case "gameClear":
 					prepare();
 					break;
 			}
@@ -135,25 +154,27 @@
 			parentApplication.bgm.play(false);
 		}
 		
-		private function endListener(e:KuzurisEvent):void
+		private function gameOverListener(e:KuzurisEvent):void
 		{
-			currentState = "result";
-			parentApplication.bgm.stop();
-			manager.endGame();
-			recordView.record = manager.getRecord(0);
-			if (!manager.isReplayMode())
-			{
-				var ranking:GameRanking = SharedObjectHelper.getRanking(mode, endless.selected);
-				replayContainer = manager.makeReplayContainer();
-				ranking.entry(replayContainer);
-				SharedObjectHelper.shared.flush();
-			}
-			rankingView.update();
+			currentState = "gameOver";
+			result();
+		}
+		
+		private function gameClearListener(e:KuzurisEvent):void
+		{
+			currentState = "gameClear";
+			result();
 		}
 		
 		private function requestReplayListener(e:RequestReplayEvent):void
 		{
 			replayStart(e.data);
+		}
+			
+		private function frameConstructedListener():void
+		{
+			manager.forwardGame();
+			gameView.update();
 		}
 		]]>
 	</fx:Script>
@@ -161,17 +182,22 @@
 	<fx:Metadata>
 		[Event(name="navigateBack", type="events.KuzurisEvent")]
 	</fx:Metadata>
+	
+	<fx:Declarations>
+		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
+	</fx:Declarations>
 
 	<s:states>
 		<s:State name="hidden" />
 		<s:State name="prepare" />
-		<s:State name="result" />
+		<s:State name="gameOver" stateGroups="result" />
+		<s:State name="gameClear" stateGroups="result" />
 		<s:State name="pause" />
 		<s:State name="ranking" />
 		<s:State name="keyConfig" />
 	</s:states>
 
-	<v:GameView id="main" x="227" y="24" battle="false" playerIndex="0" gameManager="{manager}" />
+	<v:GameView id="gameView" x="227" y="24" battle="false" playerIndex="0" gameManager="{manager}" />
 	<v:DetailedRecordView id="recordView" includeIn="result" x="0" y="0" width="223" height="480" battle="false" />
 	<v:ResultRankingView id="rankingView" includeIn="result" x="631" y="0" width="223" height="480" gameMode="{mode}" endless="{endless.selected}" currentRecord="{replayContainer}" />
 	<v:RankingViewer includeIn="ranking" x="24" y="24" gameMode="{mode}" endless="{endless.selected}" navigateBack="currentState = 'prepare'" requestReplay="requestReplayListener(event)" />
@@ -196,4 +222,6 @@
 		<s:Button width="100" label="リプレイ" visible="{!isRankingView}" buttonDown="replayStart(replayContainer)" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
 	</s:VGroup>
+	<s:Label includeIn="gameOver" styleName="outcome game-over" x="331" y="128" width="192" text="ゲームオーバー" filters="{[glow]}"/>
+	<s:Label includeIn="gameClear" styleName="outcome game-clear" x="331" y="128" width="192" text="ゲームクリア" filters="{[glow]}"/>
 </s:Group>

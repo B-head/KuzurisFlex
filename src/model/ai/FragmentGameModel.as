@@ -58,7 +58,7 @@ package model.ai {
 			_nextOmino = value;
 		}
 		
-		public function getValidRange(cox:int, coy:int, dir:int):Range
+		public function getValidRange(cox:int, coy:int, dir:int, revise:Boolean):Range
 		{
 			var co:OminoField = new OminoField(GameModelBase.ominoSize);
 			_controlOmino.copyTo(co);
@@ -81,15 +81,23 @@ package model.ai {
 					ominoCache.copyTo(co);
 					break;
 			}
-			for (var l:int = cox; l > 0; --l)
+			var controlRect:Rect = _controlOmino.getRect();
+			var cacheRect:Rect = co.getRect();
+			if (revise)
+			{
+				cox += rotateReviseX(controlRect, cacheRect);
+				coy += rotateReviseY(controlRect, cacheRect);
+			}
+			for (var l:int = cox; ; --l)
 			{
 				if (co.blocksHitChack(_mainField, l - 1, coy, true) > 0) break;
 			}
-			for (var h:int = cox; h < GameModelBase.fieldWidth - 1; ++h)
+			for (var h:int = cox; ; ++h)
 			{
 				if (co.blocksHitChack(_mainField, h + 1, coy, true) > 0) break;
 			}
-			return new Range(l, h);
+			var left:int = cacheRect.left;
+			return new Range(l + left, h + left);
 		}
 		
 		public function forwardNext(fw:ControlWay, sw:ControlWay):ForwardResult
@@ -127,6 +135,7 @@ package model.ai {
 				ret.secondMove = true;
 			}
 			_controlOmino.fix(_mainField, cox, coy);
+			ret.fixCox = cox;
 			ret.fixCoy = coy;
 			do
 			{

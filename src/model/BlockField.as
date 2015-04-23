@@ -318,13 +318,13 @@ package model
 					break;
 				}
 				var pureDamage:Number = i == y ? shockDamage : indirectShockDamage;
-				var damage:Number = blockShock(x, i, pureDamage, onBlockDamageDelegate);
+				var damage:Number = blockShock(x, i, pureDamage, Math.abs(i - y), onBlockDamageDelegate);
 				totalDamage += damage;
 			}
 			return totalDamage;
 		}
 		
-		private function blockShock(x:int, y:int, pureDamage:Number, onBlockDamageDelegate:Function):Number
+		private function blockShock(x:int, y:int, pureDamage:Number, distance:int, onBlockDamageDelegate:Function):Number
 		{
 			var v:BlockState = value[x][y];
 			if (v.isNonBreak()) return 0;
@@ -333,7 +333,7 @@ package model
 			var toSplit:Boolean = (hitPoint > 0 && hitPoint <= pureDamage);
 			hitPoint -= pureDamage;
 			v.hitPoint = hitPoint;
-			onBlockDamageDelegate(pureDamage, v.id, toSplit);
+			onBlockDamageDelegate(pureDamage, distance, v.id, toSplit);
 			return Math.max(0, result);
 		}
 		

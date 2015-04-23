@@ -40,7 +40,12 @@ package model.ai {
 			}
 			var sub:Number = max - min;
 			var b:Number = max - sub * border;
-			return next.filter(function (item:AppraiseTree, index:int, vector:Vector.<AppraiseTree>):Boolean { return item.marks >= b; } );
+			return next.filter(cond);
+			
+			function cond(item:AppraiseTree, index:int, vector:Vector.<AppraiseTree>):Boolean
+			{
+				return item.marks >= b ; 
+			}
 		}
 	}
 
