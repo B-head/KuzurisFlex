@@ -17,6 +17,8 @@
 		[Bindable] 
 		public var breakLineGraphics:BreakLineGraphics;
 		[Bindable] 
+		public var breakBlockGraphics:BreakBlockGraphics;
+		[Bindable] 
 		public var shockGraphics:ShockEffectGraphics;
 		[Bindable]
 		private var _gameManager:GameManager;
@@ -77,6 +79,7 @@
 		{
 			blockGraphics = Main.blockGraphics;
 			breakLineGraphics = Main.breakLineGraphics;
+			breakBlockGraphics = Main.breakBlockGraphics;
 			shockGraphics = Main.shockGraphics;
 		}
 		
@@ -160,7 +163,7 @@
 			visible.pause="false" showSpecial="true"/>
 		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
 			visible.pause="false" showSpecial="true"/>
-		<v:BreakLineEffectContainer id="breakLineContainer" x="16" y="-256" breakLineGraphics="{breakLineGraphics}" gameModel="{_gameModel}" />
+		<v:BreakLineEffectContainer id="breakLineContainer" x="16" y="-256" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
 		<v:BonusScoreBoard x="0" verticalCenter="0" width="192" battle="{battle}" gameModel="{_gameModel}"/>
 		<s:Label styleName="ready" x="0" verticalCenter="0" width="192" text="レディ" visible="false" visible.ready="true" />
 		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" gameModel="{_gameModel}"/>
@@ -169,7 +172,7 @@
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="1" />
 			</s:layout>
 			<s:Label text="{playerInfo.getName()}" textAlign="center" />
-			<s:Label text="{playerInfo.grade} 勝ち数{playerInfo.winCount}" textAlign="center" />
+			<s:Label text="勝ち数{playerInfo.winCount}" textAlign="center" />
 		</s:BorderContainer>
 	</s:Group>
 	<v:NextOminoView id="next" x="{reverse ? 0 : 304}" y="64" circleWidth="96" circleHeight="48" gap="4"

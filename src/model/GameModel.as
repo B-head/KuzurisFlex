@@ -85,6 +85,7 @@ package model
 		private var comboEraseLine:int;
 		private var comboTechnicalSpin:int;
 		private var comboCount:int;
+		private var isEraseJewel:Boolean;
 		private var blockAllClearCount:int;
 		private var excellentCount:int;
 		private var levelStartTime:int;
@@ -92,6 +93,7 @@ package model
 		private var quantityOdds:Vector.<int>;
 		private var ominoOdds:Vector.<Vector.<Boolean>>;
 		private var bigOminoCount:Number = 0;
+		private var towerOdds:Vector.<int>;
 		
 		public function GameModel() 
 		{
@@ -109,6 +111,11 @@ package model
 				{
 					ominoOdds[x][y] = true;
 				}
+			}
+			towerOdds = new Vector.<int>(GameModelBase.fieldWidth);
+			for (var i:int = 0; i < towerOdds.length; i++)
+			{
+				towerOdds[i] = 1;
 			}
 		}
 		
@@ -401,23 +408,32 @@ package model
 			}
 		}
 		
-		override protected function onBreakLine(y:int, colors:Vector.<uint>):void 
+		override protected function onBreakLine(y:int, blocks:Vector.<BlockState>):void 
 		{
 			var plus:int = _setting.breakLineScore(comboLine() + 1, comboCount) - _setting.breakLineScore(comboLine(), chainLine == 0 ? comboCount - 1 : comboCount);
 			_record.gameScore += plus;
 			_record.breakLine++;
 			chainLine++;
 			comboEraseLine++;
-			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, _setting, y, comboEraseLine, comboTechnicalSpin, comboCount));
+			dispatchEvent(new BreakLineEvent(BreakLineEvent.breakLine, _record.gameTime, plus, _setting, y, comboEraseLine, comboTechnicalSpin, comboCount, blocks));
 			var obs:int = obstacleManager.occurObstacle(_record.gameTime, comboEraseLine, comboCount, blockAllClearCount);
 			_record.occurObstacle += obs;
+			for (var i:int = 0; i < blocks.length; ++i)
+			{
+				if (blocks[i].type == BlockState.jewel) isEraseJewel = true;
+			}
 		}
 		
 		override protected function onSectionBreakLine(count:int):void 
 		{
 			if (count == 0) return;
-			var plus:int = _setting.breakLineScore(comboLine(), comboCount + 1) - _setting.breakLineScore(comboLine() - chainLine, comboCount);;
+			var plus:int = _setting.breakLineScore(comboLine(), comboCount + 1) - _setting.breakLineScore(comboLine() - chainLine, comboCount);
 			dispatchEvent(new BreakLineEvent(BreakLineEvent.sectionBreakLine, _record.gameTime, plus, _setting, chainLine, comboEraseLine, comboTechnicalSpin, comboCount));
+			if (isEraseJewel == true)
+			{
+				dispatchEvent(new BreakLineEvent(BreakLineEvent.eraseJewel, _record.gameTime, 0, _setting, chainLine, comboEraseLine, comboTechnicalSpin, comboCount));
+				isEraseJewel = false;
+			}
 		}
 		
 		override protected function onBlockDamage(damage:Number, distance:int, id:uint, toSplit:Boolean):void 
@@ -713,7 +729,7 @@ package model
 					quantityOdds[i] <<= _setting.quantityOddsBasis[i];
 				}
 			}
-			quantityOdds[q] >>= 1;
+			quantityOdds[q] >>>= 1;
 			
 			a = 0;
 			t = 0;
@@ -779,7 +795,7 @@ package model
 		{
 			var y:int = _mainField.getTypeHeight(BlockState.nonBreak) - 1;
 			_mainField.shiftUp(y);
-			var rx:int = towerPRNG.genUint() % GameModelBase.fieldWidth;
+			var rx:int = selectSetPosition();
 			_mainField.setNewBlock(rx, y, new BlockState(BlockState.jewel, _setting.getJewelColor(towerPRNG.genNumber()), 0, false));
 			setTowerLine(y, _setting.towerLineBlockMax, BlockState.normal, _setting.obstacleColor, GameSetting.hitPointMax);
 		}
@@ -862,21 +878,44 @@ package model
 			return ret;
 		}
 		
-		private function selectSetPosition(esp:Vector.<Boolean>):int
+		private function selectSetPosition(esp:Vector.<Boolean> = null):int
 		{
+			if (esp == null)
+			{
+				esp = new <Boolean>[true,true,true,true,true,true,true,true,true,true];
+			}
 			var c:int = 0;
 			for (var i:int = 0; i < esp.length; i++)
 			{
-				if (esp[i] == true) c++;
+				if (esp[i] == true)
+				{
+					c += towerOdds[i];
+				}
 			}
 			var r:int = towerPRNG.genUint() % c;
 			for (var k:int = 0; k < esp.length; k++)
 			{
 				if (esp[k] == false) continue;
-				if (r == 0) return k;
-				r--;
+				r -= towerOdds[k];
+				if (r < 0)
+				{
+					alterTowerOdds(k);
+					return k;
+				}
 			}
 			throw new Error();
+		}
+		
+		private function alterTowerOdds(i:int):void
+		{
+			if (towerOdds[i] == 1)
+			{
+				for (var k:int = 0; k < towerOdds.length; ++k)
+				{
+					towerOdds[k] <<= 1;
+				}
+			}
+			towerOdds[i] >>>= 1;
 		}
 		
 		public function writeExternal(output:IDataOutput):void 

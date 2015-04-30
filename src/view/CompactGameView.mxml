@@ -17,6 +17,8 @@
 		[Bindable] 
 		public var breakLineGraphics:BreakLineGraphics;
 		[Bindable] 
+		public var breakBlockGraphics:BreakBlockGraphics;
+		[Bindable] 
 		private var _gameManager:GameManager;
 		[Bindable]
 		private var _gameModel:GameModel;
@@ -68,6 +70,7 @@
 		{
 			blockGraphics = Main.compactBlockGraphics;
 			breakLineGraphics = Main.compactBreakLineGraphics;
+			breakBlockGraphics = Main.compactBreakBlockGraphics;
 		}
 		
 		public function update():void
@@ -123,14 +126,14 @@
 					<s:SolidColorStroke color="#ff9900" weight="1" />
 				</s:stroke>
 			</s:Rect>
-			<s:Image source="{Color.coloring(new Frame(), 192, 336, Color.gray)}" scaleX="0.5" scaleY="0.5"/>
+			<s:Image source="{Color.coloring(new Frame(), 192, 336, Color.blue)}" scaleX="0.5" scaleY="0.5"/>
 		</s:Group>
+		<v:BreakLineScoreBoard x="0" y="18" width="96" battle="{battle}" gameModel="{_gameModel}"/>
 		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true" isGhost="true"/>
 		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
 		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
 		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<v:BreakLineEffectContainer id="breakLineContainer" x="8" y="-144" breakLineGraphics="{breakLineGraphics}" gameModel="{_gameModel}" />
-		<v:BreakLineScoreBoard x="0" y="18" width="96" battle="{battle}" gameModel="{_gameModel}"/>
+		<v:BreakLineEffectContainer id="breakLineContainer" x="8" y="-144" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
 		<v:BonusScoreBoard x="0" y="96" width="96" battle="{battle}" gameModel="{_gameModel}"/>
 		<s:Label styleName="ready" x="0" verticalCenter="0" width="96" text="レディ" visible="false" visible.ready="true" />
 		<v:ObstacleView id="obstacle" x="8" y="0" width="80" height="16" blockScale="0.5" visible="false" gameModel="{_gameModel}"/>

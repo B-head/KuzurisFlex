@@ -136,6 +136,13 @@
 				parentApplication.bgm.stop();
 				networkGameManager.endGame();
 				practiceGameManager.endGame();
+				recordView.record = networkGameManager.getRecord(0);
+				support1.record = networkGameManager.getRecord(0);
+				support2.record = networkGameManager.getRecord(1);
+				support3.record = networkGameManager.getRecord(2);
+				support4.record = networkGameManager.getRecord(3);
+				support5.record = networkGameManager.getRecord(4);
+				support6.record = networkGameManager.getRecord(5);
 				SharedObjectHelper.battleRecords.entry(networkGameManager.makeReplayContainer());
 				isResult = true;
 				prepare();
@@ -220,31 +227,32 @@
 		<s:Label styleName="outcome lose" width="192" visible="{networkGameManager.getRank(networkGameManager.transPlayerIndex(0)) != 1}"
 			text="{networkGameManager.getRank(networkGameManager.transPlayerIndex(0))}位" filters="{[glow]}"/>
 	</s:Group>
+	<v:DetailedRecordView id="recordView" x="{isFlip ? 736 : 0}" y="0" width="118" height="480" battle="true" visible="{isResult}" visible.watch="false"/>
 	<s:Group x="{isFlip ? 18 : 436}" x.watch="227" y="8">
 		<v:CompactGameView id="player1" x="0" y="0" z="-1" reverse="{isFlip}" visible="false" visible.watch="true" battle="true"
 			playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" />
-		<v:MultiSupportView x="0" y="0" visible="false" visible.watch="true" isResult="{isResult}" reverse="{isFlip}"
-			playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" />
+		<v:MultiSupportView id="support1" x="0" y="0" visible="false" visible.watch="true" isResult="{isResult}" isWatch="false" isWatch.watch="true" reverse="{isFlip}"
+			playerIndex="{networkGameManager.transPlayerIndex(0)}" gameManager="{networkGameManager}" clickEnter="enterBattle(0)" />
 		<v:CompactGameView id="player2" x="66" x.watch="133" y="0" z="-1" reverse="{isFlip}" battle="true"
 			playerIndex="{networkGameManager.transPlayerIndex(1)}" gameManager="{networkGameManager}" />
-		<v:MultiSupportView x="66" x.watch="133" y="0" isResult="{isResult}" reverse="{isFlip}"
-			playerIndex="{networkGameManager.transPlayerIndex(1)}" gameManager="{networkGameManager}" />
+		<v:MultiSupportView id="support2" x="66" x.watch="133" y="0" isResult="{isResult}" isWatch="false" isWatch.watch="true" reverse="{isFlip}"
+			playerIndex="{networkGameManager.transPlayerIndex(1)}" gameManager="{networkGameManager}" clickEnter="enterBattle(1)" />
 		<v:CompactGameView id="player3" x="200" x.watch="266" y="0" z="-1" reverse="{isFlip}" battle="true"
 			playerIndex="{networkGameManager.transPlayerIndex(2)}" gameManager="{networkGameManager}" />
-		<v:MultiSupportView x="200" x.watch="133" y="0" isResult="{isResult}" reverse="{isFlip}"
-			playerIndex="{networkGameManager.transPlayerIndex(2)}" gameManager="{networkGameManager}" />
+		<v:MultiSupportView id="support3" x="200" x.watch="266" y="0" isResult="{isResult}" isWatch="false" isWatch.watch="true" reverse="{isFlip}"
+			playerIndex="{networkGameManager.transPlayerIndex(2)}" gameManager="{networkGameManager}" clickEnter="enterBattle(2)" />
 		<v:CompactGameView id="player4" x="0" y="204" z="-2" reverse="{isFlip}" battle="true"
 			playerIndex="{networkGameManager.transPlayerIndex(3)}" gameManager="{networkGameManager}" />
-		<v:MultiSupportView x="0" y="204" isResult="{isResult}" reverse="{isFlip}"
-			playerIndex="{networkGameManager.transPlayerIndex(3)}" gameManager="{networkGameManager}" />
+		<v:MultiSupportView id="support4" x="0" y="204" isResult="{isResult}" isWatch="false" isWatch.watch="true" reverse="{isFlip}"
+			playerIndex="{networkGameManager.transPlayerIndex(3)}" gameManager="{networkGameManager}" clickEnter="enterBattle(3)" />
 		<v:CompactGameView id="player5" x="133" y="204" z="-2" reverse="{isFlip}" battle="true"
 			playerIndex="{networkGameManager.transPlayerIndex(4)}" gameManager="{networkGameManager}" />
-		<v:MultiSupportView x="133" y="204" isResult="{isResult}" reverse="{isFlip}"
-			playerIndex="{networkGameManager.transPlayerIndex(4)}" gameManager="{networkGameManager}" />
+		<v:MultiSupportView id="support5" x="133" y="204" isResult="{isResult}" isWatch="false" isWatch.watch="true" reverse="{isFlip}"
+			playerIndex="{networkGameManager.transPlayerIndex(4)}" gameManager="{networkGameManager}" clickEnter="enterBattle(4)" />
 		<v:CompactGameView id="player6" x="266" y="204" z="-2" reverse="{isFlip}" battle="true"
 			playerIndex="{networkGameManager.transPlayerIndex(5)}" gameManager="{networkGameManager}" />
-		<v:MultiSupportView x="266" y="204" isResult="{isResult}" reverse="{isFlip}"
-			playerIndex="{networkGameManager.transPlayerIndex(5)}" gameManager="{networkGameManager}" />
+		<v:MultiSupportView id="support6" x="266" y="204" isResult="{isResult}" isWatch="false" isWatch.watch="true" reverse="{isFlip}"
+			playerIndex="{networkGameManager.transPlayerIndex(5)}" gameManager="{networkGameManager}" clickEnter="enterBattle(5)" />
 	</s:Group>
 	<s:VGroup includeIn="prepare" x="{isFlip ? 561 : 143}" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button includeIn="enter" styleName="start" width="150" label="スタート" buttonDown="start()" />

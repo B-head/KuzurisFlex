@@ -33,6 +33,7 @@ package events {
 		public static const gameSync:String = "gameSync";
 		public static const gameSyncReply:String = "gameSyncReply";
 		public static const navigateBack:String = "navigateBack";
+		public static const clickEnter:String = "clickEnter";
 		public static const pressPauseKey:String = "pressPauseKey";
 		
 		public function KuzurisEvent(type:String) 

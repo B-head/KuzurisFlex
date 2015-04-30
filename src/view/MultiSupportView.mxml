@@ -1,26 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
                xmlns:s="library://ns.adobe.com/flex/spark" 
-               xmlns:mx="library://ns.adobe.com/flex/mx">
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*">
 	<fx:Script>
 		<![CDATA[
 		import model.*;
+		import events.*;
 		
 		[Bindable]
 		public var gameManager:GameManager;
+		[Bindable]
+		public var record:GameRecord;
 		]]>
 	</fx:Script>
 	
 	<fx:Declarations>
 		<fx:Boolean id="isResult"/>
+		<fx:Boolean id="isWatch"/>
 		<fx:Boolean id="reverse"/>
 		<fx:int id="playerIndex"/>
 		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
 	</fx:Declarations>
 	
-	<s:Group x="{reverse ? 36 : 0}" y="36" visible="{isResult}">
+	<fx:Metadata>
+		[Event(name="clickEnter", type="events.KuzurisEvent")]
+	</fx:Metadata>
+	
+	<s:Group x="{reverse ? 36 : 0}" y="24" visible="{gameManager.isPlayerGameEnd(playerIndex)}">
 		<s:Label styleName="outcome win" width="96" visible="{gameManager.getRank(playerIndex) == 1}" text="{gameManager.getRank(playerIndex)}位" filters="{[glow]}"/>
 		<s:Label styleName="outcome lose" width="96" visible="{gameManager.getRank(playerIndex) != 1}" text="{gameManager.getRank(playerIndex)}位" filters="{[glow]}"/>
+		<v:DetailedRecordView y="32" width="96" height="120" battle="true" compact="true" visible="{isResult}" record="{record}" />
 	</s:Group>
-	
+	<s:Group visible="{isWatch}">
+		<s:Button styleName="enterButton" x="{reverse ? 44 : 8}" y="56" width="80" height="80" label="参加" 
+			buttonDown="dispatchEvent(new KuzurisEvent(KuzurisEvent.clickEnter))" visible="{gameManager.isIndexEmpty(0)}" />
+	</s:Group>		
 </s:Group>

@@ -71,11 +71,6 @@ package model
 			return replayMode;
 		}
 		
-		public function isGameOver(index:int):Boolean
-		{
-			return gameModel[index].isGameOver;
-		}
-		
 		public function setPlayer(index:int, control:GameControl, playerInfo:PlayerInformation = null):void
 		{
 			this.control[index] = control;
@@ -110,6 +105,7 @@ package model
 		[Bindable(event="initializeGameModel")]
 		public function getRecord(index:int):GameRecord
 		{
+			if (gameModel[index] == null) return null;
 			return gameModel[index].record;
 		}
 		
@@ -122,7 +118,14 @@ package model
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
 				if (gameModel[i] == null) continue;
-				vt.push(gameModel[i].record.gameTime);
+				if (gameModel[i].isGameOver)
+				{
+					vt.push(gameModel[i].record.gameTime);
+				}
+				else
+				{
+					vt.push(int.MAX_VALUE);
+				}
 			}
 			vt = vt.sort(function(x:int, y:int):Number { return y - x; } );
 			return vt.lastIndexOf(st) + 1;
@@ -132,6 +135,21 @@ package model
 		public function getPlayerInfo(index:int):PlayerInformation
 		{
 			return playerInfo[index];
+		}
+		
+		[Bindable(event="playerUpdate")]
+		public function isPlayerGameEnd(index:int):Boolean
+		{
+			if (isIndexEmpty(index)) return false;
+			if (gameModel[index].record.gameTime == 0) return false;
+			if (isGameEnd()) return true;
+			return gameModel[index].isGameOver;
+		}
+		
+		[Bindable(event="playerUpdate")]
+		public function isIndexEmpty(index:int):Boolean
+		{
+			return gameModel[index] == null;
 		}
 		
 		public function initialize():void
@@ -358,18 +376,23 @@ package model
 		
 		protected function checkGameEnd():void
 		{
+			if (isGameEnd())
+			{
+				endGame();
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
+				dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
+			}
+		}
+		
+		private function isGameEnd():Boolean
+		{
 			var count:int = 0;
 			for (var i:int = 0; i < maxPlayer; i++)
 			{
 				if (control[i] == null || gameModel[i].isGameOver) continue;
 				count++;
 			}
-			if (count <= (isBattle() ? 1 : 0))
-			{
-				endGame();
-				dispatchEvent(new KuzurisEvent(KuzurisEvent.gameEnd));
-				dispatchEvent(new KuzurisEvent(KuzurisEvent.playerUpdate));
-			}
+			return count <= (isBattle() ? 1 : 0);
 		}
 		
 		private function gameEndListener(e:GameEvent):void

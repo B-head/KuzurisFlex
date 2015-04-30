@@ -187,7 +187,7 @@ package model.network {
 			if (isExecution())
 			{
 				if (selfPlayerIndex == RoomInformation.watchIndex) return true;
-				return isGameOver(selfPlayerIndex);
+				return isPlayerGameEnd(selfPlayerIndex);
 			}
 			return isOnePlayer();
 		}
@@ -214,7 +214,7 @@ package model.network {
 		}
 		
 		[Bindable(event="playerUpdate")]
-		public function isIndexEmpty(index:int):Boolean
+		public override function isIndexEmpty(index:int):Boolean
 		{
 			return currentRoom.entrant.getItemAt(index) == null;
 		}

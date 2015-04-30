@@ -31,15 +31,16 @@ package model
 			return true;
 		}
 		
-		public function clearLine(y:int):Vector.<uint>
+		public function clearLine(y:int):Vector.<BlockState>
 		{
-			var colors:Vector.<uint> = new Vector.<uint>(_maxWidth, true);
+			var blocks:Vector.<BlockState> = new Vector.<BlockState>(_maxWidth, true);
 			for (var x:int = _left; x <= _right; x++)
 			{
-				colors[x] = value[x][y].color;
+				var v:BlockState = value[x][y];
+				blocks[x] = new BlockState(v.type, v.color, v.hitPoint, v.specialUnion);
 				clearState(x, y);
 			}
-			return colors;
+			return blocks;
 		}
 		
 		public function clearSpecialUnion():void

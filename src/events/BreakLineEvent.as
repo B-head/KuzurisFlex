@@ -1,5 +1,6 @@
 package events {
 	import flash.events.Event;
+	import model.BlockState;
 	import model.GameSetting;
 	/**
 	 * ...
@@ -12,14 +13,16 @@ package events {
 		public var total:int;
 		public var technicalSpin:int;
 		public var combo:int;
+		public var blocks:Vector.<BlockState>;
 		
 		public static const breakLine:String = "breakLine";
 		public static const sectionBreakLine:String = "sectionBreakLine";
 		public static const totalBreakLine:String = "totalBreakLine";
 		public static const breakTechnicalSpin:String = "breakTechnicalSpin";
+		public static const eraseJewel:String = "eraseJewel";
 		public static const endCombo:String = "endCombo";
 		
-		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, setting:GameSetting, line:int, total:int, technicalSpin:int, combo:int) 
+		public function BreakLineEvent(type:String, gameTime:int, plusScore:int, setting:GameSetting, line:int, total:int, technicalSpin:int, combo:int, blocks:Vector.<BlockState> = null) 
 		{ 
 			super(type, gameTime, plusScore);
 			this.setting = setting;
@@ -27,11 +30,12 @@ package events {
 			this.total = total;
 			this.technicalSpin = technicalSpin;
 			this.combo = combo;
+			this.blocks = blocks;
 		} 
 		
 		public override function clone():Event 
 		{ 
-			return new BreakLineEvent(type, gameTime, plusScore, setting, line, total, technicalSpin, combo)
+			return new BreakLineEvent(type, gameTime, plusScore, setting, line, total, technicalSpin, combo, blocks)
 		}
 		
 		public function powerLevel():int

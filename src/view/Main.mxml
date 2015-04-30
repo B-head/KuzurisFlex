@@ -19,9 +19,11 @@
 			
 			public static var blockGraphics:BlockGraphics;
 			public static var breakLineGraphics:BreakLineGraphics;
+			public static var breakBlockGraphics:BreakBlockGraphics;
 			public static var shockGraphics:ShockEffectGraphics;
 			public static var compactBlockGraphics:BlockGraphics;
 			public static var compactBreakLineGraphics:BreakLineGraphics;
+			public static var compactBreakBlockGraphics:BreakBlockGraphics;
 			
 			public static var autoBattleRepeat:Boolean;
 			public static var unstableNetworkTest:Boolean;
@@ -37,9 +39,11 @@
 				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true);
 				blockGraphics = new BlockGraphics(16, 16);
 				breakLineGraphics = new BreakLineGraphics(160, 16);
+				breakBlockGraphics = new BreakBlockGraphics(16);
 				shockGraphics = new ShockEffectGraphics(16, 16);
 				compactBlockGraphics = new BlockGraphics(8, 8);
 				compactBreakLineGraphics = new BreakLineGraphics(80, 8);
+				compactBreakBlockGraphics = new BreakBlockGraphics(8);
 				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE];
 				resetTraceLog();
 			}
@@ -183,7 +187,7 @@
 								  paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Image source="@Embed(source='../graphic/title-logo.png')" />
-			<s:Label text="alpha version" fontSize="24" color="{Color.skyblue}" />
+			<s:Label text="Bata1 version" fontSize="24" color="{Color.skyblue}" />
 			<s:Label text="Copyright © 2015 by B_head, All Rights Reserved." color="{Color.lightgray}" />
 		</s:BorderContainer>
 
@@ -232,8 +236,12 @@
 	<v:BattleMulti id="battleMulti" includeIn="battleMulti" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<v:NetworkLounge id="network" includeIn="network" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<s:BorderContainer id="credit" includeIn="credit" verticalCenter="0" horizontalCenter="0">
-		<s:Button styleName="back" width="100" label="もどる"
-				  buttonDown="currentState = 'top'" />
+		<s:VGroup horizontalAlign="center">
+			<s:Label fontSize="24">効果音素材</s:Label>
+			<s:Label click="navigateToURL(new URLRequest('http://pocket-se.info/'))">ポケットサウンド</s:Label>
+			<s:Label click="navigateToURL(new URLRequest('http://osabisi.sakura.ne.jp/m2/'))">ザ・マッチメイカァズ2nd</s:Label>
+			<s:Button styleName="back" width="100" label="もどる" buttonDown="currentState = 'top'" />
+		</s:VGroup>
 	</s:BorderContainer>
 	<v:VolumeControl bottom="0" left="0" />
 	<s:ToggleButton id="fullScreen" bottom="0" right="0" label="フルスクリーン" visible="false" click="fullScreenChangeListener(event)" 

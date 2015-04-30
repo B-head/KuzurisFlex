@@ -11,56 +11,56 @@ package view
 	 */
 	public class GameModelSoundEffect extends UIComponent
 	{
-		[Embed(source = "../sound/line/line-1.mp3")]
+		[Embed(source = "../sound/line/lineC3.mp3")]
 		private const Line1:Class;
-		[Embed(source = "../sound/line/line-2.mp3")]
+		[Embed(source = "../sound/line/lineD3.mp3")]
 		private const Line2:Class;
-		[Embed(source = "../sound/line/line-3.mp3")]
+		[Embed(source = "../sound/line/lineE3.mp3")]
 		private const Line3:Class;
-		[Embed(source = "../sound/line/line-4.mp3")]
+		[Embed(source = "../sound/line/lineF3.mp3")]
 		private const Line4:Class;
-		[Embed(source = "../sound/line/line-5.mp3")]
+		[Embed(source = "../sound/line/lineG3.mp3")]
 		private const Line5:Class;
-		[Embed(source = "../sound/line/line-6.mp3")]
+		[Embed(source = "../sound/line/lineA4.mp3")]
 		private const Line6:Class;
-		[Embed(source = "../sound/line/line-7.mp3")]
+		[Embed(source = "../sound/line/lineB4.mp3")]
 		private const Line7:Class;
-		[Embed(source = "../sound/line/line-8.mp3")]
+		[Embed(source = "../sound/line/lineC4.mp3")]
 		private const Line8:Class;
-		[Embed(source = "../sound/line/line-9.mp3")]
+		[Embed(source = "../sound/line/lineD4.mp3")]
 		private const Line9:Class;
-		[Embed(source = "../sound/line/line-10.mp3")]
+		[Embed(source = "../sound/line/lineE4.mp3")]
 		private const Line10:Class;
-		[Embed(source = "../sound/line/line-11.mp3")]
+		[Embed(source = "../sound/line/lineF4.mp3")]
 		private const Line11:Class;
-		[Embed(source = "../sound/line/line-12.mp3")]
+		[Embed(source = "../sound/line/lineG4.mp3")]
 		private const Line12:Class;
-		[Embed(source = "../sound/line/line-13.mp3")]
+		[Embed(source = "../sound/line/lineA5.mp3")]
 		private const Line13:Class;
-		[Embed(source = "../sound/line/line-14.mp3")]
+		[Embed(source = "../sound/line/lineB5.mp3")]
 		private const Line14:Class;
-		[Embed(source = "../sound/line/line-15.mp3")]
+		[Embed(source = "../sound/line/lineC5.mp3")]
 		private const Line15:Class;
-		[Embed(source = "../sound/line/line-16.mp3")]
+		[Embed(source = "../sound/line/lineD5.mp3")]
 		private const Line16:Class;
-		[Embed(source = "../sound/line/line-17.mp3")]
+		[Embed(source = "../sound/line/lineE5.mp3")]
 		private const Line17:Class;
-		[Embed(source = "../sound/line/line-18.mp3")]
+		[Embed(source = "../sound/line/lineF5.mp3")]
 		private const Line18:Class;
-		[Embed(source = "../sound/line/line-19.mp3")]
+		[Embed(source = "../sound/line/lineG5.mp3")]
 		private const Line19:Class;
-		[Embed(source = "../sound/line/line-20.mp3")]
+		[Embed(source = "../sound/line/lineA6.mp3")]
 		private const Line20:Class;
 		
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../sound/receipt05.mp3")]
 		private const TecnicalSpin:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../sound/itemgetsea.mp3")]
 		private const EraseJewel:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../sound/receipt02.mp3")]
 		private const JewelAllClear:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../sound/receipt02.mp3")]
 		private const AllClear:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../sound/itemgetseb.mp3")]
 		private const LevelUp:Class;
 		[Embed(source = "../sound/on01.mp3")]
 		private const Move:Class;
@@ -145,6 +145,7 @@ package view
 			value.addTerget(BreakLineEvent.sectionBreakLine, breakLineListener);
 			value.addTerget(ShockBlockEvent.sectionDamage, shockBlockListener);
 			value.addTerget(BreakLineEvent.breakTechnicalSpin, function(e:BreakLineEvent):void { tecnicalSpin.play(); }, false);
+			value.addTerget(BreakLineEvent.eraseJewel, function(e:BreakLineEvent):void { eraseJewel.play(); }, false);
 			value.addTerget(GameEvent.jewelAllClear, function(e:GameEvent):void { jewelAllClear.play(); }, false);
 			value.addTerget(GameEvent.blockAllClear, function(e:GameEvent):void { allClear.play(); }, false);
 			value.addTerget(LevelClearEvent.levelClear, function(e:LevelClearEvent):void { levelUp.play(); }, false);

@@ -65,19 +65,19 @@
 			
 			private function loungeConnectErrorListener(e:KuzurisErrorEvent):void
 			{
-				stateText.text = e.text;
+				stateText.text = e.text + "\r不安定でごめんなさい。";
 				currentState = "closeing";
 			}
 			
 			private function roomConnectErrorListener(e:KuzurisErrorEvent):void
 			{
-				stateText.text = e.text;
+				stateText.text = e.text + "\r不安定でごめんなさい。";
 				currentState = "loungeError";
 			}
 			
 			public function gameAbortListener(e:KuzurisErrorEvent):void
 			{	
-				stateText.text = e.text;
+				stateText.text = e.text + "\r不安定でごめんなさい。";
 				currentState = "closeing";
 			}
 		
@@ -172,7 +172,7 @@
 			<s:Button styleName="create-room" label="ルーム作成" buttonDown="currentState='createRoom'" />
 		</s:HGroup>
 		<s:HGroup verticalAlign="middle" horizontalAlign="center">
-			<s:ButtonBar id="selectGameMode" requireSelection="true" selectedIndex="0" change="gameModeChangeListener()">  
+			<s:ButtonBar id="selectGameMode" requireSelection="true" selectedIndex="1" change="gameModeChangeListener()">  
 				<mx:ArrayCollection source="['クラシック', 'ディグ']"/>
 			</s:ButtonBar>
 		</s:HGroup>

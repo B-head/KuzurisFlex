@@ -76,7 +76,7 @@ package model
 			removeAll();
 		}
 		
-		protected function onBreakLine(y:int, colors:Vector.<uint>):void
+		protected function onBreakLine(y:int, blocks:Vector.<BlockState>):void
 		{
 			return;
 		}
@@ -104,9 +104,9 @@ package model
 				if (_mainField.isBreakLine(y))
 				{
 					count++;
-					var colors:Vector.<uint>;
-					colors = _mainField.clearLine(y);
-					onBreakLine(y, colors);
+					var blocks:Vector.<BlockState>;
+					blocks = _mainField.clearLine(y);
+					onBreakLine(y, blocks);
 				}
 			}
 			return count;

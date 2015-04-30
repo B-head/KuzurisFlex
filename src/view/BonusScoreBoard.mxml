@@ -77,6 +77,5 @@
 	</s:VGroup>
 	<s:VGroup id="jewelAllClear" styleName="field-record" width="100%" visible="false" horizontalAlign="justify" gap="1" cacheAsBitmap="true" filters="{[glow]}">
 		<s:Label styleName="main-record bonus">ジュエルクリア</s:Label>
-		<s:Label styleName="plus-score" includeInLayout="{!battle}" visible="{!battle}">+25000</s:Label>
 	</s:VGroup>
 </s:Group>

@@ -148,6 +148,12 @@
 		private function endListener(e:KuzurisEvent):void
 		{
 			isResult = true;
+			support1.record = manager.getRecord(0);
+			support2.record = manager.getRecord(1);
+			support3.record = manager.getRecord(2);
+			support4.record = manager.getRecord(3);
+			support5.record = manager.getRecord(4);
+			support6.record = manager.getRecord(5);
 			if (manager.isReplayMode())
 			{
 				replayResult();
@@ -192,17 +198,17 @@
 	
 	<s:Group x="227" y="8" visible.battleRecords="false">
 		<v:CompactGameView id="player1" x="0" y="0" z="-1" battle="true" playerIndex="0" gameManager="{manager}" />
-		<v:MultiSupportView x="0" y="0" playerIndex="0" gameManager="{manager}" isResult="{isResult}"/>
+		<v:MultiSupportView id="support1" x="0" y="0" playerIndex="0" gameManager="{manager}" isResult="{isResult}"/>
 		<v:CompactGameView id="player2" x="133" y="0" z="-1" battle="true" playerIndex="1" gameManager="{manager}" />
-		<v:MultiSupportView x="133" y="0" playerIndex="1" gameManager="{manager}" isResult="{isResult}"/>
+		<v:MultiSupportView id="support2" x="133" y="0" playerIndex="1" gameManager="{manager}" isResult="{isResult}"/>
 		<v:CompactGameView id="player3" x="266" y="0" z="-1" battle="true" playerIndex="2" gameManager="{manager}" />
-		<v:MultiSupportView x="266" y="0" playerIndex="2" gameManager="{manager}" isResult="{isResult}"/>
+		<v:MultiSupportView id="support3" x="266" y="0" playerIndex="2" gameManager="{manager}" isResult="{isResult}"/>
 		<v:CompactGameView id="player4" x="0" y="204" z="-2" battle="true" playerIndex="3" gameManager="{manager}" />
-		<v:MultiSupportView x="0" y="204" playerIndex="3" gameManager="{manager}" isResult="{isResult}"/>
+		<v:MultiSupportView id="support4" x="0" y="204" playerIndex="3" gameManager="{manager}" isResult="{isResult}"/>
 		<v:CompactGameView id="player5" x="133" y="204" z="-2" battle="true" playerIndex="4" gameManager="{manager}" />
-		<v:MultiSupportView x="133" y="204" playerIndex="4" gameManager="{manager}" isResult="{isResult}"/>
+		<v:MultiSupportView id="support5" x="133" y="204" playerIndex="4" gameManager="{manager}" isResult="{isResult}"/>
 		<v:CompactGameView id="player6" x="266" y="204" z="-2" battle="true" playerIndex="5" gameManager="{manager}" />
-		<v:MultiSupportView x="266" y="204" playerIndex="5" gameManager="{manager}" isResult="{isResult}"/>
+		<v:MultiSupportView id="support6" x="266" y="204" playerIndex="5" gameManager="{manager}" isResult="{isResult}"/>
 	</s:Group>
 	<s:VGroup includeIn="prepare" x="352" y="88" width="150" height="320" verticalAlign="middle" horizontalAlign="center">
 		<s:Button styleName="start" width="150" label="スタート" buttonDown="start()" />

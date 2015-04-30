@@ -11,6 +11,8 @@
 			public var record:GameRecord;
 			[Bindable]
 			public var battle:Boolean;
+			[Bindable]
+			public var compact:Boolean;
 		]]>
 	</fx:Script>
 	
@@ -25,14 +27,14 @@
 	
 	<s:VGroup horizontalCenter="true" verticalCenter="true">
 		<s:Label text="レベル {record.level}" includeInLayout="{!battle}" visible="{!battle}"/>
-		<s:Label text="ライン {record.breakLine}"/>
-		<s:Label text="ミノ {record.fixOmino}"/>
+		<s:Label text="ライン {record.breakLine}" includeInLayout="{!compact}" visible="{!compact}"/>
+		<s:Label text="ミノ {record.fixOmino}" includeInLayout="{!compact}" visible="{!compact}"/>
 		<s:Label text="発生おじゃま {record.occurObstacle}" includeInLayout="{battle}" visible="{battle}"/>
 		<s:Label text="被おじゃま {record.receivedObstacle}" includeInLayout="{battle}" visible="{battle}"/>
-		<s:Label text="スコア {record.gameScore}"/>
+		<s:Label text="スコア {record.gameScore}" includeInLayout="{!compact}" visible="{!compact}"/>
 		<mx:Spacer/>
-		<s:Label text="タイム {ft.format(record.gameTime)}"/>
-		<s:Label text="操作タイム {ft.format(record.controlTime)}"/>
+		<s:Label text="タイム {ft.format(record.gameTime)}" includeInLayout="{!compact}" visible="{!compact}"/>
+		<s:Label text="操作タイム {ft.format(record.controlTime)}" includeInLayout="{!compact}" visible="{!compact}"/>
 		<s:Label text="MPM {nf.format(record.ominoPerMinute())}"/>
 		<s:Label text="MPCM {nf.format(record.ominoPerControlMinute())}"/>
 		<s:Label text="OPM {nf.format(record.occurPerMinute())}" includeInLayout="{battle}" visible="{battle}" />

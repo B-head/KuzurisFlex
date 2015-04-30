@@ -7,7 +7,9 @@ package model
 	 */
 	public final class GameSetting 
 	{
-		public static const alpha1:uint = 1;
+		public static const develop:uint = uint.MAX_VALUE;
+		public static const alpha:uint = 1;
+		public static const beta1:uint = 2;
 		
 		public static const axelSpeed:String = "axelSpeed";
 		public static const overSpeed:String = "overSpeed";
@@ -19,7 +21,7 @@ package model
 		public static const classicBattle:String = "classicBattle";
 		public static const digBattle:String = "digBattle";
 		
-		public var version:uint = alpha1;
+		public var version:uint = beta1;
 		public var gameMode:String = free;
 		public var startLevel:int = 1;
 		public var endless:Boolean = true;
@@ -32,7 +34,7 @@ package model
 		public const breakLineCoefficient:int = 1000;
 		public const blockAllClearBonusScore:int = 25000;
 		public const blockAllClearBonusObstacle:int = 100;
-		public const excellentBonusScore:int = 25000;
+		public const excellentBonusScore:int = 0;
 		
 		public static const shockDamageCoefficient:Number = 2.5;
 		public static const indirectShockDamageCoefficient:Number = 1;

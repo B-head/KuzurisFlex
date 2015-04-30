@@ -13,6 +13,8 @@ package view
 	{
 		[Bindable]
 		public var breakLineGraphics:BreakLineGraphics;
+		[Bindable]
+		public var breakBlockGraphics:BreakBlockGraphics;
 		private var _gameModel:GameModel;
 		private var effects:Vector.<BreakLineEffect>;
 		private var ready:Vector.<BreakLineEffect>;
@@ -59,6 +61,7 @@ package view
 			var ble:BreakLineEffect = getFreeEfeect();
 			ble.start();
 			ble.y = e.line * breakLineGraphics.height;
+			ble.blockStates = e.blocks;
 			ready.push(ble);
 		}
 		
@@ -84,6 +87,7 @@ package view
 			var ret:BreakLineEffect = new BreakLineEffect();
 			ret.reset();
 			ret.breakLineGraphics = breakLineGraphics;
+			ret.breakBlockGraphics = breakBlockGraphics;
 			effects.push(ret);
 			addChild(ret);
 			return ret;

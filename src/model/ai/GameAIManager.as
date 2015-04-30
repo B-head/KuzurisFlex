@@ -94,6 +94,7 @@ package model.ai {
 		public function initialize(gameModel:GameModel):void
 		{
 			this.gameModel = gameModel;
+			ai.gameMode = gameModel.setting.gameMode;
 			gameModel.addTerget(ControlEvent.setOmino, setOminoListener);
 			gameModel.addTerget(ControlEvent.fixOmino, fixOminoListener);
 			gameModel.addTerget(ControlEvent.setOmino, updateModelListener);

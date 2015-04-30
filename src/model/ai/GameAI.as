@@ -8,6 +8,7 @@ package model.ai {
 	public class GameAI 
 	{
 		public var level:int;
+		public var gameMode:String;
 		protected var rootModel:FragmentGameModel;
 		protected var treeRoot:AppraiseTree;
 		private var nextModel:FragmentGameModel;

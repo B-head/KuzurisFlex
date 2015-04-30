@@ -58,6 +58,27 @@ package model
 			return r + g + b + 0xFF000000;
 		}
 		
+		public static function brightnessTransform(color:uint, brightness:Number):uint
+		{
+			var r:int = (color & 0x00FF0000) >> 16;
+			var g:int = (color & 0x0000FF00) >> 8;
+			var b:int = (color & 0x000000FF) >> 0;
+			if (brightness > 0)
+			{
+				r += (255 - r) * brightness;
+				g += (255 - g) * brightness;
+				b += (255 - b) * brightness;
+			}
+			else
+			{
+				var a:Number = 1 - brightness;
+				r *= a;
+				g *= a;
+				b *= a;
+			}
+			return rgb(r, g, b);
+		}
+		
 		public static function makeTransform(color:uint):ColorTransform
 		{
 			var colorTransform:ColorTransform = new ColorTransform();
