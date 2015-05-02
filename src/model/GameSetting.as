@@ -10,6 +10,7 @@ package model
 		public static const develop:uint = uint.MAX_VALUE;
 		public static const alpha:uint = 1;
 		public static const beta1:uint = 2;
+		public static const beta2:uint = 3;
 		
 		public static const axelSpeed:String = "axelSpeed";
 		public static const overSpeed:String = "overSpeed";
@@ -21,7 +22,7 @@ package model
 		public static const classicBattle:String = "classicBattle";
 		public static const digBattle:String = "digBattle";
 		
-		public var version:uint = beta1;
+		public var version:uint = develop;
 		public var gameMode:String = free;
 		public var startLevel:int = 1;
 		public var endless:Boolean = true;
@@ -169,7 +170,14 @@ package model
 		
 		public function powerLevel(comboTotalLine:int, comboCount:int):int
 		{
-			return comboTotalLine - comboCount;
+			if (version >= beta2)
+			{
+				return Math.min(21, comboTotalLine - comboCount);
+			}
+			else
+			{
+				return comboTotalLine - comboCount;
+			}
 		}
 		
 		public function powerScale(comboTotalLine:int, comboCount:int):Number

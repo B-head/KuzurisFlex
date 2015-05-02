@@ -112,7 +112,7 @@ package model
 			return count;
 		}
 		
-		protected function extractFallBlocks():void
+		protected function extractFallBlocks():int
 		{
 			var temp:MainField = _mainField;
 			_mainField = _fallField;
@@ -121,6 +121,7 @@ package model
 			{
 				_fallField.extractConnection(_mainField, x, fieldHeight - 1, true);
 			}
+			return _fallField.blockCount;
 		}
 		
 		protected function fallingField(from:int, to:int, fast:Boolean):int
