@@ -1,8 +1,7 @@
 package model 
 {
-	import flash.utils.IDataInput;
-	import flash.utils.IDataOutput;
-	import flash.utils.IExternalizable;
+	import common.*;
+	import flash.utils.*;
 	/**
 	 * ...
 	 * @author B_head

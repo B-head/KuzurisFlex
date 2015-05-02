@@ -1,7 +1,7 @@
 package model 
 {
-	import model.network.PlayerInformation;
-	import mx.formatters.IFormatter;
+	import common.*;
+	import network.*;
 	/**
 	 * ...
 	 * @author B_head

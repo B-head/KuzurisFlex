@@ -5,6 +5,7 @@
 
 	<fx:Script>
 		<![CDATA[
+		import common.*;
 		import events.*;
 		import flash.events.*;
 		import model.*;

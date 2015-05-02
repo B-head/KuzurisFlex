@@ -1,10 +1,11 @@
 package model 
 {
+	import ai.*;
+	import common.*;
 	import events.*;
 	import flash.events.*;
 	import flash.utils.*;
-	import model.ai.*;
-	import model.network.*;
+	import network.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -91,9 +92,9 @@ package model
 		
 		public function setAILevel(index:int, level:int):void
 		{
-			var ai:GameAIManager = control[index] as GameAIManager;
-			if (ai == null) return;
-			ai.setAILevel(level);
+			var gameAI:GameAIManager = control[index] as GameAIManager;
+			if (gameAI == null) return;
+			gameAI.setAILevel(level);
 		}
 		
 		[Bindable(event="initializeGameModel")]

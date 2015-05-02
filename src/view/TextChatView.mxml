@@ -4,10 +4,11 @@
                xmlns:mx="library://ns.adobe.com/flex/mx">
 	<fx:Script>
 		<![CDATA[
+			import common.*;
 			import events.*;
+			import flashx.textLayout.formats.*;
 			import model.*;
-			import model.network.*;
-			import flashx.textLayout.formats.TextLayoutFormat;
+			import network.*;
 			
 			private var textChat:TextChat;
 			

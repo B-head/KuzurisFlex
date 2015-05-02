@@ -1,10 +1,8 @@
 package model 
 {
-	import events.GameEvent;
-	import flash.events.EventDispatcher;
-	import flash.utils.IDataInput;
-	import flash.utils.IDataOutput;
-	import flash.utils.IExternalizable;
+	import common.*;
+	import events.*;
+	import flash.utils.*;
 	/**
 	 * ...
 	 * @author B_head

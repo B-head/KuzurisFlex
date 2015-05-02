@@ -1,6 +1,6 @@
 package events {
 	import flash.events.Event;
-	import model.network.MessageObject;
+	import network.MessageObject;
 	
 	/**
 	 * ...

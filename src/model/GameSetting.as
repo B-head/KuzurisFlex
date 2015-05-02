@@ -1,6 +1,6 @@
 package model 
 {
-	import view.GameModelSoundEffect;
+	import common.*;
 	/**
 	 * ...
 	 * @author B_head

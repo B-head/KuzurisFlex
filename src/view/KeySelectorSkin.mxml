@@ -22,7 +22,7 @@
 	</fx:Script>
 	
     <fx:Metadata>
-        [HostComponent("view.KeySelector")]
+        [HostComponent("presentation.KeySelector")]
     </fx:Metadata>
 	
 	<s:states>

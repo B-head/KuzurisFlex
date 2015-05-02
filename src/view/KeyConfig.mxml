@@ -3,12 +3,14 @@
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:v="view.*"
+			   xmlns:p="presentation.*"
 			   width="400">
 	<fx:Script>
 		<![CDATA[
-			import model.UserInput;
-			import spark.events.IndexChangeEvent;
 			import events.*;
+			import model.*;
+			import presentation.*;
+			import spark.events.*;
 			
 			[Bindable]
 			public var input:UserInput;
@@ -23,13 +25,13 @@
 		<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="4" />
 	</s:layout>
 	
-	<v:KeySelector labelText="左回転" keys="{input.leftRotation}" input="{input}" />
-	<v:KeySelector labelText="右回転" keys="{input.rightRotation}" input="{input}" />
-	<v:KeySelector labelText="左移動" keys="{input.leftMove}" input="{input}" />
-	<v:KeySelector labelText="右移動" keys="{input.rightMove}" input="{input}" />
-	<v:KeySelector labelText="高速落下" keys="{input.fastFalling}" input="{input}" />
-	<v:KeySelector labelText="接地" keys="{input.earthFalling}" input="{input}" />
-	<v:KeySelector labelText="ブロック保護" keys="{input.noDamage}" input="{input}" />
+	<p:KeySelector labelText="左回転" keys="{input.leftRotation}" input="{input}" />
+	<p:KeySelector labelText="右回転" keys="{input.rightRotation}" input="{input}" />
+	<p:KeySelector labelText="左移動" keys="{input.leftMove}" input="{input}" />
+	<p:KeySelector labelText="右移動" keys="{input.rightMove}" input="{input}" />
+	<p:KeySelector labelText="高速落下" keys="{input.fastFalling}" input="{input}" />
+	<p:KeySelector labelText="接地" keys="{input.earthFalling}" input="{input}" />
+	<p:KeySelector labelText="ブロック保護" keys="{input.noDamage}" input="{input}" />
 	<mx:Spacer height="8" />
 	<s:HGroup verticalAlign="middle" horizontalAlign="center">
 		<s:Label width="120" text="高速移動フレーム"/>

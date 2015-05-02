@@ -3,14 +3,17 @@
          xmlns:s="library://ns.adobe.com/flex/spark" 
          xmlns:mx="library://ns.adobe.com/flex/mx"
 		 xmlns:v="view.*"
+		 xmlns:p="presentation.*"
 		 initialize="init()">
 		 
 	<fx:Script>
 		<![CDATA[
+		import common.*;
 		import events.*;
 		import model.*;
-		import model.network.*;
 		import mx.events.*;
+		import network.*;
+		import presentation.*;
 		
 		[Bindable] 
 		public var blockGraphics:BlockGraphics;
@@ -111,9 +114,9 @@
 	<fx:Declarations>
 		<fx:Boolean id="battle"/>
 		<fx:Boolean id="reverse"/>
-		<v:GameModelSoundEffect gameModel="{_gameModel}"/>
+		<p:GameModelSoundEffect gameModel="{_gameModel}"/>
 		<s:NumberFormatter id="nf" fractionalDigits="2" trailingZeros="true" useGrouping="false" />
-		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
+		<p:FrameTimeFormatter id="frameTime" frameRate="60"/>
 	</fx:Declarations>
 	
 	<s:Group x="{reverse ? 36 : 0}" y="0" clipAndEnableScrolling="true" width="96" height="200">
@@ -129,14 +132,14 @@
 			<s:Image source="{Color.coloring(new Frame(), 192, 336, Color.blue)}" scaleX="0.5" scaleY="0.5"/>
 		</s:Group>
 		<v:BreakLineScoreBoard x="0" y="18" width="96" battle="{battle}" gameModel="{_gameModel}"/>
-		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true" isGhost="true"/>
-		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<v:BreakLineEffectContainer id="breakLineContainer" x="8" y="-144" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
+		<p:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true" isGhost="true"/>
+		<p:BlockFieldView id="control" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
+		<p:BlockFieldView id="main" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
+		<p:BlockFieldView id="fall" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
+		<p:BreakLineEffectContainer id="breakLineContainer" x="8" y="-144" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
 		<v:BonusScoreBoard x="0" y="96" width="96" battle="{battle}" gameModel="{_gameModel}"/>
 		<s:Label styleName="ready" x="0" verticalCenter="0" width="96" text="レディ" visible="false" visible.ready="true" />
-		<v:ObstacleView id="obstacle" x="8" y="0" width="80" height="16" blockScale="0.5" visible="false" gameModel="{_gameModel}"/>
+		<p:ObstacleView id="obstacle" x="8" y="0" width="80" height="16" blockScale="0.5" visible="false" gameModel="{_gameModel}"/>
 		<s:BorderContainer x="0" y="176" width="96" height="24" visible="{playerInfo != null}">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="1" />

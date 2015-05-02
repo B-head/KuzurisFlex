@@ -8,11 +8,12 @@
 			   
 	<fx:Script>
 		<![CDATA[
+		import common.*;
 		import events.*;
 		import flash.events.*;
 		import flash.ui.*;
 		import model.*;
-		import model.ai.*;
+		import ai.*;
 		
 		[Bindable]
 		private var manager:GameManager;

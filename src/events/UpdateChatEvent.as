@@ -2,7 +2,7 @@ package events
 {
 	import flash.events.Event;
 	import flash.events.TextEvent;
-	import model.network.Utterance;
+	import network.Utterance;
 	
 	/**
 	 * ...

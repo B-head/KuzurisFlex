@@ -7,11 +7,12 @@
 		   frameConstructed ="frameConstructedListener()">
 	<fx:Script>
 		<![CDATA[
+		import ai.*;
+		import common.*;
 		import events.*;
 		import flash.events.*;
 		import flash.ui.*;
 		import model.*;
-		import model.ai.*;
 		
 		[Bindable]
 		private var manager:GameManager;

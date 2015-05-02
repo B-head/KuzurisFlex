@@ -1,8 +1,9 @@
 package model 
 {
+	import ai.*;
+	import common.*;
 	import events.*;
 	import flash.utils.*;
-	import model.ai.FragmentGameModel;
 	/**
 	 * ...
 	 * @author B_head

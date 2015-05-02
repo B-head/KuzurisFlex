@@ -5,6 +5,7 @@
 			   xmlns:v="view.*">
 	<fx:Script>
 	    <![CDATA[
+		import common.*;
 		import events.*;
 		import model.*;
 		

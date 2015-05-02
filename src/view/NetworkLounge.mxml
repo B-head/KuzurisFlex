@@ -7,11 +7,12 @@
 			   width="854" height="480">
 	<fx:Script>
 		<![CDATA[
+			import common.*;
 			import events.*;
 			import flash.events.*;
 			import flash.utils.*;
 			import model.*;
-			import model.network.*;
+			import network.*;
 			import mx.events.*;
 			
 			[Bindable]

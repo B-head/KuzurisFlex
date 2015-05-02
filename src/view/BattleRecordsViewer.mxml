@@ -3,6 +3,7 @@
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:v="view.*"
+			   xmlns:p="presentation.*"
 			   creationComplete="creationCompleteListaener()">
 	<fx:Script>
 		<![CDATA[
@@ -48,7 +49,7 @@
 	</fx:Metadata>
 	
 	<fx:Declarations>
-		<v:FrameTimeFormatter id="ft" frameRate="60"/>
+		<p:FrameTimeFormatter id="ft" frameRate="60"/>
 		<s:DateTimeFormatter id="dt" />
 	</fx:Declarations>
 	

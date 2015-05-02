@@ -1,6 +1,7 @@
 package model 
 {
-	import flash.utils.ByteArray;
+	import common.*;
+	import flash.utils.*;
 	/**
 	 * ...
 	 * @author B_head

@@ -3,16 +3,17 @@
                xmlns:s="library://ns.adobe.com/flex/spark" 
                xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:v="view.*"
+			   xmlns:p="presentation.*"
 			   creationComplete="creationCompleteListaener()"
 			   width="806" height="432">
 	<fx:Script>
 		<![CDATA[
-			import events.RequestReplayEvent;
-			import model.*;
-			import flash.events.*; 
+			import common.*;
 			import events.*;
+			import flash.events.*;
+			import model.*;
 			import mx.collections.*;
-			import mx.core.ClassFactory;
+			import mx.core.*;
 			
 			[Bindable]
 			public var gameMode:String;
@@ -76,7 +77,7 @@
 	</fx:Metadata>
 	
 	<fx:Declarations>
-		<v:FrameTimeFormatter id="ft" frameRate="60"/>
+		<p:FrameTimeFormatter id="ft" frameRate="60"/>
 	</fx:Declarations>
 	
 	<s:layout>

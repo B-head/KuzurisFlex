@@ -1,7 +1,6 @@
 package model 
 {
-	import flash.events.EventDispatcher;
-	import model.ai.FragmentGameModel;
+	import common.*;
 	
 	/**
 	 * ...

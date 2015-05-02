@@ -1,5 +1,6 @@
 package events 
 {
+	import common.*;
 	import flash.events.*;
 	import model.*;
 	

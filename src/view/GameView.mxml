@@ -3,14 +3,17 @@
          xmlns:s="library://ns.adobe.com/flex/spark" 
          xmlns:mx="library://ns.adobe.com/flex/mx"
 		 xmlns:v="view.*"
+		 xmlns:p="presentation.*"
 		 initialize="init()">
 		 
 	<fx:Script>
 		<![CDATA[
+		import common.*;
 		import events.*;
 		import model.*;
-		import model.network.*;
 		import mx.events.*;
+		import network.*;
+		import presentation.*;
 		
 		[Bindable] 
 		public var blockGraphics:BlockGraphics;
@@ -136,9 +139,9 @@
 		<fx:int id="gameTime"/>
 		<fx:Boolean id="isObstacleAddition"/>
 		<fx:int id="nextObstacleTime"/>
-		<v:ShockEffectHelper id="shockEffectHelper" gameModel="{_gameModel}"/>
-		<v:GameModelSoundEffect gameModel="{_gameModel}"/>
-		<v:FrameTimeFormatter id="frameTime" frameRate="60"/>
+		<p:ShockEffectHelper id="shockEffectHelper" gameModel="{_gameModel}"/>
+		<p:GameModelSoundEffect gameModel="{_gameModel}"/>
+		<p:FrameTimeFormatter id="frameTime" frameRate="60"/>
 		<s:GlowFilter id="glow" color="{Color.black}" blurX="2" blurY="2" strength="255" />
 	</fx:Declarations>
 	
@@ -155,18 +158,18 @@
 			<s:Image source="{Color.coloring(new Frame(), 192, 336, Color.blue)}"/>
 		</s:Group>
 		<v:BreakLineScoreBoard x="0" y="66" width="192" battle="{battle}" gameModel="{_gameModel}"/>
-		<v:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}"
+		<p:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}"
 			visible.pause="false" showSpecial="true" isGhost="true" />
-		<v:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+		<p:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
 			visible.pause="false" showSpecial="true"/>
-		<v:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+		<p:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
 			visible.pause="false" showSpecial="true"/>
-		<v:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
+		<p:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
 			visible.pause="false" showSpecial="true"/>
-		<v:BreakLineEffectContainer id="breakLineContainer" x="16" y="-256" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
+		<p:BreakLineEffectContainer id="breakLineContainer" x="16" y="-256" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
 		<v:BonusScoreBoard x="0" verticalCenter="0" width="192" battle="{battle}" gameModel="{_gameModel}"/>
 		<s:Label styleName="ready" x="0" verticalCenter="0" width="192" text="レディ" visible="false" visible.ready="true" />
-		<v:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" gameModel="{_gameModel}"/>
+		<p:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" gameModel="{_gameModel}"/>
 		<s:BorderContainer x="16" y="400" width="160" height="32" visible="{playerInfo != null}" cacheAsBitmap="true">
 			<s:layout>
 				<s:VerticalLayout verticalAlign="middle" horizontalAlign="justify" paddingTop="4" paddingBottom="4" paddingLeft="4" paddingRight="4" gap="1" />
