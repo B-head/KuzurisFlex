@@ -179,14 +179,14 @@
 		<s:State name="credit" />
 	</s:states>
 
-	<s:Image width="854" height="480" source="@Embed(source='../graphic/photo0000-1251.jpg')" scaleMode="zoom" cacheAsBitmap="true"/>
+	<s:Image width="854" height="480" source="@Embed(source='../../graphic/photo0000-1251.jpg')" scaleMode="zoom" cacheAsBitmap="true"/>
 	<s:Group includeIn="title">
 		<s:BorderContainer width="300" x="100" verticalCenter="0">
 			<s:layout>
 				<s:VerticalLayout horizontalAlign="justify" paddingTop="4" paddingBottom="4"
 								  paddingLeft="4" paddingRight="4" />
 			</s:layout>
-			<s:Image source="@Embed(source='../graphic/title-logo.png')" />
+			<s:Image source="@Embed(source='../../graphic/title-logo.png')" />
 			<s:Label text="Bata1 version" fontSize="24" color="{Color.skyblue}" />
 			<s:Label text="Copyright © 2015 by B_head, All Rights Reserved." color="{Color.lightgray}" />
 		</s:BorderContainer>
@@ -245,5 +245,5 @@
 	</s:BorderContainer>
 	<v:VolumeControl bottom="0" left="0" />
 	<s:ToggleButton id="fullScreen" bottom="0" right="0" label="フルスクリーン" visible="false" click="fullScreenChangeListener(event)" 
-		icon="@Embed(source='../graphic/full_screen.png')" />
+		icon="@Embed(source='../../graphic/full_screen.png')" />
 </s:Application>

@@ -57,6 +57,6 @@
 	</s:states>
 	
 	<s:Button id="btn" width="21" height="21" buttonDown="muteChangeListener()"
-		icon.normal="@Embed(source='../graphic/volume.png')" icon.mute="@Embed(source='../graphic/mute.png')" />
+		icon.normal="@Embed(source='../../graphic/volume.png')" icon.mute="@Embed(source='../../graphic/mute.png')" />
 	<s:HSlider id="sld" width="101" height="21" minimum="0" maximum="1" snapInterval="0.01" change="volumeChangeListener()" />
 </s:HGroup>

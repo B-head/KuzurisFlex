@@ -115,7 +115,7 @@
 			breakLineContainer.incrementFrame();
 		}
 		
-		[Embed(source='../graphic/frame.png')]
+		[Embed(source='../../graphic/frame.png')]
 		private var Frame:Class;
 		]]>
 	</fx:Script>

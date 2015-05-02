@@ -2,12 +2,12 @@
 @namespace mx "library://ns.adobe.com/flex/mx";
 
 @font-face { 
-    src: url("../font/NotoSansCJKjp-Regular.otf"); 
+    src: url("../../font/NotoSansCJKjp-Regular.otf");
     fontFamily: noto-sans;
 }
 
 @font-face { 
-    src: url("../font/NotoSansCJKjp-Black.otf"); 
+    src: url("../../font/NotoSansCJKjp-Black.otf"); 
     fontFamily: noto-sans-strong;
 }
 

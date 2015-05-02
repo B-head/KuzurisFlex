@@ -11,80 +11,80 @@ package view
 	 */
 	public class GameModelSoundEffect extends UIComponent
 	{
-		[Embed(source = "../sound/line/lineC3.mp3")]
+		[Embed(source = "../../sound/line/lineC3.mp3")]
 		private const Line1:Class;
-		[Embed(source = "../sound/line/lineD3.mp3")]
+		[Embed(source = "../../sound/line/lineD3.mp3")]
 		private const Line2:Class;
-		[Embed(source = "../sound/line/lineE3.mp3")]
+		[Embed(source = "../../sound/line/lineE3.mp3")]
 		private const Line3:Class;
-		[Embed(source = "../sound/line/lineF3.mp3")]
+		[Embed(source = "../../sound/line/lineF3.mp3")]
 		private const Line4:Class;
-		[Embed(source = "../sound/line/lineG3.mp3")]
+		[Embed(source = "../../sound/line/lineG3.mp3")]
 		private const Line5:Class;
-		[Embed(source = "../sound/line/lineA4.mp3")]
+		[Embed(source = "../../sound/line/lineA4.mp3")]
 		private const Line6:Class;
-		[Embed(source = "../sound/line/lineB4.mp3")]
+		[Embed(source = "../../sound/line/lineB4.mp3")]
 		private const Line7:Class;
-		[Embed(source = "../sound/line/lineC4.mp3")]
+		[Embed(source = "../../sound/line/lineC4.mp3")]
 		private const Line8:Class;
-		[Embed(source = "../sound/line/lineD4.mp3")]
+		[Embed(source = "../../sound/line/lineD4.mp3")]
 		private const Line9:Class;
-		[Embed(source = "../sound/line/lineE4.mp3")]
+		[Embed(source = "../../sound/line/lineE4.mp3")]
 		private const Line10:Class;
-		[Embed(source = "../sound/line/lineF4.mp3")]
+		[Embed(source = "../../sound/line/lineF4.mp3")]
 		private const Line11:Class;
-		[Embed(source = "../sound/line/lineG4.mp3")]
+		[Embed(source = "../../sound/line/lineG4.mp3")]
 		private const Line12:Class;
-		[Embed(source = "../sound/line/lineA5.mp3")]
+		[Embed(source = "../../sound/line/lineA5.mp3")]
 		private const Line13:Class;
-		[Embed(source = "../sound/line/lineB5.mp3")]
+		[Embed(source = "../../sound/line/lineB5.mp3")]
 		private const Line14:Class;
-		[Embed(source = "../sound/line/lineC5.mp3")]
+		[Embed(source = "../../sound/line/lineC5.mp3")]
 		private const Line15:Class;
-		[Embed(source = "../sound/line/lineD5.mp3")]
+		[Embed(source = "../../sound/line/lineD5.mp3")]
 		private const Line16:Class;
-		[Embed(source = "../sound/line/lineE5.mp3")]
+		[Embed(source = "../../sound/line/lineE5.mp3")]
 		private const Line17:Class;
-		[Embed(source = "../sound/line/lineF5.mp3")]
+		[Embed(source = "../../sound/line/lineF5.mp3")]
 		private const Line18:Class;
-		[Embed(source = "../sound/line/lineG5.mp3")]
+		[Embed(source = "../../sound/line/lineG5.mp3")]
 		private const Line19:Class;
-		[Embed(source = "../sound/line/lineA6.mp3")]
+		[Embed(source = "../../sound/line/lineA6.mp3")]
 		private const Line20:Class;
 		
-		[Embed(source = "../sound/receipt05.mp3")]
+		[Embed(source = "../../sound/receipt05.mp3")]
 		private const TecnicalSpin:Class;
-		[Embed(source = "../sound/itemgetsea.mp3")]
+		[Embed(source = "../../sound/itemgetsea.mp3")]
 		private const EraseJewel:Class;
-		[Embed(source = "../sound/receipt02.mp3")]
+		[Embed(source = "../../sound/receipt02.mp3")]
 		private const JewelAllClear:Class;
-		[Embed(source = "../sound/receipt02.mp3")]
+		[Embed(source = "../../sound/receipt02.mp3")]
 		private const AllClear:Class;
-		[Embed(source = "../sound/itemgetseb.mp3")]
+		[Embed(source = "../../sound/itemgetseb.mp3")]
 		private const LevelUp:Class;
-		[Embed(source = "../sound/on01.mp3")]
+		[Embed(source = "../../sound/on01.mp3")]
 		private const Move:Class;
-		[Embed(source = "../sound/kachi14.mp3")]
+		[Embed(source = "../../sound/kachi14.mp3")]
 		private const MoveNG:Class;
-		[Embed(source = "../sound/chari04.mp3")]
+		[Embed(source = "../../sound/chari04.mp3")]
 		private const Rotation:Class;
-		[Embed(source = "../sound/beep13.mp3")]
+		[Embed(source = "../../sound/beep13.mp3")]
 		private const RotationNG:Class;
-		[Embed(source = "../sound/swing30_c.mp3")]
+		[Embed(source = "../../sound/swing30_c.mp3")]
 		private const Fall:Class;
-		[Embed(source = "../sound/kachi04.mp3")]
+		[Embed(source = "../../sound/kachi04.mp3")]
 		private const Shift:Class;
-		[Embed(source = "../sound/gun30.mp3")]
+		[Embed(source = "../../sound/gun30.mp3")]
 		private const Shock:Class;
-		[Embed(source = "../sound/hit28.mp3")]
+		[Embed(source = "../../sound/hit28.mp3")]
 		private const ShockSave:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../../sound/silent.mp3")]
 		private const ForceFix:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../../sound/silent.mp3")]
 		private const TimeOutAlert:Class;
-		[Embed(source = "../sound/silent.mp3")]
+		[Embed(source = "../../sound/silent.mp3")]
 		private const TimeOutFix:Class;
-		[Embed(source = "../sound/cursor02.mp3")]
+		[Embed(source = "../../sound/cursor02.mp3")]
 		private const CautionObstacle:Class;
 		
 		private var _gameModel:GameModel;

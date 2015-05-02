@@ -103,55 +103,55 @@ package view
 			}
 		}
 		
-		[Embed(source='../graphic/block/split0.png')]
+		[Embed(source='../../graphic/block/split0.png')]
 		private var Split0:Class;
-		[Embed(source='../graphic/block/split1.png')]
+		[Embed(source='../../graphic/block/split1.png')]
 		private var Split1:Class;
-		[Embed(source='../graphic/block/split2.png')]
+		[Embed(source='../../graphic/block/split2.png')]
 		private var Split2:Class;
-		[Embed(source='../graphic/block/split3.png')]
+		[Embed(source='../../graphic/block/split3.png')]
 		private var Split3:Class;
-		[Embed(source='../graphic/block/split4.png')]
+		[Embed(source='../../graphic/block/split4.png')]
 		private var Split4:Class;
-		[Embed(source='../graphic/block/split5.png')]
+		[Embed(source='../../graphic/block/split5.png')]
 		private var Split5:Class;
-		[Embed(source='../graphic/block/split6.png')]
+		[Embed(source='../../graphic/block/split6.png')]
 		private var Split6:Class;
-		[Embed(source='../graphic/block/split7.png')]
+		[Embed(source='../../graphic/block/split7.png')]
 		private var Split7:Class;
-		[Embed(source='../graphic/block/split8.png')]
+		[Embed(source='../../graphic/block/split8.png')]
 		private var Split8:Class;
-		[Embed(source='../graphic/block/split9.png')]
+		[Embed(source='../../graphic/block/split9.png')]
 		private var Split9:Class;
-		[Embed(source='../graphic/block/split10.png')]
+		[Embed(source='../../graphic/block/split10.png')]
 		private var Split10:Class;
-		[Embed(source='../graphic/block/union0.png')]
+		[Embed(source='../../graphic/block/union0.png')]
 		private var Union0:Class;
-		[Embed(source='../graphic/block/union1.png')]
+		[Embed(source='../../graphic/block/union1.png')]
 		private var Union1:Class;
-		[Embed(source='../graphic/block/union2.png')]
+		[Embed(source='../../graphic/block/union2.png')]
 		private var Union2:Class;
-		[Embed(source='../graphic/block/union3.png')]
+		[Embed(source='../../graphic/block/union3.png')]
 		private var Union3:Class;
-		[Embed(source='../graphic/block/union4.png')]
+		[Embed(source='../../graphic/block/union4.png')]
 		private var Union4:Class;
-		[Embed(source='../graphic/block/union5.png')]
+		[Embed(source='../../graphic/block/union5.png')]
 		private var Union5:Class;
-		[Embed(source='../graphic/block/union6.png')]
+		[Embed(source='../../graphic/block/union6.png')]
 		private var Union6:Class;
-		[Embed(source='../graphic/block/union7.png')]
+		[Embed(source='../../graphic/block/union7.png')]
 		private var Union7:Class;
-		[Embed(source='../graphic/block/union8.png')]
+		[Embed(source='../../graphic/block/union8.png')]
 		private var Union8:Class;
-		[Embed(source='../graphic/block/union9.png')]
+		[Embed(source='../../graphic/block/union9.png')]
 		private var Union9:Class;
-		[Embed(source='../graphic/block/union10.png')]
+		[Embed(source='../../graphic/block/union10.png')]
 		private var Union10:Class;
-		[Embed(source='../graphic/block/ghost.png')]
+		[Embed(source='../../graphic/block/ghost.png')]
 		private var Ghost:Class;
-		[Embed(source='../graphic/block/non-break.png')]
+		[Embed(source='../../graphic/block/non-break.png')]
 		private var NonBreak:Class;
-		[Embed(source='../graphic/block/jewel.png')]
+		[Embed(source='../../graphic/block/jewel.png')]
 		private var Jewel:Class;
 	
 	}

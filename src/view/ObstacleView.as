@@ -15,13 +15,13 @@ package view
 	//TODO 桁の変わる更新があった時に表示がズレるバグを修正する。
 	public class ObstacleView extends BorderContainer 
 	{
-		[Embed(source='../graphic/obs1.png')]
+		[Embed(source='../../graphic/obs1.png')]
 		private var Obs1:Class;
-		[Embed(source='../graphic/obs10.png')]
+		[Embed(source='../../graphic/obs10.png')]
 		private var Obs10:Class;
-		[Embed(source='../graphic/obs100.png')]
+		[Embed(source='../../graphic/obs100.png')]
 		private var Obs100:Class;
-		[Embed(source='../graphic/obs1000.png')]
+		[Embed(source='../../graphic/obs1000.png')]
 		private var Obs1000:Class;
 		
 		private var _gameModel:GameModel;
