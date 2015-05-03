@@ -11,20 +11,17 @@
  *
  **/
 
-package net.hires.debug {
+package presentation {
 	
-	import flash.display.BitmapData;
-	import flash.display.Sprite;
-	import flash.events.Event;
-	import flash.events.MouseEvent;
-	import flash.geom.Matrix;
-	import flash.geom.Rectangle;
-	import flash.system.System;
-	import flash.text.StyleSheet;
-	import flash.text.TextField;
-	import flash.utils.getTimer;	
+	import flash.display.*;
+	import flash.events.*;
+	import flash.geom.*;
+	import flash.system.*;
+	import flash.text.*;
+	import flash.utils.*;
+	import mx.core.*;
 
-	public class Stats extends Sprite {	
+	public class Stats extends UIComponent {	
 
 		protected const WIDTH : uint = 70;
 		protected const HEIGHT : uint = 100;
