@@ -13,8 +13,7 @@ package common
 		
 		public static function trace(...args):void
 		{
-			args.unshift(" ");
-			var text:String = Utility.join.apply(null, args);
+			var text:String = args.join(" ");
 			dispatch(text);
 			Utility.global_trace(text);
 		}
