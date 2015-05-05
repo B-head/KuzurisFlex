@@ -150,7 +150,7 @@ package network {
 		{
 			if (!hasCurrentRoom(room) || player.peerID != selfPlayerInfo.peerID)
 			{
-				Main.appendLog("ignore connected");
+				Debug.trace("ignore connected");
 				return;
 			}
 			timeoutTimer.stop();
@@ -176,7 +176,7 @@ package network {
 			{
 				var host:PlayerInformation = currentRoom.getHostPlayer();
 				loungeGroup.sendPeer(host.peerID, requestConnectRoom, { room:currentRoom, player:player, battleIndex:battleIndex, password:password } );
-				Main.appendLog("relay request connect");
+				Debug.trace("relay request connect");
 				return;
 			}
 			if (password != roomPassword)

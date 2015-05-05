@@ -49,7 +49,7 @@ package network {
 			this.networkManager = networkManager;
 			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
 			initStream();
-			Main.appendLog("publish")
+			Debug.trace("publish")
 			reconnectTimer = new Timer(reconnectPeriod, reconnectRepeat);
 			reconnectTimer.addEventListener(TimerEvent.TIMER, reconnectTimerListener, false, 0, true);
 			reconnectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, reconnectTimerCompleteListener, false, 0, true);
@@ -99,7 +99,7 @@ package network {
 		
 		public function onPeerConnect(subscriber:NetStream):Boolean
 		{
-			Main.appendLog("onPeerConnect", subscriber.farID);
+			Debug.trace("onPeerConnect", subscriber.farID);
 			return true;
 		}
 		
@@ -160,7 +160,7 @@ package network {
 			for (var i:int = 0; i < peers.length; i++)
 			{
 				var ps:NetStream = peers[i] as NetStream;
-				Main.appendLog("peerStreams ", i, ps.farID);
+				Debug.trace("peerStreams ", i, ps.farID);
 			}
 		}
 		
@@ -170,7 +170,7 @@ package network {
 			for (var i:int = 0; i < peers.length; i++)
 			{
 				var ps:NetStream = peers[i] as NetStream;
-				Main.appendLog("unconnectedPeerStreams ", i, ps.farID);
+				Debug.trace("unconnectedPeerStreams ", i, ps.farID);
 			}
 		}
 		
@@ -256,7 +256,7 @@ package network {
 		
 		private function netStreamListener(e:NetStatusEvent):void
 		{
-			Main.appendLog(e.info.code, "self");
+			Debug.trace(e.info.code, "self");
 			switch (e.info.code)
 			{
 				case "NetStream.Failed":
@@ -268,20 +268,20 @@ package network {
 		
 		private function asyncErrorListener(e:AsyncErrorEvent):void
 		{
-			Main.appendLog(e.text, e.error, e.errorID, "self");
+			Debug.trace(e.text, e.error, e.errorID, "self");
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorListener(e:IOErrorEvent):void
 		{
-			Main.appendLog(e.text, e.errorID, "self");
+			Debug.trace(e.text, e.errorID, "self");
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.ioError, "インターネット接続にエラーがあります。\n接続状況を確認してから再度接続して下さい。\n\n" + e.text));
 		}
 		
 		private function mediaTypeDataListener(e:NetDataEvent):void
 		{
 			if (e.info.handler == gameCommnadHandlerName) return;
-			Main.appendLog(e.info.handler, "self");
+			Debug.trace(e.info.handler, "self");
 		}
 	}
 

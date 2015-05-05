@@ -1,10 +1,9 @@
 package network {
+	import common.*;
 	import events.*;
 	import flash.events.*;
 	import flash.net.*;
 	import flash.utils.*;
-	import common.EventDispatcherEX;
-	import view.Main;
 	
 	/**
 	 * ...
@@ -68,7 +67,7 @@ package network {
 			{
 				if (users[a] + timeoutPeriod < time)
 				{
-					Main.appendLog("removedUser");
+					Debug.trace("removedUser");
 					dispatchEvent(new UpdateUserEvent(UpdateUserEvent.removedUser, a));
 					delete users[a];
 				}
@@ -79,7 +78,7 @@ package network {
 		{
 			if (users[peerID] == null)
 			{
-				Main.appendLog("addedUser");
+				Debug.trace("addedUser");
 				dispatchEvent(new UpdateUserEvent(UpdateUserEvent.addedUser, peerID));
 			}
 			users[peerID] = getTimer();
@@ -108,7 +107,7 @@ package network {
 			netGroup.post(message);
 			if (type != keepAlivePalse && type != "playerUpdate")
 			{
-				Main.appendLog("post", message.type);
+				Debug.trace("post", message.type);
 			}
 		}
 		
@@ -119,7 +118,7 @@ package network {
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID, toPeerID);
 			var groupAddress:String = netGroup.convertPeerIDToGroupAddress(toPeerID);
 			var sendResult:String = netGroup.sendToNearest(message, groupAddress);
-			Main.appendLog("sendPeer", message.type, sendResult);
+			Debug.trace("sendPeer", message.type, sendResult);
 		}
 		
 		public function sendNeighbors(type:String, obj:Object = null):void
@@ -128,7 +127,7 @@ package network {
 			if (obj == null) obj = new Object();
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			var sendResult:String = netGroup.sendToAllNeighbors(message);
-			Main.appendLog("sendNeighbors", message.type, sendResult);
+			Debug.trace("sendNeighbors", message.type, sendResult);
 		}
 		
 		public function sendDecreasing(type:String, obj:Object = null):void
@@ -137,7 +136,7 @@ package network {
 			if (obj == null) obj = new Object();
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			var sendResult:String = netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_DECREASING);
-			Main.appendLog("sendDecreasing", message.type, sendResult);
+			Debug.trace("sendDecreasing", message.type, sendResult);
 		}
 		
 		public function sendIncreasing(type:String, obj:Object = null):void
@@ -146,7 +145,7 @@ package network {
 			if (obj == null) obj = new Object();
 			var message:MessageObject = new MessageObject(type, obj, networkManager.selfPeerID);
 			var sendResult:String = netGroup.sendToNeighbor(message, NetGroupSendMode.NEXT_INCREASING);
-			Main.appendLog("sendIncreasing", message.type, sendResult);
+			Debug.trace("sendIncreasing", message.type, sendResult);
 		}
 		
 		private function postingNotify(message:MessageObject, messageID:String):void
@@ -154,7 +153,7 @@ package network {
 			if (message == null) return;
 			if (message.type != keepAlivePalse && message.type != "playerUpdate")
 			{
-				Main.appendLog("postingNotify", message.type);
+				Debug.trace("postingNotify", message.type);
 			}
 			if (message.type == keepAlivePalse)
 			{
@@ -163,7 +162,7 @@ package network {
 			}
 			if (message.type == disconnected)
 			{
-				Main.appendLog("disconnectedUser", message.peerID);
+				Debug.trace("disconnectedUser", message.peerID);
 				dispatchEvent(new UpdateUserEvent(UpdateUserEvent.removedUser, message.peerID));
 				delete users[message.peerID];
 				return;
@@ -175,12 +174,12 @@ package network {
 		private function sendToNotify(message:MessageObject, from:String, fromLocal:Boolean):void
 		{
 			if (message == null) return;
-			Main.appendLog("sendToNotify", message.type);
+			Debug.trace("sendToNotify", message.type);
 			if (message.toPeerID != "" && message.toPeerID != networkManager.selfPeerID)
 			{
 				var groupAddress:String = netGroup.convertPeerIDToGroupAddress(message.toPeerID);
 				var sendResult:String = netGroup.sendToNearest(message, groupAddress);
-				Main.appendLog("sendRelay", message.type, sendResult);
+				Debug.trace("sendRelay", message.type, sendResult);
 				return;
 			}
 			dispatchEvent(new NotifyEvent(NotifyEvent.notify, message));
@@ -218,7 +217,7 @@ package network {
 		{
 			if (e.info.code != "NetGroup.Posting.Notify" && e.info.code != "NetGroup.SendTo.Notify")
 			{
-				Main.appendLog(e.info.code);
+				Debug.trace(e.info.code);
 			}
 			switch (e.info.code)
 			{

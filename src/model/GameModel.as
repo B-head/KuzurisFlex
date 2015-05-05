@@ -924,7 +924,7 @@ package model
 					return k;
 				}
 			}
-			throw new Error();
+			throw Debug.fail();
 		}
 		
 		private function alterTowerOdds(i:int):void

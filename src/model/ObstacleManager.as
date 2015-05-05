@@ -115,7 +115,7 @@ package model
 					if (!save && t.sequence >= trialSequence) return 0;
 					return -t.count;
 				default:
-					throw new Error();
+					throw Debug.fail();
 			}
 		}
 		

@@ -49,7 +49,7 @@ package common {
 			}
 			else
 			{
-				throw new Error();
+				Debug.fail();
 			}
 			return ret;
 		}

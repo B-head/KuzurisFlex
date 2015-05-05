@@ -1,4 +1,5 @@
 package presentation {
+	import common.Debug;
 	import events.*;
 	import model.*;
 	import flash.media.Sound;
@@ -221,7 +222,7 @@ package presentation {
 				case 20:
 					return new Line20();
 				default:
-					throw new Error();
+					throw Debug.fail();
 			}
 		}
 		

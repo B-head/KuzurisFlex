@@ -113,7 +113,7 @@ package model
 				case 1:
 					return digBattle;
 				default: 
-					throw new Error();
+					throw Debug.fail();
 			}
 		}
 		
@@ -211,7 +211,7 @@ package model
 				case 4: return Color.toIndex(Color.skyblue);
 				case 5: return Color.toIndex(Color.blue);
 				case 6: return Color.toIndex(Color.purple);
-				default: throw new Error();
+				default: throw Debug.fail();
 			}
 		}
 		

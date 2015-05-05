@@ -1,4 +1,5 @@
 package presentation {
+	import common.Debug;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.BlendMode;
@@ -79,7 +80,7 @@ package presentation {
 				case 8: return new Split8();
 				case 9: return new Split9();
 				case 10: return new Split10();
-				default: throw new Error();
+				default: throw Debug.fail();
 			}
 		}
 		
@@ -98,7 +99,7 @@ package presentation {
 				case 8: return new Union8();
 				case 9: return new Union9();
 				case 10: return new Union10();
-				default: throw new Error();
+				default: throw Debug.fail();
 			}
 		}
 		

@@ -136,7 +136,6 @@ package network {
 		
 		override public function initialize():void 
 		{
-			Main.resetTraceLog();
 			lastGameForwardTime = getTimer();
 			super.initialize();
 		}

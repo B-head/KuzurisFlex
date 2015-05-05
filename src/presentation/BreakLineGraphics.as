@@ -1,4 +1,5 @@
 package presentation {
+	import common.Debug;
 	import flash.display.*;
 	import flash.geom.Matrix;
 	import flash.utils.Dictionary;
@@ -93,7 +94,7 @@ package presentation {
 				case 20: 
 					return 0xFFFFFF;
 				default: 
-					throw new Error();
+					throw Debug.fail();
 			}
 		}
 	}

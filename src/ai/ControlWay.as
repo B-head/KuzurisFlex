@@ -77,7 +77,7 @@ package ai {
 			}
 			else
 			{
-				throw new Error();
+				Debug.fail();
 			}
 			var cr:Rect = currentModel.controlOmino.getRect();
 			var fr:Rect = getDirectionRect(cr, cw.dir);
@@ -116,7 +116,7 @@ package ai {
 					rect = Rect.getRotate(rect, GameCommand.right, GameModelBase.ominoSize);
 					break;
 				default:
-					throw new Error();
+					throw Debug.fail();
 			}
 			return rect;
 		}

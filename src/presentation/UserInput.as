@@ -1,4 +1,5 @@
 package presentation {
+	import common.Debug;
 	import events.*;
 	import flash.events.*;
 	import flash.ui.*;
@@ -128,7 +129,7 @@ package presentation {
 				case defaultKeyOnePlayer: setOnePlayerDefaultKeys(); break;
 				case defaultVersusPlayer1: setVersusPlayer1DefaultKeys(); break;
 				case defaultVersusPlayer2: setVersusPlayer2DefaultKeys(); break;
-				default: throw new Error();
+				default: throw Debug.fail();
 			}
 		}
 		

@@ -47,7 +47,7 @@ package network {
 			networkManager.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
 			this.selfControl = selfControl;
 			initStream();
-			Main.appendLog("play")
+			Debug.trace("play")
 			reconnectTimer = new Timer(reconnectPeriod, reconnectRepeat);
 			reconnectTimer.addEventListener(TimerEvent.TIMER, reconnectTimerListener, false, 0, true);
 			reconnectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, reconnectTimerCompleteListener, false, 0, true);
@@ -96,7 +96,7 @@ package network {
 		{
 			if (commandRecord.length < startIndex)
 			{
-				Main.appendLog("deficiency onGameCommnad");
+				Debug.trace("deficiency onGameCommnad");
 				selfControl.sendRequestCommand();
 				return;
 			}
@@ -108,7 +108,7 @@ package network {
 			}
 			if (sendHash != receiveSendHash)
 			{
-				Main.appendLog("ignore onGameCommnad");
+				Debug.trace("ignore onGameCommnad");
 				return;
 			}
 			commandRecord.length = Math.max(commandRecord.length, startIndex);
@@ -177,7 +177,7 @@ package network {
 			if (commandRecord.length <= currentCommandSequence ) return null;
 			if (gameModel.hash() != hashRecord[currentCommandSequence])
 			{
-				Main.appendLog("hash not equal", currentCommandSequence, gameModel.hash(), hashRecord[currentCommandSequence]);
+				Debug.trace("hash not equal", currentCommandSequence, gameModel.hash(), hashRecord[currentCommandSequence]);
 				dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.notEqualHash, "ゲームモデルのハッシュ値が一致しませんでした。"));
 				return null;
 			}
@@ -246,7 +246,7 @@ package network {
 		
 		private function netStreamListener(e:NetStatusEvent):void
 		{
-			Main.appendLog(e.info.code, "remote");
+			Debug.trace(e.info.code, "remote");
 			switch (e.info.code)
 			{
 				case "NetStream.Failed":
@@ -262,20 +262,20 @@ package network {
 		
 		private function asyncErrorListener(e:AsyncErrorEvent):void
 		{
-			Main.appendLog(e.text, e.error, e.errorID, "remote");
+			Debug.trace(e.text, e.error, e.errorID, "remote");
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorListener(e:IOErrorEvent):void
 		{
-			Main.appendLog(e.text, e.errorID, "remote");
+			Debug.trace(e.text, e.errorID, "remote");
 			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.ioError, "インターネット接続にエラーがあります。\n接続状況を確認してから再度接続して下さい。\n\n" + e.text));
 		}
 		
 		private function mediaTypeDataListener(e:NetDataEvent):void
 		{
 			if (e.info.handler == "onGameCommnad") return;
-			Main.appendLog(e.info.handler, "remote");
+			Debug.trace(e.info.handler, "remote");
 		}
 	}
 }

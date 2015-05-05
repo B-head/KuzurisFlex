@@ -8,15 +8,9 @@
 			import events.*;
 			import flash.display.*;
 			import flash.events.*;
-			import flash.media.*;
-			import flash.net.*;
 			import flash.ui.*;
 			import model.*;
-			import mx.core.*;
-			import mx.events.*;
 			import presentation.*;
-			import spark.components.*;
-			import spark.core.*;
 			
 			public static var blockGraphics:BlockGraphics;
 			public static var breakLineGraphics:BreakLineGraphics;
@@ -29,12 +23,10 @@
 			public static var autoBattleRepeat:Boolean;
 			public static var unstableNetworkTest:Boolean;
 			private static var pause:Vector.<uint>;
-			private static var traceLog:Vector.<String>;
-			private static var logView:RichEditableText;
 			
 			private function applicationCompleteListener():void
 			{
-				SharedObjectHelper.init();
+				Debug.addListener(appendLogListener);
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
 				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true);
 				blockGraphics = new BlockGraphics(16, 16);
@@ -45,36 +37,17 @@
 				compactBreakLineGraphics = new BreakLineGraphics(80, 8);
 				compactBreakBlockGraphics = new BreakBlockGraphics(8);
 				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE];
-				logView = _logView;
-				resetTraceLog();
+				SharedObjectHelper.init();
 			}
 			
-			public static function resetTraceLog():void
+			private function appendLogListener(e:AppendLogEvent):void
 			{
-				traceLog = new Vector.<String>();
-			}
-			
-			public static function getTraceLog():Vector.<String>
-			{
-				return traceLog.slice();
-			}
-			
-			public static function appendLog(...args):void
-			{
-				var text:String = "";
-				for (var i:int = 0; i < args.length; i++)
-				{
-					if (i > 0) text += " ";
-					text += args[i].toString();
-				}
 				if (logView != null)
 				{
 					if (logView.text.length > 0) logView.appendText("\r");
-					logView.appendText(text);
+					logView.appendText(e.text);
 					logView.verticalScrollPosition = logView.contentHeight - logView.height;
 				}
-				traceLog.push(text);
-				trace(text);
 			}
 			
 			private function onKeyDown(e:KeyboardEvent):void
@@ -224,5 +197,5 @@
 	<s:ToggleButton id="fullScreen" bottom="0" right="0" label="フルスクリーン" visible="false" click="fullScreenChangeListener(event)" 
 		icon="@Embed(source='../../graphic/full_screen.png')" />
 	<p:Stats id="stats" visible="false"/>
-	<s:RichEditableText id="_logView" width="100%" height="100%" visible="false" tabEnabled="false" mouseEnabled="false" color="{Color.white}" />
+	<s:RichEditableText id="logView" width="100%" height="100%" visible="false" tabEnabled="false" mouseEnabled="false" color="{Color.white}" />
 </s:Application>
