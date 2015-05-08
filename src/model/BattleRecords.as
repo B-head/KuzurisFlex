@@ -6,7 +6,7 @@ package model
 	 */
 	public class BattleRecords 
 	{
-		public static const recordsLength:int = 1000;
+		public static const recordsLength:int = 100;
 		
 		public var records:Array;
 		
@@ -18,7 +18,7 @@ package model
 		public function entry(record:GameReplayContainer):void
 		{
 			records.unshift(record);
-			if (records.length >= recordsLength) records.pop();
+			records.splice(recordsLength);
 		}
 		
 	}

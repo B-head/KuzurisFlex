@@ -20,6 +20,17 @@ package common {
 		
 		public static function init():void
 		{
+			registerClass();
+			transferSharedObject();
+			shared = SharedObject.getLocal("kuzuris", "/");
+			initInput();
+			initRanking();
+			initBattleReplays();
+			shared.flush(100000000);
+		}
+		
+		public static function registerClass():void
+		{
 			registerClassAlias("UserInput", UserInput);
 			registerClassAlias("GameModel", GameModel);
 			registerClassAlias("MainField", MainField);
@@ -38,14 +49,21 @@ package common {
 			registerClassAlias("MessageObject", MessageObject);
 			registerClassAlias("RoomInformation", RoomInformation);
 			registerClassAlias("PlayerInformation", PlayerInformation);
-			registerClassAlias("Utterance", Utterance);
-			shared = SharedObject.getLocal("kuzuris");
-			initInput();
-			initRanking();
-			initBattleReplays();
-			shared.flush(100000000);
+			registerClassAlias("Utterance", Utterance);	
 		}
 		
+		private static function transferSharedObject():void
+		{
+			var to:SharedObject = SharedObject.getLocal("kuzuris", "/");
+			var from:SharedObject = SharedObject.getLocal("kuzuris");
+			for (var s:String in from.data)
+			{
+				to.data[s] = from.data[s];
+			}
+			to.flush();
+			from.clear();
+		}
+
 		private static function initInput():void
 		{
 			if (shared.data.input == null)

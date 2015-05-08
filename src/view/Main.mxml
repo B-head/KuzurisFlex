@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-			   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:v="view.*" xmlns:p="presentation.*"
-			   applicationComplete="applicationCompleteListener()">
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:v="view.*" 
+		 xmlns:p="presentation.*">
 	<fx:Script>
 		<![CDATA[
 			import common.*;
@@ -22,10 +24,10 @@
 			
 			public static var autoBattleRepeat:Boolean;
 			public static var unstableNetworkTest:Boolean;
-			private static var pause:Vector.<uint>;
 			
-			private function applicationCompleteListener():void
+			public function init():void
 			{
+				SharedObjectHelper.init();
 				Debug.addListener(appendLogListener);
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
 				stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp, false, 0, true);
@@ -36,8 +38,6 @@
 				compactBlockGraphics = new BlockGraphics(8, 8);
 				compactBreakLineGraphics = new BreakLineGraphics(80, 8);
 				compactBreakBlockGraphics = new BreakBlockGraphics(8);
-				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE];
-				SharedObjectHelper.init();
 			}
 			
 			private function appendLogListener(e:AppendLogEvent):void
@@ -55,10 +55,6 @@
 				SharedObjectHelper.input.keyDown(e.keyCode);
 				SharedObjectHelper.inputVersus1.keyDown(e.keyCode);
 				SharedObjectHelper.inputVersus2.keyDown(e.keyCode);
-				if (pause.indexOf(e.keyCode) != -1)
-				{
-					dispatchEvent(new KuzurisEvent(KuzurisEvent.pressPauseKey));
-				}
 				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.P)
 				{
 					stats.visible = !stats.visible;
@@ -107,16 +103,7 @@
 			}
 		]]>
 	</fx:Script>
-
-	<fx:Style source="basic.css" />
-	<fx:Metadata>
-		[Event(name="pressPauseKey", type="event.KuzurisEvent")]
-	</fx:Metadata>
-
-	<fx:Declarations>
-		<p:BackGroundMugic id="bgm" />
-	</fx:Declarations>
-
+	
 	<s:states>
 		<s:State name="top" stateGroups="title" />
 		<s:State name="preTrial" stateGroups="title" />
@@ -137,7 +124,7 @@
 								  paddingLeft="4" paddingRight="4" />
 			</s:layout>
 			<s:Image source="@Embed(source='../../graphic/title-logo.png')" />
-			<s:Label text="Bata1 version" fontSize="24" color="{Color.skyblue}" />
+			<s:Label text="Bata2 version" fontSize="24" color="{Color.skyblue}" />
 			<s:Label text="Copyright © 2015 by B_head, All Rights Reserved." color="{Color.lightgray}" />
 		</s:BorderContainer>
 
@@ -198,4 +185,4 @@
 		icon="@Embed(source='../../graphic/full_screen.png')" />
 	<p:Stats id="stats" visible="false"/>
 	<s:RichEditableText id="logView" width="100%" height="100%" visible="false" tabEnabled="false" mouseEnabled="false" color="{Color.white}" />
-</s:Application>
+</s:Group>

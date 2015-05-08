@@ -15,7 +15,7 @@ package model
 		public var replayControl:Vector.<GameReplayControl>;
 		public var playerInfo:Vector.<PlayerInformation>;
 		public var record:Vector.<GameRecord>;
-		private var traceLog:Vector.<String>;
+		public var log:String;
 		
 		public function GameReplayContainer() 
 		{
@@ -23,7 +23,7 @@ package model
 			replayControl = new Vector.<GameReplayControl>();
 			playerInfo = new Vector.<PlayerInformation>();
 			record = new Vector.<GameRecord>();
-			traceLog = new Vector.<String>();
+			log = new String();
 		}
 		
 		public function get playerCount():int
@@ -56,9 +56,9 @@ package model
 			return record[0].breakLine;
 		}
 		
-		public function appendErrorLog(text:String):void
+		public function appendLog(text:String):void
 		{
-			traceLog.push(text);
+			log += text + "\r";
 		}
 	}
 

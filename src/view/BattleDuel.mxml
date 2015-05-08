@@ -224,6 +224,8 @@
 	
 	<v:GameView id="player1" x="18" y="24" battle="true" reverse="false" visible.battleRecords="false" playerIndex="0" gameManager="{manager}"/>
 	<v:GameView id="player2" x="436" y="24" battle="true" reverse="true" visible.battleRecords="false" playerIndex="1" gameManager="{manager}" />
+	<s:Label styleName="outcome win" x="{manager.getRank(0) == 1 ? 122 : 540}" y="128" width="192" visible="{isResult}" text="勝利" filters="{[glow]}"/>
+	<s:Label styleName="outcome lose" x="{manager.getRank(0) == 1 ? 540 : 122}" y="128" width="192" visible="{isResult}" text="敗北" filters="{[glow]}"/>
 	<v:DetailedRecordView id="recordView1" x="0" y="0" width="118" height="480" battle="true" visible="{isResult}" />
 	<v:DetailedRecordView id="recordView2" x="736" y="0" width="118" height="480" battle="true" visible="{isResult}" />
 	<v:KeyConfig includeIn="keyConfig" x="18" y="88" input="{input1 as UserInput}" visible="{input1 is UserInput}" navigateBack="currentState = 'prepare'"/>
@@ -266,6 +268,4 @@
 		<s:Button width="100" label="もういちど" buttonDown="restart()" />
 		<s:Button styleName="back" width="100" label="おわる" buttonDown="end()" />
 	</s:VGroup>
-	<s:Label styleName="outcome win" x="{manager.getRank(0) == 1 ? 122 : 540}" y="128" width="192" visible="{isResult}" text="勝利" filters="{[glow]}"/>
-	<s:Label styleName="outcome lose" x="{manager.getRank(0) == 1 ? 540 : 122}" y="128" width="192" visible="{isResult}" text="敗北" filters="{[glow]}"/>
 </s:Group>

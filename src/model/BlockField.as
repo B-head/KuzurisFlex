@@ -47,71 +47,85 @@ package model
 			return result;
 		}
 		
+		[inline]
 		public final function get verticalBlockCount():Vector.<int>
 		{
 			return _verticalBlockCount.slice();
 		}
 		
+		[inline]
 		public final function get horizontalBlockCount():Vector.<int>
 		{
 			return _horizontalBlockCount.slice();
 		}
 		
+		[inline]
 		public final function get blockCount():int
 		{
 			return _blockCount;
 		}
 		
+		[inline]
 		public final function get left():int
 		{
 			return _left;
 		}
 		
+		[inline]
 		public final function get top():int
 		{
 			return _top;
 		}
 		
+		[inline]
 		public final function get right():int
 		{
 			return _right;
 		}
 		
+		[inline]
 		public final function get bottom():int
 		{
 			return _bottom;
 		}
 		
+		[inline]
 		public final function get maxWidth():int
 		{
 			return _maxWidth;
 		}
 		
+		[inline]
 		public final function get maxHeight():int
 		{
 			return _maxHeight;
 		}
 		
+		[inline]
 		public final function get blockWidth():int
 		{
 			return _right - _left + 1;
 		}
 		
+		[inline]
 		public final function get blockHeight():int
 		{
 			return _bottom - _top + 1;
 		}
 		
+		[inline]
 		public final function get centerX():int
 		{
 			return (_right + _left) / 2;
 		}
 		
+		[inline]
 		public final function get centerY():int
 		{
 			return (_bottom + _top) / 2;
 		}
 		
+		[inline]
 		protected final function setState(x:int, y:int, state:BlockState):void
 		{
 			var v:BlockState = value[x][y];
@@ -134,6 +148,7 @@ package model
 			v.id = state.id;
 		}
 		
+		[inline]
 		protected final function clearState(x:int, y:int):void
 		{
 			var v:BlockState = value[x][y];
@@ -146,6 +161,7 @@ package model
 			}
 		}
 		
+		[inline]
 		protected final function setRect():void
 		{
 			for (_left = 0; _left < _maxWidth; _left++)
@@ -166,36 +182,43 @@ package model
 			}
 		}
 		
+		[inline]
 		public final function getType(x:int, y:int):Number
 		{
 			return value[x][y].type;
 		}
 		
+		[inline]
 		public final function getHitPoint(x:int, y:int):Number
 		{
 			return value[x][y].hitPoint;
 		}
 		
+		[inline]
 		public final function getColor(x:int, y:int):uint
 		{
 			return value[x][y].color;
 		}
 		
+		[inline]
 		public final function getSpecialUnion(x:int, y:int):Boolean
 		{
 			return value[x][y].specialUnion;
 		}
 		
+		[inline]
 		public final function getId(x:int, y:int):uint
 		{
 			return value[x][y].id;
 		}
 		
+		[inline]
 		public final function isExistBlock(x:int, y:int):Boolean
 		{
 			return !value[x][y].isEmpty();
 		}
 		
+		[inline]
 		public final function isUnionSideBlock(x:int, y:int):Boolean
 		{
 			var px:int = x + 1;
@@ -203,6 +226,12 @@ package model
 			var mx:int = x - 1;
 			if (mx >= 0 && !value[mx][y].isEmpty() && value[mx][y].hitPoint > 0) return true;
 			return false;
+		}
+		
+		[inline]
+		public final function getRect():Rect
+		{
+			return new Rect(_left, _top, _right, _bottom);
 		}
 		
 		public function copyTo(to:BlockField):void
@@ -334,11 +363,6 @@ package model
 			v.hitPoint = hitPoint;
 			onBlockDamageDelegate(pureDamage, distance, v.id, toSplit);
 			return Math.max(0, result);
-		}
-		
-		public function getRect():Rect
-		{
-			return new Rect(_left, _top, _right, _bottom);
 		}
 		
 		public function writeExternal(output:IDataOutput):void 

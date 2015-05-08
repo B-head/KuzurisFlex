@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*" 
+			   xmlns:p="presentation.*"
+			   applicationComplete="applicationCompleteListener()">
+	<fx:Script>
+		<![CDATA[
+			import events.*;
+			import flash.events.*;
+			
+			public static var pause:Vector.<uint>;
+			
+			private function applicationCompleteListener():void
+			{
+				pause = new <uint>[Keyboard.ENTER, Keyboard.BACKSPACE, Keyboard.ESCAPE];
+				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
+				main.init();
+			}
+			
+			private function onKeyDown(e:KeyboardEvent):void
+			{
+				if (pause.indexOf(e.keyCode) != -1)
+				{
+					dispatchEvent(new KuzurisEvent(KuzurisEvent.pressPauseKey));
+				}
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Metadata>
+		[Event(name="pressPauseKey", type="event.KuzurisEvent")]
+	</fx:Metadata>
+
+	<fx:Declarations>
+		<p:BackGroundMugic id="bgm" />
+	</fx:Declarations>
+	
+	<fx:Style source="./basic.css" />
+	<v:Main id="main"/>
+</s:Application>
