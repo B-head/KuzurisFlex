@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+               xmlns:s="library://ns.adobe.com/flex/spark" 
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:v="view.*">
+	<fx:Script>
+	    <![CDATA[
+		import common.*;
+		import events.*;
+		import flash.utils.*;
+		import model.*;
+		import presentation.*;
+		
+		private var _gameModel:GameModel;
+		private var keyDictionary:Dictionary;
+		[Bindable]
+		private var userInput:UserInput;
+		[Bindable]
+		private var stateNumber:int;
+		private var useMove:Boolean;
+		private var useRotation:Boolean;
+		private var useFall:Boolean;
+		
+		private const enableTime:Vector.<int> = new <int> [
+			120, 120, 120, 600, 600, 600
+		];
+		
+		public function get gameModel():GameModel
+		{
+			return _gameModel;
+		}
+		public function set gameModel(value:GameModel):void
+		{
+			_gameModel = value;
+			_gameModel.addTerget(ControlEvent.moveOK, moveListener);
+			_gameModel.addTerget(ControlEvent.rotationOK, rotationListener);
+			_gameModel.addTerget(ControlEvent.fallShock, fallListener);
+			_gameModel.addTerget(ControlEvent.fallShockSave, fallListener);
+			keyDictionary = Utility.makeKeyDictionary();
+			userInput = SharedObjectHelper.input;
+			useMove = false;
+			useRotation = false;
+			useFall = false;
+			stateNumber = 0;
+		}
+		
+		public function update():void
+		{
+			if (!enabled || stateNumber > 5) return;
+			if (fadeIn.isPlaying || fadeOut.isPlaying) return;
+			if (_gameModel.record.gameTime < enableTime[stateNumber]) return;
+			if (hasEnableState(stateNumber))
+			{
+				if (container.alpha <= 0)
+				{
+					fadeIn.play([container]);
+				}
+			}
+			else
+			{
+				if (container.alpha >= 1)
+				{
+					fadeOut.play([container]);
+				}
+				else
+				{
+					stateNumber++;
+				}
+			}
+		}
+		
+		private function isFaster():Boolean
+		{
+			return _gameModel.record.ominoPerControlMinute() >= 30;
+		}
+		
+		private function toFirstKey(keys:Vector.<uint>):String
+		{
+			if (keys.length == 0) return "NONE";
+			return keyDictionary[keys[0]];
+		}
+		
+		private function hasEnableState(stateNumber:int):Boolean
+		{
+			switch (stateNumber)
+			{
+				case 0:
+					return !useMove;
+				case 1:
+					return !useFall;
+				case 2:
+					return !useRotation;
+				case 3:
+					return !isFaster() && _gameModel.record.breakLine < 2;
+				case 4:
+					return !isFaster() && _gameModel.record.splitBlock < 10;
+				case 5:
+					return !isFaster() && _gameModel.record.comboCount < 2;
+				default:
+					return false;
+			}
+		}
+		
+		private function moveListener(e:ControlEvent):void
+		{
+			useMove = true;
+		}
+		
+		private function rotationListener(e:ControlEvent):void
+		{
+			useRotation = true;
+		}
+		
+		private function fallListener(e:ControlEvent):void
+		{
+			useFall = true;
+		}
+	    ]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:Fade id="fadeIn" alphaFrom="0" alphaTo="1" duration="250"/>
+		<s:Fade id="fadeOut" alphaFrom="1" alphaTo="0" duration="250"/>
+	</fx:Declarations>
+	
+	<s:BorderContainer id="container" width="100%" alpha="0">
+		<s:VGroup styleName="cram" width="100%" visible="{stateNumber == 0}" includeInLayout="{stateNumber == 0}">
+			<s:HGroup width="100%" styleName="cram" horizontalAlign="center">
+				<v:BorderLabel>{toFirstKey(userInput.leftMove)}</v:BorderLabel>
+				<s:Label>か</s:Label>
+				<v:BorderLabel>{toFirstKey(userInput.rightMove)}</v:BorderLabel>
+				<s:Label>で左右移動</s:Label>
+			</s:HGroup>
+		</s:VGroup>
+		<s:VGroup styleName="cram" width="100%" visible="{stateNumber == 1}" includeInLayout="{stateNumber == 1}">
+			<s:HGroup width="100%" styleName="cram" horizontalAlign="center">
+				<v:BorderLabel>{toFirstKey(userInput.fastFalling)}</v:BorderLabel>
+				<s:Label>で高速落下</s:Label>
+			</s:HGroup>
+			<s:HGroup width="100%" styleName="cram" horizontalAlign="center">
+				<v:BorderLabel>{toFirstKey(userInput.earthFalling)}</v:BorderLabel>
+				<s:Label>で瞬間接地</s:Label>
+			</s:HGroup>
+		</s:VGroup>
+		<s:VGroup styleName="cram" width="100%" visible="{stateNumber == 2}" includeInLayout="{stateNumber == 2}">
+			<s:HGroup width="100%" styleName="cram" horizontalAlign="center">
+				<v:BorderLabel>{toFirstKey(userInput.rightRotation)}</v:BorderLabel>
+				<s:Label>か</s:Label>
+				<v:BorderLabel>{toFirstKey(userInput.leftRotation)}</v:BorderLabel>
+				<s:Label>で回転</s:Label>
+			</s:HGroup>
+		</s:VGroup>
+		<s:VGroup styleName="cram" width="100%" visible="{stateNumber == 3}" includeInLayout="{stateNumber == 3}" horizontalAlign="center">
+			<s:Label>横一列のラインを</s:Label>
+			<s:Label>ブロックで敷き詰めると</s:Label>
+			<s:Label styleName="strong">ブロックが消えます</s:Label>
+		</s:VGroup>
+		<s:VGroup styleName="cram" width="100%" visible="{stateNumber == 4}" includeInLayout="{stateNumber == 4}" horizontalAlign="center">
+			<s:Label>ブロック同士をぶつけると</s:Label>
+			<s:Label>ブロックの数字が減ります</s:Label>
+			<s:Label>数字が０になると</s:Label>
+			<s:Label styleName="strong">ブロックの角が取れて</s:Label>
+			<s:Label styleName="strong">バラバラに崩れます</s:Label>
+		</s:VGroup>
+		<s:VGroup styleName="cram" width="100%" visible="{stateNumber == 5}" includeInLayout="{stateNumber == 5}" horizontalAlign="center">
+			<s:Label styleName="strong">連続でブロックを消すと</s:Label>
+			<s:Label styleName="strong">『コンボ』ボーナス</s:Label>
+			<s:Label>より多くのスコアを</s:Label>
+			<s:Label>得ることができます</s:Label>
+		</s:VGroup>
+	</s:BorderContainer>
+</s:Group>

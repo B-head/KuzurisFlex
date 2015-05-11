@@ -109,6 +109,7 @@
 			control.x = _gameModel.cox * blockGraphics.blockWidth + 16;
 			control.y = _gameModel.coy * blockGraphics.blockHeight - 256;
 			breakLineContainer.update();
+			tutorial.update();
 			incrementFrame();
 		}
 		
@@ -158,16 +159,18 @@
 			<s:Image source="{Color.coloring(new Frame(), 192, 336, Color.blue)}"/>
 		</s:Group>
 		<v:BreakLineScoreBoard x="0" y="66" width="192" battle="{battle}" gameModel="{_gameModel}"/>
-		<p:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}"
+		<p:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" breakBlockGraphics="{breakBlockGraphics}"
 			visible.pause="false" showSpecial="true" isGhost="true" />
-		<p:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
-			visible.pause="false" showSpecial="true"/>
-		<p:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
-			visible.pause="false" showSpecial="true"/>
-		<p:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" shockEffectHelper="{shockEffectHelper}" 
-			visible.pause="false" showSpecial="true"/>
-		<p:BreakLineEffectContainer id="breakLineContainer" x="16" y="-256" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
+		<p:BlockFieldView id="control" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" breakBlockGraphics="{breakBlockGraphics}"
+			shockEffectHelper="{shockEffectHelper}" visible.pause="false" showSpecial="true"/>
+		<p:BlockFieldView id="main" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" breakBlockGraphics="{breakBlockGraphics}" 
+			shockEffectHelper="{shockEffectHelper}" visible.pause="false" showSpecial="true"/>
+		<p:BlockFieldView id="fall" blockGraphics="{blockGraphics}" shockGraphics="{shockGraphics}" breakBlockGraphics="{breakBlockGraphics}" 
+			shockEffectHelper="{shockEffectHelper}" visible.pause="false" showSpecial="true"/>
+		<p:BreakLineEffectContainer id="breakLineContainer" x="16" y="-256" 
+			breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
 		<v:BonusScoreBoard x="0" verticalCenter="0" width="192" battle="{battle}" gameModel="{_gameModel}"/>
+		<v:TutorialBoard id="tutorial" x="16" bottom="368" width="160" enabled="{!battle}" gameModel="{_gameModel}"/>
 		<s:Label styleName="ready" x="0" verticalCenter="0" width="192" text="レディ" visible="false" visible.ready="true" />
 		<p:ObstacleView id="obstacle" x="16" y="0" width="160" height="32" visible="false" gameModel="{_gameModel}"/>
 		<s:BorderContainer x="16" y="400" width="160" height="32" visible="{playerInfo != null}" cacheAsBitmap="true">

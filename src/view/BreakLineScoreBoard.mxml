@@ -78,7 +78,7 @@
 	
 	<s:VGroup id="scoreBoard" styleName="field-record" width="100%" visible="false" horizontalAlign="justify" gap="1" cacheAsBitmap="true" filters="{[glow]}">
 		<s:Label styleName="break-combo" visible="{comboCount > 0}">{comboCount}コンボ</s:Label>
-		<s:HGroup styleName="main-record" horizontalAlign="center" gap="0">
+		<s:HGroup styleName="main-record cram" horizontalAlign="center">
 			<s:Label styleName="break-line">{breakLine}</s:Label>
 			<s:Label styleName="technical-spin" includeInLayout="{technicalSpinTotal > 0}" visible="{technicalSpinTotal > 0}">+{technicalSpinTotal}</s:Label>
 			<s:Label styleName="break-line">ライン</s:Label>

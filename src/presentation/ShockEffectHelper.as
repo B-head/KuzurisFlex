@@ -87,6 +87,17 @@ package presentation {
 			return ret;
 		}
 		
+		public function hasImmediatelySplit(id:uint):Boolean
+		{
+			var v:Vector.<ShockEffectState> = shockDictionary[id];
+			if (v == null) return false;
+			for (var i:int = 0; i < v.length; i++)
+			{
+				if(v[i].toSplit && v[i].frameCount <= 1) return true;
+			}
+			return false;
+		}
+		
 		private function findState(vec:Vector.<ShockEffectState>, gameTime:int):ShockEffectState
 		{
 			for (var i:int = 0; i < vec.length; i++)

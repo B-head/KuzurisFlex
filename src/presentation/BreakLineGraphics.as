@@ -28,7 +28,7 @@ package presentation {
 				for (var c:int = 0; c <= 20; c++)
 				{
 					var color:uint = indexToColor(c);
-					var bitmap:BitmapData = new BitmapData(width, height, true, 　0x00000000);
+					var bitmap:BitmapData = new BitmapData(width, height, true, 0x00000000);
 					var shape:Shape = new Shape();
 					var grf:Graphics = shape.graphics;
 					var matrix:Matrix = new Matrix();

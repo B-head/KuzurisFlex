@@ -11,7 +11,7 @@ package presentation {
 	 */
 	public class BreakBlockGraphics 
 	{
-		public var normal:Vector.<Vector.<BitmapData>>;
+		public var fireworks:Vector.<Vector.<BitmapData>>;
 		public var jewel:Vector.<Vector.<BitmapData>>;
 		public var size:Number;
 		public var offsetX:Number;
@@ -24,31 +24,32 @@ package presentation {
 			this.size = size;
 			this.offsetX = -size;
 			this.offsetY = -size;
-			normal = new Vector.<Vector.<BitmapData>>(19);
+			fireworks = new Vector.<Vector.<BitmapData>>(19);
 			jewel = new Vector.<Vector.<BitmapData>>(19);
 			for (var c:int; c < 19; c++)
 			{
-				normal[c] = new Vector.<BitmapData>(frameMax);
+				fireworks[c] = new Vector.<BitmapData>(frameMax);
 				jewel[c] = new Vector.<BitmapData>(frameMax);
 				var color:uint = Color.toColor(c);
 				var pixels:Vector.<PixelState> = makePixelStates(size * 3, color, size * size);
 				for (var i:int = 0; i < frameMax; i++)
 				{
-					var n:BitmapData = new BitmapData(size * 3, size * 3, true, 0);
-					drawNormalGraphics(n, color, pixels, i);
-					normal[c][i] = n;
-					var g:BitmapData = new BitmapData(size * 3, size * 3, true, 0);
-					drawGemGraphics(g, color, i);
-					jewel[c][i] = g;
+					var fw:BitmapData = new BitmapData(size * 3, size * 3, true, 0);
+					drawFireworksGraphics(fw, color, pixels, i);
+					fireworks[c][i] = fw;
+					var j:BitmapData = new BitmapData(size * 3, size * 3, true, 0);
+					drawJewelGraphics(j, color, i);
+					jewel[c][i] = j;
 				}
 			}
 		}
 		
-		private function drawNormalGraphics(bitmap:BitmapData, color:uint, pixels:Vector.<PixelState>, frame:int):void
+		private function drawFireworksGraphics(bitmap:BitmapData, color:uint, pixels:Vector.<PixelState>, frame:int):void
 		{
 			var p:Number = (frame + 1) / frameMax;
 			for (var i:int = 0; i < pixels.length; ++i)
 			{
+				//if (pixels[i].lifeTime < p) continue;
 				var o:int = size * (1 - p) * 1.5;
 				var x:int = o + pixels[i].x * p;
 				var y:int = o + pixels[i].y * p;
@@ -56,7 +57,7 @@ package presentation {
 			}
 		}
 		
-		private function drawGemGraphics(bitmap:BitmapData, color:uint, frame:int):void
+		private function drawJewelGraphics(bitmap:BitmapData, color:uint, frame:int):void
 		{
 			var p:Number = 1 - frame / frameMax;
 			var np:Number = 1 - p;
@@ -82,6 +83,7 @@ package presentation {
 				var s:Number = size / 2;
 				if (vectorLangth(ps.x - s, ps.y - s) > s) continue;
 				ps.color = Color.brightnessTransform(color, Math.random());
+				ps.lifeTime = Math.random();
 				ret.push(ps);
 			}
 			return ret;
@@ -99,4 +101,5 @@ internal class PixelState
 	public var x:int;
 	public var y:int;
 	public var color:uint;
+	public var lifeTime:Number;
 }

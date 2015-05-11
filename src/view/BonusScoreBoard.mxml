@@ -9,8 +9,13 @@
 		import common.*;
 		import events.*;
 		import model.*;
+		import mx.core.*;
+		import mx.effects.*;
 		
 		private var _gameModel:GameModel;
+		private var levelUpEffectInstance:IEffectInstance;
+		private var allClearEffectInstance:IEffectInstance;
+		private var jewelAllClearEffectInstance:IEffectInstance;
 		
 		public function get gameModel():GameModel
 		{
@@ -22,9 +27,18 @@
 			_gameModel.addTerget(LevelClearEvent.levelClear, levelClearListener);
 			_gameModel.addTerget(GameEvent.blockAllClear, allClearListener);
 			_gameModel.addTerget(GameEvent.jewelAllClear, excellentListener);
+			_gameModel.addTerget(ControlEvent.moveOK, omitEffectListener);
+			_gameModel.addTerget(ControlEvent.rotationOK, omitEffectListener);
 			levelUp.visible = false;
 			allClear.visible = false;
 			jewelAllClear.visible = false;
+		}
+		
+		private function omitEffectPlay(comp:UIComponent, inst:IEffectInstance):void
+		{
+			if (inst == null) return;
+			inst.stop();
+			omitEffect.play([comp]);
 		}
 		
 		private function levelClearListener(e:LevelClearEvent):void
@@ -32,19 +46,27 @@
 			upLevel = e.upLevel;
 			plusScore = e.plusScore;
 			clearTime = e.clearTime;
-			bonusEffect.play([levelUp]);
+			levelUpEffectInstance = bonusEffect.createInstance(levelUp);
+			levelUpEffectInstance.play();
 		}
 		
 		private function allClearListener(e:GameEvent):void
 		{
-			bonusEffect.play([allClear]);
+			allClearEffectInstance = bonusEffect.createInstance(allClear);
+			allClearEffectInstance.play();
 		}
 		
 		private function excellentListener(e:GameEvent):void
 		{
-			bonusEffect.play([jewelAllClear]);
+			jewelAllClearEffectInstance = bonusEffect.createInstance(jewelAllClear);
+			jewelAllClearEffectInstance.play();
 		}
-
+		
+		private function omitEffectListener(e:ControlEvent):void
+		{
+			omitEffectPlay(levelUp, levelUpEffectInstance);
+			omitEffectPlay(jewelAllClear, jewelAllClearEffectInstance);
+		}
 		]]>
 	</fx:Script>
 	
@@ -58,12 +80,16 @@
 		<s:Parallel id="bonusEffect">
 			<s:Sequence>
 				<s:Move xFrom="80" xTo="0" duration="500"/>
-				<s:Move xFrom="0" xTo="-80" duration="500" startDelay="1000"/>
+				<s:Move xTo="-80" duration="500" startDelay="1000"/>
 			</s:Sequence>
 			<s:Sequence>
 				<s:Fade alphaFrom="0" alphaTo="1" duration="500"/>
-				<s:Fade alphaFrom="1" alphaTo="0" duration="500" startDelay="1000"/>
+				<s:Fade alphaTo="0" duration="500" startDelay="1000"/>
 			</s:Sequence>
+		</s:Parallel>
+		<s:Parallel id="omitEffect">
+			<s:Move xTo="-80" duration="500"/>
+			<s:Fade alphaTo="0" duration="500"/>
 		</s:Parallel>
 	</fx:Declarations>
 	

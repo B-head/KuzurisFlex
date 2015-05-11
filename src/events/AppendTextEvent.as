@@ -7,18 +7,19 @@ package events
 	 * ...
 	 * @author B_head
 	 */
-	public class AppendLogEvent extends TextEvent 
+	public class AppendTextEvent extends TextEvent 
 	{
 		public static const appendLog:String = "appendLog";
+		public static const appendChat:String = "appendChat";
 		
-		public function AppendLogEvent(type:String, text:String) 
+		public function AppendTextEvent(type:String, text:String) 
 		{ 
 			super(type, false, false, text);
 		} 
 		
 		public override function clone():Event 
 		{ 
-			return new AppendLogEvent(type, text);
+			return new AppendTextEvent(type, text);
 		} 
 		
 		public override function toString():String 

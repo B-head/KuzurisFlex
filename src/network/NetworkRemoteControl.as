@@ -147,7 +147,7 @@ package network {
 		
 		public function onNetworkGameReady(playerIndex:int, setting:GameSetting, seed:XorShift128, delay:int):void
 		{
-			dispatchEvent(new NetworkGameReadyEvent(NetworkGameReadyEvent.networkGameReady, playerIndex, setting, seed, delay));
+			dispatchEvent(new GameReadyEvent(GameReadyEvent.networkGameReady, playerIndex, setting, seed, delay));
 		}
 		
 		public function get peerID():String { return _peerID; }
@@ -263,7 +263,7 @@ package network {
 		private function asyncErrorListener(e:AsyncErrorEvent):void
 		{
 			Debug.trace(e.text, e.error, e.errorID, "remote");
-			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
+			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerで非同期エラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorListener(e:IOErrorEvent):void

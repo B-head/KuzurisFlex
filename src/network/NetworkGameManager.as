@@ -19,7 +19,7 @@ package network {
 		private static const replyState:String = "replyState";
 		
 		private var networkManager:NetworkManager;
-		private var roomManager:RoomManager;
+		private var roomManager:LobbyManager;
 		private var roomGroup:NetworkGroupManager;
 		private var selfControl:NetworkSelfControl;
 		private var currentRoom:RoomInformation;
@@ -31,7 +31,7 @@ package network {
 		
 		private const gameStopLimit:int = 10000;
 		
-		public function NetworkGameManager(maxPlayer:int, networkManager:NetworkManager, roomManager:RoomManager) 
+		public function NetworkGameManager(maxPlayer:int, networkManager:NetworkManager, roomManager:LobbyManager) 
 		{
 			super(maxPlayer);
 			this.networkManager = networkManager;
@@ -41,8 +41,8 @@ package network {
 			roomGroup.addTerget(KuzurisEvent.disposed, disposedListener);
 			currentRoom = roomManager.currentRoom;
 			currentRoom.entrant.addEventListener(CollectionEvent.COLLECTION_CHANGE, collectionChangeListener, false, 0, true);
-			selfControl = networkManager.getSelfGameControl(roomManager.selfInput);
-			//selfControl = networkManager.getSelfGameControl(GameAIManager.createDefaultAI());
+			//selfControl = networkManager.getSelfGameControl(roomManager.selfInput);
+			selfControl = networkManager.getSelfGameControl(GameAIManager.createDefaultAI());
 			selfPlayerInfo = roomManager.selfPlayerInfo;
 		}
 		
@@ -128,7 +128,7 @@ package network {
 			ret.removeAll();
 			ret.addTerget(KuzurisEvent.gameSync, createGameSyncListener(index), false);
 			ret.addTerget(KuzurisEvent.gameSyncReply, createGameSyncReplayListener(index), false);
-			ret.addTerget(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
+			ret.addTerget(GameReadyEvent.networkGameReady, networkGameReadyListener);
 			ret.addTerget(KuzurisErrorEvent.notEqualHash, createNotEqualHashListener(index), false);
 			ret.addTerget(KuzurisErrorEvent.streamDrop, createStreamDropListener(index), false);
 			return ret;
@@ -281,7 +281,7 @@ package network {
 					if (i == selfPlayerIndex)
 					{
 						selfControl.sendReady(-1, null, seed, 120);
-						dispatchEvent(new NetworkGameReadyEvent(NetworkGameReadyEvent.networkGameReady, i, setting, seed, 120));
+						dispatchEvent(new GameReadyEvent(GameReadyEvent.networkGameReady, i, setting, seed, 120));
 					}
 					else
 					{
@@ -293,7 +293,7 @@ package network {
 			}
 		}
 		
-		private function networkGameReadyListener(e:NetworkGameReadyEvent):void
+		private function networkGameReadyListener(e:GameReadyEvent):void
 		{
 			if (e.playerIndex != selfPlayerIndex) return;
 			dispatchEvent(e);

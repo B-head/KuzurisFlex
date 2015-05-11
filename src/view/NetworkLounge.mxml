@@ -18,7 +18,7 @@
 			[Bindable]
 			private var networkManager:NetworkManager;
 			[Bindable]
-			private var roomManager:RoomManager;
+			private var roomManager:LobbyManager;
 			[Bindable]
 			private var battleRecords:BattleRecords;
 			
@@ -44,7 +44,7 @@
 			
 			private function loungeConnectSuccessListener(e:KuzurisEvent):void
 			{
-				roomManager = new RoomManager(networkManager);
+				roomManager = new LobbyManager(networkManager);
 				roomManager.addTerget(KuzurisEvent.roomConnectSuccess, roomConnectSuccessListener);
 				roomManager.addTerget(KuzurisErrorEvent.differPassword, roomConnectErrorListener);
 				roomManager.addTerget(KuzurisErrorEvent.roomConnectFailed, roomConnectErrorListener);

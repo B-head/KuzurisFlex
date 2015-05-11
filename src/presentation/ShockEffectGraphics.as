@@ -31,15 +31,15 @@ package presentation {
 			for (var i:int = 0; i < frameMax; i++)
 			{
 				var n:BitmapData = new BitmapData(blockWidth * 4, blockHeight, true, 0);
-				drawGraphics(n, 3, Color.skyblue, i);
+				drawShockWaveGraphics(n, 3, Color.skyblue, i);
 				normal[i] = n;
 				var ts:BitmapData = new BitmapData(blockWidth * 4, blockHeight, true, 0);
-				drawGraphics(ts, 6, Color.orange, i);
+				drawShockWaveGraphics(ts, 6, Color.orange, i);
 				toSplit[i] = ts;
 			}
 		}
 		
-		private function drawGraphics(bitmap:BitmapData, thickness:int, color:uint, frame:int):void
+		private function drawShockWaveGraphics(bitmap:BitmapData, thickness:int, color:uint, frame:int):void
 		{
 			var shape:Shape = new Shape();
 			var grf:Graphics = shape.graphics;

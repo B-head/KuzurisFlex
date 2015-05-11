@@ -1,6 +1,6 @@
 package common 
 {
-	import events.AppendLogEvent;
+	import events.AppendTextEvent;
 	
 	/**
 	 * ...
@@ -36,17 +36,17 @@ package common
 		
 		public static function addListener(listener:Function, useWeakReference:Boolean = true):void
 		{
-			dispatcher.addTerget(AppendLogEvent.appendLog, listener, useWeakReference);
+			dispatcher.addTerget(AppendTextEvent.appendLog, listener, useWeakReference);
 		}
 		
 		public static function removeListener(listener:Function):void
 		{
-			dispatcher.removeTerget(AppendLogEvent.appendLog, listener);
+			dispatcher.removeTerget(AppendTextEvent.appendLog, listener);
 		}
 		
 		private static function dispatch(text:String):void
 		{
-			dispatcher.dispatchEvent(new AppendLogEvent(AppendLogEvent.appendLog, text));
+			dispatcher.dispatchEvent(new AppendTextEvent(AppendTextEvent.appendLog, text));
 		}
 	}
 }

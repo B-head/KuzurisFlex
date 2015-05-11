@@ -18,7 +18,7 @@
 			[Bindable]
 			public var networkManager:NetworkManager;
 			[Bindable]
-			public var roomManager:RoomManager;
+			public var roomManager:LobbyManager;
 			[Bindable]
 			private var networkGameManager:NetworkGameManager;
 			[Bindable]
@@ -36,7 +36,7 @@
 				networkGameManager = roomManager.createGameManager();
 				networkGameManager.addTerget(KuzurisEvent.gameStart, startListener);
 				networkGameManager.addTerget(KuzurisEvent.gameEnd, endListener);
-				networkGameManager.addTerget(NetworkGameReadyEvent.networkGameReady, networkGameReadyListener);
+				networkGameManager.addTerget(GameReadyEvent.networkGameReady, networkGameReadyListener);
 				networkGameManager.addTerget(KuzurisEvent.playerUpdate, playerUpdateListener);
 				networkGameManager.addTerget(KuzurisEvent.completedSyncState, completedSyncStateListener);
 				networkGameManager.addTerget(KuzurisErrorEvent.gameAbort, gameAbortListener);
@@ -115,7 +115,7 @@
 				prepare();
 			}
 			
-			private function networkGameReadyListener(e:NetworkGameReadyEvent):void
+			private function networkGameReadyListener(e:GameReadyEvent):void
 			{
 				if (networkGameManager.isEnter())
 				{

@@ -12,6 +12,7 @@ package presentation {
 		public var distance:int;
 		public var toSplit:Boolean;
 		public var frameCount:int;
+		public var fireworksDirection:Number;
 		
 		public function ShockEffectState(e:ShockBlockEvent) 
 		{
@@ -20,11 +21,17 @@ package presentation {
 			distance = e.distance;
 			toSplit = e.toSplit;
 			frameCount = 0;
+			fireworksDirection = int(Math.random() * 4) * 90;
 		}
 		
-		public function getGraphicFrame():int
+		public function getShockWaveFrame():int
 		{
 			return Math.min(ShockEffectGraphics.frameMax - 1, reviseFrame());
+		}
+		
+		public function getFireworksFrame():int
+		{
+			return Math.min(ShockEffectGraphics.frameMax - 1, frameCount);
 		}
 		
 		public function getDamageRest():Number
@@ -43,10 +50,15 @@ package presentation {
 			return reviseFrame() >= ShockEffectGraphics.frameMax;
 		}
 		
-		public function isVisible():Boolean
+		public function isShockWaveVisible():Boolean
 		{
 			var a:Number = Math.min(1, damage / GameSetting.hitPointMax);
 			return frameCount >= delayFrame() && reviseFrame() < ShockEffectGraphics.frameMax * a;
+		}
+		public function isFireworksVisible():Boolean
+		{
+			if (!toSplit) return false;
+			return frameCount < ShockEffectGraphics.frameMax;
 		}
 		
 		private function delayFrame():int

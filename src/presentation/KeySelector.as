@@ -1,4 +1,5 @@
 package presentation {
+	import common.Utility;
 	import flash.events.*;
 	import flash.ui.*;
 	import flash.utils.*;
@@ -38,15 +39,7 @@ package presentation {
 			addEventListener(FocusEvent.FOCUS_OUT, onFocusOut);
 			addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
-			keyDictionary = new Dictionary();
-			var kd:XML = describeType(Keyboard);
-			var kn:XMLList = kd.constant.@name;
-			var kl:int = kn.length();
-			for (var i:int = 0; i < kl; i++)
-			{
-				var str:String = String(kn[i]);
-				keyDictionary[Keyboard[str]] = str;
-			}
+			keyDictionary = Utility.makeKeyDictionary();
 			pressKey = uint.MAX_VALUE;
 		}
 		

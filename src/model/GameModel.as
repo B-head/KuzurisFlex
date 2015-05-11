@@ -640,6 +640,7 @@ package model
 				completedObstacle = true;
 				completedTower = true;
 				technicalSpinFlag = false;
+				if (comboCount > 0) _record.comboCount++;
 				comboCount++;
 			}
 			else
@@ -969,6 +970,7 @@ package model
 		
 		override protected function onBlockDamage(damage:Number, distance:int, id:uint, toSplit:Boolean):void 
 		{
+			if (toSplit) _record.splitBlock++;
 			dispatchEvent(new ShockBlockEvent(ShockBlockEvent.shockDamage, _record.gameTime, 0, damage, Number.NaN, distance, id, toSplit));
 		}
 		

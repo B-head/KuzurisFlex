@@ -12,9 +12,13 @@ package model
 		[Bindable] 
 		public var breakLine:int;
 		[Bindable] 
+		public var comboCount:int;
+		[Bindable] 
 		public var chainLines:Array;
 		[Bindable] 
 		public var blockDamage:int;
+		[Bindable] 
+		public var splitBlock:int;
 		[Bindable] 
 		public var fixOmino:int;
 		[Bindable] 
@@ -40,8 +44,10 @@ package model
 			var ret:GameRecord = new GameRecord();
 			ret.level = level;
 			ret.breakLine = breakLine;
+			ret.comboCount = comboCount;
 			ret.chainLines = chainLines.slice();
 			ret.blockDamage = blockDamage;
+			ret.splitBlock = splitBlock;
 			ret.fixOmino = fixOmino;
 			ret.occurObstacle = occurObstacle;
 			ret.receivedObstacle = receivedObstacle;

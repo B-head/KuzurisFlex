@@ -17,7 +17,7 @@ package network {
 	[Event(name="asyncError", type="events.KuzurisErrorEvent")]
 	[Event(name="loungeConnectFailed", type="events.KuzurisErrorEvent")]
 	[Event(name="roomConnectFailed", type="events.KuzurisErrorEvent")]
-	[Event(name="NET_STATUS", type="flash.events..NetStatusEvent")]
+	[Event(name="NET_STATUS", type="flash.events.NetStatusEvent")]
 	public class NetworkManager extends EventDispatcherEX
 	{
 		private const CirrusAddress:String = "rtmfp://p2p.rtmfp.net/";
@@ -37,7 +37,6 @@ package network {
 		public function connect():void
 		{
 			netConnection = new NetConnection();
-			netConnection.maxPeerConnections = 1024;
 			netConnection.addEventListener(NetStatusEvent.NET_STATUS, netConnectionListener, false, 0, true);
 			netConnection.addEventListener(IOErrorEvent.IO_ERROR, ioErrorLintener, false, 0, true);
 			netConnection.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorListener, false, 0, true);
@@ -179,6 +178,7 @@ package network {
 		
 		private function netConnectionListener(e:NetStatusEvent):void
 		{
+			Debug.trace(e.info.code);
 			switch (e.info.code)
 			{
 				case "NetConnection.Connect.AppShutdown":
@@ -238,13 +238,12 @@ package network {
 					break;
 			}
 			dispatchEvent(e);
-			Debug.trace(e.info.code);
 		}
 		
 		private function asyncErrorListener(e:AsyncErrorEvent):void
 		{
 			Debug.trace(e.text, e.error, e.errorID);
-			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
+			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerで非同期エラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorLintener(e:IOErrorEvent):void

@@ -16,7 +16,7 @@ package network {
 	[Event(name="roomConnectSuccess", type="events.KuzurisEvent")]
 	[Event(name="differPassword", type="events.KuzurisErrorEvent")]
 	[Event(name="roomConnectFailed", type="events.KuzurisErrorEvent")]
-	public class RoomManager extends EventDispatcherEX
+	public class LobbyManager extends EventDispatcherEX
 	{
 		private static const collectRoom:String = "collectRoom";
 		private static const offerRoom:String = "offerRoom";
@@ -41,7 +41,7 @@ package network {
 		
 		private const timeoutPeriod:int = 10000;
 		
-		public function RoomManager(networkManager:NetworkManager) 
+		public function LobbyManager(networkManager:NetworkManager) 
 		{
 			rooms = new ArrayCollection(new Array());
 			rooms.filterFunction = roomFilterFunction;

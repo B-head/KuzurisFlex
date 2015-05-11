@@ -269,7 +269,7 @@ package network {
 		private function asyncErrorListener(e:AsyncErrorEvent):void
 		{
 			Debug.trace(e.text, e.error, e.errorID, "self");
-			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerにエラーが発生しました。\n\n" + e.text));
+			dispatchEvent(new KuzurisErrorEvent(KuzurisErrorEvent.asyncError, "Flash playerで非同期エラーが発生しました。\n\n" + e.text));
 		}
 		
 		private function ioErrorListener(e:IOErrorEvent):void

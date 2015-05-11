@@ -22,6 +22,10 @@
 		]]>
 	</fx:Script>
 	
+	<fx:Metadata>
+		[DefaultProperty("label")]
+	</fx:Metadata>
+	
 	<s:Rect left="1" right="1" top="1" bottom="1" radiusX="{getStyle('corner-radius')}">
 		<s:stroke>            
 			<s:SolidColorStroke color="{getStyle('border-color')}"/>

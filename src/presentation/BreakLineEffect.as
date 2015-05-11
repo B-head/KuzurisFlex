@@ -1,11 +1,9 @@
 package presentation {
-	import flash.display.DisplayObject;
-	import model.*;
+	import common.*;
 	import events.*;
-	import flash.display.Sprite;
-	import flash.display.Bitmap;
-	import flash.display.BitmapData;
-	import presentation.BreakBlockGraphics;
+	import flash.display.*;
+	import model.*;
+	import presentation.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -64,7 +62,7 @@ package presentation {
 					blockEffects[i].x = breakBlockGraphics.size * (i - 1);
 					blockEffects[i].y = -breakBlockGraphics.size;
 					blockEffects[i].rotation = 0;
-					rotate(blockEffects[i], blockRotations[i], breakBlockGraphics.size * 1.5, breakBlockGraphics.size * 1.5);
+					Utility.rotate(blockEffects[i], blockRotations[i], breakBlockGraphics.size * 1.5, breakBlockGraphics.size * 1.5);
 				}
 			}
 			else
@@ -76,28 +74,6 @@ package presentation {
 				}
 				isFree = true;
 			}
-		}
-		
-		private function rotate(disp:DisplayObject, rotation:Number, x:Number, y:Number):void 
-		{
-			var x1:Number, y1:Number;
-			var rad1:Number = degreesToRadians(disp.rotation);
-			x1 = x * Math.cos(rad1) - y * Math.sin(rad1);
-			y1 = x * Math.sin(rad1) + y * Math.cos(rad1);
-
-			var x2:Number, y2:Number;
-			var rad2:Number = degreesToRadians(rotation);
-			x2 = x * Math.cos(rad2) - y * Math.sin(rad2);
-			y2 = x * Math.sin(rad2) + y * Math.cos(rad2);
-
-			disp.rotation = rotation;
-			disp.x += x1 - x2;
-			disp.y += y1 - y2;
-		}
-
-		private function degreesToRadians(degrees:Number):Number 
-		{
-			return (degrees/180) * Math.PI;
 		}
 	}
 

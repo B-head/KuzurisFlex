@@ -8,7 +8,7 @@ package events
 	 * ...
 	 * @author B_head
 	 */
-	public class NetworkGameReadyEvent extends Event 
+	public class GameReadyEvent extends Event 
 	{
 		public static const networkGameReady:String = "networkGameReady";
 		
@@ -17,7 +17,7 @@ package events
 		public var seed:XorShift128;
 		public var delay:int;
 		
-		public function NetworkGameReadyEvent(type:String, playerIndex:int, setting:GameSetting, seed:XorShift128, delay:int) 
+		public function GameReadyEvent(type:String, playerIndex:int, setting:GameSetting, seed:XorShift128, delay:int) 
 		{ 
 			super(type);
 			this.playerIndex = playerIndex;
@@ -28,7 +28,7 @@ package events
 		
 		public override function clone():Event 
 		{ 
-			return new NetworkGameReadyEvent(type, playerIndex, setting, seed, delay);
+			return new GameReadyEvent(type, playerIndex, setting, seed, delay);
 		} 
 	}
 	

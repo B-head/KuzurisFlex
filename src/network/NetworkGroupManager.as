@@ -28,7 +28,7 @@ package network {
 		private var users:Dictionary;
 		private var timer:Timer;
 		
-		private const announcePeriod:int = 5000;
+		private const announcePeriod:int = 2000;
 		private const timeoutPeriod:int = 10000;
 		
 		private const keepAlivePalse:String = "keepAlivePalse";

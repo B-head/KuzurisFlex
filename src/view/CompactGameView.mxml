@@ -132,11 +132,12 @@
 			<s:Image source="{Color.coloring(new Frame(), 192, 336, Color.blue)}" scaleX="0.5" scaleY="0.5"/>
 		</s:Group>
 		<v:BreakLineScoreBoard x="0" y="18" width="96" battle="{battle}" gameModel="{_gameModel}"/>
-		<p:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true" isGhost="true"/>
-		<p:BlockFieldView id="control" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<p:BlockFieldView id="main" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<p:BlockFieldView id="fall" blockGraphics="{blockGraphics}" visible.pause="false" showSpecial="true"/>
-		<p:BreakLineEffectContainer id="breakLineContainer" x="8" y="-144" breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
+		<p:BlockFieldView id="ghost" blockGraphics="{blockGraphics}" breakBlockGraphics="{breakBlockGraphics}" visible.pause="false" showSpecial="true" isGhost="true"/>
+		<p:BlockFieldView id="control" blockGraphics="{blockGraphics}" breakBlockGraphics="{breakBlockGraphics}" visible.pause="false" showSpecial="true"/>
+		<p:BlockFieldView id="main" blockGraphics="{blockGraphics}" breakBlockGraphics="{breakBlockGraphics}" visible.pause="false" showSpecial="true"/>
+		<p:BlockFieldView id="fall" blockGraphics="{blockGraphics}" breakBlockGraphics="{breakBlockGraphics}" visible.pause="false" showSpecial="true"/>
+		<p:BreakLineEffectContainer id="breakLineContainer" x="8" y="-144" 
+			breakLineGraphics="{breakLineGraphics}" breakBlockGraphics="{breakBlockGraphics}" gameModel="{_gameModel}" />
 		<v:BonusScoreBoard x="0" y="96" width="96" battle="{battle}" gameModel="{_gameModel}"/>
 		<s:Label styleName="ready" x="0" verticalCenter="0" width="96" text="レディ" visible="false" visible.ready="true" />
 		<p:ObstacleView id="obstacle" x="8" y="0" width="80" height="16" blockScale="0.5" visible="false" gameModel="{_gameModel}"/>

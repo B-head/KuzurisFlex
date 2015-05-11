@@ -10,6 +10,8 @@ s|HGroup{padding-top:4px;padding-right:4px;padding-bottom:4px;padding-left:4px;g
 s|VGroup{padding-top:4px;padding-right:4px;padding-bottom:4px;padding-left:4px;gap:4px;}
 s|DataGrid{background-color:rgb(53,161,107);border-color:rgb(53,161,107);content-background-color:rgb(0,0,0);content-background-alpha:0.8;}
 s|DefaultGridItemRenderer{color:rgb(255,255,255);}
+.cram{padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;gap:0px;}
+.strong{color:rgb(0,65,255);font-family:noto-sans-strong;}
 .current-record-item{color:rgb(255,153,0);}
 .title-menu{font-size:24px;corner-radius:8;}
 .hard-mode{chrome-color:rgb(255,40,0);}

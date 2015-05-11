@@ -71,6 +71,19 @@ s|DefaultGridItemRenderer {
 	color: rgb(255, 255, 255);
 }
 
+.cram {
+	padding-top: 0px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	gap: 0px;
+}
+
+.strong {
+	color: rgb(0, 65, 255);
+	font-family: noto-sans-strong;
+}
+
 .current-record-item {
 	color: rgb(255, 153, 0);
 }

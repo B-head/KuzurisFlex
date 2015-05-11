@@ -1,4 +1,8 @@
 package common {
+	import flash.display.*;
+	import flash.ui.*;
+	import flash.utils.*;
+	import model.*;
 	/**
 	 * ...
 	 * @author B_head
@@ -8,6 +12,72 @@ package common {
 		public static function global_trace(...args):void
 		{
 			trace.apply(null, args);
+		}
+		
+		public static function makeSendHash(commandRecord:Vector.<GameCommand>, hashRecord:Vector.<uint>):uint
+		{
+			var ret:uint = 0;
+			for (var i:int = 0; i < commandRecord.length; i++)
+			{
+				ret ^= commandRecord[i].toUInt();
+			}
+			for (var k:int = 0; k < hashRecord.length; k++)
+			{
+				ret ^= hashRecord[k];
+			}
+			return ret;
+		}
+		
+		public static function makeKeyDictionary():Dictionary
+		{
+			var ret:Dictionary = new Dictionary();
+			var kd:XML = describeType(Keyboard);
+			var kn:XMLList = kd.constant.@name;
+			var kl:int = kn.length();
+			for (var i:int = 0; i < kl; i++)
+			{
+				var key:String = String(kn[i]);
+				var str:String = key;
+				switch (key)
+				{
+					case "UP":
+						str = "↑";
+						break;
+					case "DOWN":
+						str = "↓";
+						break;
+					case "LEFT":
+						str = "←";
+						break;
+					case "RIGHT":
+						str = "→";
+						break;
+				}
+				ret[Keyboard[key]] = str;
+			}
+			return ret;
+		}
+		
+		public static function rotate(disp:DisplayObject, rotation:Number, x:Number, y:Number):void 
+		{
+			var x1:Number, y1:Number;
+			var rad1:Number = degreesToRadians(disp.rotation);
+			x1 = x * Math.cos(rad1) - y * Math.sin(rad1);
+			y1 = x * Math.sin(rad1) + y * Math.cos(rad1);
+
+			var x2:Number, y2:Number;
+			var rad2:Number = degreesToRadians(rotation);
+			x2 = x * Math.cos(rad2) - y * Math.sin(rad2);
+			y2 = x * Math.sin(rad2) + y * Math.cos(rad2);
+
+			disp.rotation = rotation;
+			disp.x += x1 - x2;
+			disp.y += y1 - y2;
+		}
+
+		public static function degreesToRadians(degrees:Number):Number 
+		{
+			return (degrees/180) * Math.PI;
 		}
 		
 		public static function summation(a:Number):Number
@@ -44,6 +114,14 @@ package common {
 				ret += list[i];
 			}
 			return ret
+		}
+		
+		public static function copyTo(from:*, to:*, startIndex:uint):void
+		{
+			for (var i:int = 0; i < from.length; i++)
+			{
+				to[startIndex + i] = from[i];
+			}
 		}
 		
 		public static function insert(list:*, index:int, ...items):void

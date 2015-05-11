@@ -1,11 +1,9 @@
 package presentation {
-	import flash.display.Bitmap;
-	import flash.geom.ColorTransform;
-	import model.BlockField;
-	import model.BlockState;
-	import model.GameSetting;
-	import mx.core.UIComponent;
-	import mx.core.UIComponentCachePolicy;
+	import common.*;
+	import flash.display.*;
+	import flash.geom.*;
+	import model.*;
+	import mx.core.*;
 	
 	/**
 	 * ...
@@ -18,53 +16,52 @@ package presentation {
 			
 		public var blockGraphics:BlockGraphics;
 		public var shockGraphics:ShockEffectGraphics;
+		public var breakBlockGraphics:BreakBlockGraphics;
 		public var shockEffectHelper:ShockEffectHelper;
 		public var showSpecial:Boolean;
 		public var isGhost:Boolean;
-		
-		private var blocks:Vector.<Bitmap>;
-		private var effects:Vector.<Bitmap>;
+		private var bitmaps:Vector.<Bitmap>;
+		private var bitmapIndex:int;
 		
 		public function BlockFieldView() 
 		{
 			super();
-			this.blocks = new Vector.<Bitmap>();
-			this.effects = new Vector.<Bitmap>();
+			this.bitmaps = new Vector.<Bitmap>();
 		}
 		
 		public function update(field:BlockField, shockSave:Boolean):void
 		{
+			bitmapIndex = 0;
 			if (field == null)
 			{
-				reset();
+				postHidden();
 				return;
 			}
 			var w:int = field.maxWidth;
 			var h:int = field.maxHeight;
-			var blockIndex:int = 0;
-			var effectIndex:int = 0;
 			for (var x:int = 0; x < w; x++)
 			{
 				for (var y:int = 0; y < h; y++)
 				{
 					if (!field.isExistBlock(x, y)) continue;
-					if (blockIndex >= blocks.length) addBlock();
-					var bbm:Bitmap = blocks[blockIndex++];
 					var effectDamageRest:Number = 0;
+					var flashStrongth:Number = 0;
 					if (shockEffectHelper != null)
 					{
 						var id:uint = field.getId(x, y);
 						effectDamageRest = shockEffectHelper.getDamageRest(id);
-						effectIndex = updateEffects(id, x, y, effectIndex);
+						//flashStrongth = (shockEffectHelper.hasImmediatelySplit(id) ? 1 : 0);
+						updateEffects(id, x, y, field);
 					}
-					updateBlock(bbm, x, y, effectDamageRest, field, shockSave);
+					updateBlock(x, y, effectDamageRest, flashStrongth, field, shockSave);
 				}
 			}
-			postHidden(blockIndex, effectIndex);
+			postHidden();
 		}
 		
-		private function updateBlock(bbm:Bitmap, x:int, y:int, effectDamageRest:Number, field:BlockField, shockSave:Boolean):void
+		private function updateBlock(x:int, y:int, effectDamageRest:Number, flashStrongth:Number, field:BlockField, shockSave:Boolean):void
 		{
+			var bb:Bitmap = getBitmap();
 			var type:uint = field.getType(x, y);
 			var color:uint = field.getColor(x, y);
 			var hitPoint:Number = field.getHitPoint(x, y);
@@ -73,13 +70,12 @@ package presentation {
 			var graphicIndex:int = Math.min(blockGraphics.blockLength, reviseHitPoint);
 			graphicIndex = Math.max(graphicIndex, 0);
 			graphicIndex = Math.min(graphicIndex, blockGraphics.blockLength - 1);
-			bbm.visible = true;
-			bbm.x = x * blockGraphics.blockWidth;
-			bbm.y = y * blockGraphics.blockHeight;
-			bbm.transform.colorTransform = createColorTransform(effectDamageRest, specialUnion, shockSave);
+			bb.x = x * blockGraphics.blockWidth;
+			bb.y = y * blockGraphics.blockHeight;
+			bb.transform.colorTransform = createColorTransform(flashStrongth, specialUnion, shockSave);
 			if (isGhost)
 			{
-				bbm.bitmapData = blockGraphics.ghost[color];
+				bb.bitmapData = blockGraphics.ghost[color];
 				return;
 			}
 			switch(type)
@@ -87,54 +83,65 @@ package presentation {
 				case BlockState.normal:
 					if (hitPoint > 0)
 					{
-						bbm.bitmapData = blockGraphics.union[color][graphicIndex];
+						bb.bitmapData = blockGraphics.union[color][graphicIndex];
 					}
 					else
 					{
-						bbm.bitmapData = blockGraphics.split[color][graphicIndex];
+						bb.bitmapData = blockGraphics.split[color][graphicIndex];
 					}
 					break;
 				case BlockState.nonBreak:
-					bbm.bitmapData = blockGraphics.nonBreak[color];
+					bb.bitmapData = blockGraphics.nonBreak[color];
 					break;
 				case BlockState.jewel:
-					bbm.bitmapData = blockGraphics.jewel[color];
+					bb.bitmapData = blockGraphics.jewel[color];
 					break;
 				default:
-					bbm.bitmapData = null;
+					bb.bitmapData = null;
 					break;
 			}
 		}
 		
-		private function updateEffects(id:uint, x:int, y:int, effectIndex:int):int
+		private function updateEffects(id:uint, x:int, y:int, field:BlockField):void
 		{
 			var effectStates:Vector.<ShockEffectState> = shockEffectHelper.getEffectState(id);
-			if (effectStates == null) return effectIndex;
+			if (effectStates == null) return;
 			for (var i:int = 0; i < effectStates.length; i++)
 			{
 				var es:ShockEffectState = effectStates[i];
-				if (!es.isVisible()) continue;
-				if (effectIndex >= effects.length) addEffect();
-				var reviseFrame:int = es.getGraphicFrame();
-				var ebm:Bitmap = effects[effectIndex++];
-				ebm.visible = true;
-				if (es.toSplit)
+				if (es.isShockWaveVisible())
 				{
-					ebm.bitmapData = shockGraphics.toSplit[reviseFrame];
+					var shockWaveFrame:int = es.getShockWaveFrame();
+					var swb:Bitmap = getBitmap();
+					if (es.toSplit)
+					{
+						swb.bitmapData = shockGraphics.toSplit[shockWaveFrame];
+					}
+					else
+					{
+						swb.bitmapData = shockGraphics.normal[shockWaveFrame];
+					}
+					swb.x = x * shockGraphics.blockWidth + shockGraphics.offsetX;
+					swb.y = y * shockGraphics.blockHeight + shockGraphics.offsetY;
 				}
-				else
+				if (false && es.isFireworksVisible())
 				{
-					ebm.bitmapData = shockGraphics.normal[reviseFrame];
+					var fireworksFrame:int = es.getFireworksFrame();
+					var dir:Number = es.fireworksDirection;
+					var color:uint = field.getColor(x, y);
+					var fwb:Bitmap = getBitmap();
+					fwb.bitmapData = breakBlockGraphics.fireworks[color][fireworksFrame];
+					fwb.x = x * breakBlockGraphics.size - breakBlockGraphics.size;
+					fwb.y = y * breakBlockGraphics.size - breakBlockGraphics.size;
+					fwb.rotation = 0;
+					Utility.rotate(fwb, dir, breakBlockGraphics.size * 1.5, breakBlockGraphics.size * 1.5);
 				}
-				ebm.x = x * shockGraphics.blockWidth + shockGraphics.offsetX;
-				ebm.y = y * shockGraphics.blockHeight + shockGraphics.offsetY;
 			}
-			return effectIndex;
 		}
 		
-		private function createColorTransform(effectDamageRest:Number, specialUnion:Boolean, shockSave:Boolean):ColorTransform
+		private function createColorTransform(flashStrongth:Number, specialUnion:Boolean, shockSave:Boolean):ColorTransform
 		{
-			var tedr:Number = Math.min(1, effectDamageRest / GameSetting.hitPointMax);
+			var tedr:Number = Math.min(1, flashStrongth);
 			var multi:Number = 1 - tedr;
 			var offset:int = 0xFF * tedr;
 			var colorTransform:ColorTransform = new ColorTransform(multi, multi, multi, 1, offset, offset, offset, 0);
@@ -152,32 +159,23 @@ package presentation {
 			return colorTransform;
 		}
 		
-		private function reset():void
+		private function postHidden():void
 		{
-			for (var i:int = 0; i < blocks.length; i++)
+			while (bitmapIndex < bitmaps.length) bitmaps[bitmapIndex++].visible = false;
+		}
+		
+		private function getBitmap():Bitmap
+		{
+			if (bitmapIndex >= bitmaps.length)
 			{
-				blocks[i].visible = false;
+				var add:Bitmap = new Bitmap();
+				bitmaps.push(add);
+				addChildAt(add, 0);
 			}
-		}
-		
-		private function postHidden(blockIndex:int, effectIndex:int):void
-		{
-			while (blockIndex < blocks.length) blocks[blockIndex++].visible = false;
-			while (effectIndex < effects.length) effects[effectIndex++].visible = false;
-		}
-		
-		private function addBlock():void
-		{
-			var add:Bitmap = new Bitmap();
-			blocks.push(add);
-			addChildAt(add, 0);
-		}
-		
-		private function addEffect():void
-		{
-			var add:Bitmap = new Bitmap();
-			effects.push(add);
-			addChild(add);
+			var ret:Bitmap = bitmaps[bitmapIndex++];
+			ret.visible = true;
+			ret.rotation = 0;
+			return ret;
 		}
 	}
 

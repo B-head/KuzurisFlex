@@ -40,7 +40,7 @@
 				compactBreakBlockGraphics = new BreakBlockGraphics(8);
 			}
 			
-			private function appendLogListener(e:AppendLogEvent):void
+			private function appendLogListener(e:AppendTextEvent):void
 			{
 				if (logView != null)
 				{
@@ -74,6 +74,10 @@
 				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.M && currentState == "top")
 				{
 					currentState = "battleMulti";
+				}
+				if (e.shiftKey && e.ctrlKey && e.keyCode == Keyboard.E && currentState == "top")
+				{
+					currentState = "experiment";
 				}
 			}
 			
@@ -114,6 +118,7 @@
 		<s:State name="network" />
 		<s:State name="howToPlay" />
 		<s:State name="credit" />
+		<s:State name="experiment" />
 	</s:states>
 
 	<s:Image width="854" height="480" source="@Embed(source='../../graphic/photo0000-1251.jpg')" scaleMode="zoom" cacheAsBitmap="true"/>
@@ -172,6 +177,7 @@
 	<v:BattleDuel id="battleDuel" includeIn="battleDuel" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<v:BattleMulti id="battleMulti" includeIn="battleMulti" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<v:NetworkLounge id="network" includeIn="network" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
+	<v:Experiment id="experiment" includeIn="experiment" itemDestructionPolicy="auto" navigateBack="currentState = 'top'" />
 	<s:BorderContainer id="credit" includeIn="credit" verticalCenter="0" horizontalCenter="0">
 		<s:VGroup horizontalAlign="center">
 			<s:Label fontSize="24">効果音素材</s:Label>
